@@ -103,7 +103,7 @@
             <div class="mt-6 text-center text-sm">
                 <p class="text-gray-600">
                     이미 계정이 있으신가요?
-                    <a href="login.html" class="font-medium text-teal-600 hover:text-teal-500 transition-colors duration-200">
+                    <a href="index.html" class="font-medium text-teal-600 hover:text-teal-500 transition-colors duration-200">
                         로그인
                     </a>
                 </p>
@@ -115,8 +115,8 @@
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // Import collection, query, where, getDocs, and collectionGroup for nickname duplication check
-        import { getFirestore, doc, setDoc, collection, query, where, getDocs, collectionGroup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Import doc, setDoc, collection, query, where, getDocs for Firestore operations
+        import { getFirestore, doc, setDoc, collection, query, where, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase configuration (provided by the environment)
         const firebaseConfig = JSON.parse(`{"apiKey": "AIzaSyBJFAV4-QMggAW2K1YtpsXIZ5PQ8KJzo9k", "authDomain": "crafiq-a.firebaseapp.com", "projectId": "crafiq-a", "storageBucket": "crafiq-a.firebasestorage.app", "messagingSenderId": "176082460783", "appId": "1:176082460783:web:cd0b594cc803932eaa2d9a", "measurementId": "G-QB84Z9EMZW"}`);
@@ -218,13 +218,13 @@
 
             // --- Nickname Duplication Check ---
             try {
-                // Use collectionGroup to query across all 'userProfiles' subcollections
-                // This allows checking for nicknames regardless of the parent user ID.
-                const q = query(collectionGroup(db, 'userProfiles'), where("nickname", "==", nickname));
-                const querySnapshot = await getDocs(q);
+                // Reference to the specific nickname document in the dedicated nicknames collection
+                // The document ID is the nickname itself.
+                const nicknameDocRef = doc(db, `artifacts/${appId}/public/data/nicknames`, nickname);
+                const nicknameDocSnap = await getDoc(nicknameDocRef); // Use getDoc for a specific document
 
-                if (!querySnapshot.empty) {
-                    // If the querySnapshot is not empty, it means a user with this nickname already exists
+                if (nicknameDocSnap.exists()) {
+                    // If the document exists, the nickname is already taken
                     console.error('이미 사용 중인 닉네임입니다.');
                     showMessage('이미 사용 중인 닉네임입니다.', 'bg-red-600');
                     return; // Stop the registration process
@@ -254,12 +254,21 @@
                     // Add any other profile data here
                 });
 
+                // 3. Claim the nickname in the dedicated nicknames collection
+                // This ensures global uniqueness and is protected by security rules.
+                const nicknameClaimRef = doc(db, `artifacts/${appId}/public/data/nicknames`, nickname);
+                await setDoc(nicknameClaimRef, {
+                    nickname: nickname, // Store the nickname as a field (redundant but good for clarity/querying)
+                    userId: userId, // Store the user ID who claimed this nickname
+                    claimedAt: new Date().toISOString()
+                });
+
                 console.log('회원가입 성공:', user);
                 console.log('Firestore에 닉네임 저장 성공:', nickname);
                 showMessage('회원가입이 성공적으로 완료되었습니다!', 'bg-teal-600');
 
-                // Redirect to login.html after successful registration
-                window.location.href = 'login.html';
+                // Redirect to index.html after successful registration
+                window.location.href = 'index.html';
 
             } catch (error) {
                 console.error('회원가입 오류:', error);
