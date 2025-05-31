@@ -88,16 +88,16 @@
                     </svg>
                 </button>
                 <div id="auth-section" class="flex items-center space-x-4">
-                    <button id="login-signup-btn" class="hidden px-4 py-2 rounded-full text-sm font-semibold transition-all duration-500 text-white border border-white hover:bg-white hover:text-teal-600">
+                    <button id="login-signup-btn" class="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-500 text-white border border-white hover:bg-white hover:text-teal-600">
                         로그인/회원가입
                     </button>
-                    <div id="user-info-display" class="relative hidden items-center space-x-2">
-                        <div id="user-nickname-container" class="cursor-pointer flex items-center space-x-1">
-                            <span id="user-nickname" class="text-sm font-semibold text-white"></span>
+                    <div id="user-info-display" class="relative hidden items-center space-x-1">
+                        <span id="user-nickname" class="text-sm font-semibold text-white"></span>
+                        <button id="dropdown-toggle-btn" class="cursor-pointer p-1 rounded-full hover:bg-white/10 transition-colors">
                             <svg id="dropdown-arrow-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white transition-transform" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
-                        </div>
+                        </button>
                         <div id="user-dropdown-menu" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden z-20">
                             <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 프로필</a>
                             <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">설정</a>
@@ -334,12 +334,12 @@
         const tabButtons = document.querySelectorAll('.flex.space-x-4.mb-6 button');
 
         // Auth-related DOM elements
-        const authSection = document.getElementById('auth-section');
+        const authSection = document.getElementById('auth-section'); // This now contains both login/signup and user info display
         const loginSignupBtn = document.getElementById('login-signup-btn');
         const userInfoDisplay = document.getElementById('user-info-display');
-        const userNicknameContainer = document.getElementById('user-nickname-container');
         const userNicknameSpan = document.getElementById('user-nickname');
-        const dropdownArrowIcon = document.getElementById('dropdown-arrow-icon'); // New: Get the arrow icon
+        const dropdownToggleBtn = document.getElementById('dropdown-toggle-btn'); // Renamed from userNicknameContainer
+        const dropdownArrowIcon = document.getElementById('dropdown-arrow-icon');
         const userDropdownMenu = document.getElementById('user-dropdown-menu');
         const logoutBtn = document.getElementById('logout-btn');
 
@@ -434,17 +434,30 @@
             });
 
             // Update search icon color
-            header.querySelector('button svg').parentNode.classList.toggle('text-gray-600', isScrolled);
-            header.querySelector('button svg').parentNode.classList.toggle('text-white', !isScrolled);
-            header.querySelector('button svg').parentNode.classList.toggle('hover:text-teal-600', isScrolled);
-            header.querySelector('button svg').parentNode.classList.toggle('hover:text-gray-300', !isScrolled);
+            const searchButton = document.querySelector('header .flex.items-center.space-x-4:last-child button');
+            if (searchButton) {
+                searchButton.classList.toggle('text-gray-600', isScrolled);
+                searchButton.classList.toggle('text-white', !isScrolled);
+                searchButton.classList.toggle('hover:text-teal-600', isScrolled);
+                searchButton.classList.toggle('hover:text-gray-300', !isScrolled);
+            }
 
             // Update user nickname color and dropdown icon color
             userNicknameSpan.classList.toggle('text-gray-700', isScrolled);
             userNicknameSpan.classList.toggle('text-white', !isScrolled);
-            if (dropdownArrowIcon) { // Check if the element exists
+            if (dropdownArrowIcon) {
                 dropdownArrowIcon.classList.toggle('text-gray-700', isScrolled);
                 dropdownArrowIcon.classList.toggle('text-white', !isScrolled);
+            }
+
+            // Update login/signup button style if it's visible
+            if (!loginSignupBtn.classList.contains('hidden')) {
+                loginSignupBtn.classList.toggle('text-teal-600', isScrolled);
+                loginSignupBtn.classList.toggle('text-white', !isScrolled);
+                loginSignupBtn.classList.toggle('border-teal-600', isScrolled);
+                loginSignupBtn.classList.toggle('border-white', !isScrolled);
+                loginSignupBtn.classList.toggle('hover:bg-teal-50', isScrolled);
+                loginSignupBtn.classList.toggle('hover:bg-white', !isScrolled);
             }
         }
 
@@ -591,8 +604,8 @@
             window.location.href = 'login.html'; // 로그인 페이지로 리디렉션
         });
 
-        // Handle Nickname Container Click to Toggle Dropdown
-        userNicknameContainer.addEventListener('click', (event) => {
+        // Handle Dropdown Toggle Button Click
+        dropdownToggleBtn.addEventListener('click', (event) => {
             event.stopPropagation(); // 클릭 이벤트가 문서로 버블링되는 것을 방지
             userDropdownMenu.classList.toggle('hidden');
             if (dropdownArrowIcon) {
@@ -613,7 +626,7 @@
 
         // Close dropdown when clicking outside
         document.addEventListener('click', (event) => {
-            if (!userDropdownMenu.contains(event.target) && !userNicknameContainer.contains(event.target)) {
+            if (!userDropdownMenu.contains(event.target) && !dropdownToggleBtn.contains(event.target)) {
                 userDropdownMenu.classList.add('hidden');
                 if (dropdownArrowIcon) {
                     dropdownArrowIcon.classList.remove('rotate-180'); // 화살표 아이콘 회전 초기화
