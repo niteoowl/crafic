@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRAFIQ - HTML Version</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Pretendard Web Font Definitions */
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-SemiBold.woff') format('woff');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Bold.woff') format('woff');
+            font-weight: 700;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-ExtraBold.woff') format('woff');
+            font-weight: 800;
+            font-style: normal;
+        }
+
+        /* Base font application */
+        body {
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        /* Tailwind CSS Scrollbar Hide Utility (Optional, but good for aesthetics) */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-800">
+
+    <header id="main-header" class="fixed top-0 left-0 w-full z-50 py-3 transition-all duration-500 ease-in-out bg-transparent">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-extrabold transition-colors duration-500 text-white">
+                CRAFIQ
+            </a>
+
+            <nav class="hidden md:flex space-x-6">
+                <a href="#" class="text-sm font-semibold transition-colors duration-500 text-white hover:text-gray-300">
+                    소개
+                </a>
+                <a href="#" class="text-sm font-semibold transition-colors duration-500 text-white hover:text-gray-300">
+                    인기작품
+                </a>
+                <a href="#" class="text-sm font-semibold transition-colors duration-500 text-white hover:text-gray-300">
+                    더빙/자막 선택
+                </a>
+                <a href="#" class="text-sm font-semibold transition-colors duration-500 text-white hover:text-gray-300">
+                    팬심
+                </a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <button class="transition-colors duration-500 text-white hover:text-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                </button>
+                <button class="hidden md:block px-4 py-2 rounded-full text-sm font-semibold transition-all duration-500 text-white border border-white hover:bg-white hover:text-teal-600">
+                    로그인/회원가입
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="hero-section" class="relative w-full h-[450px] md:h-[600px] bg-cover bg-center flex items-center overflow-hidden transition-all duration-500 ease-in-out">
+            <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent"></div>
+            <div class="absolute inset-0 bg-gradient-to-l from-black/10 to-transparent"></div> <button id="prev-banner-btn" class="absolute left-4 p-2 text-white bg-black bg-opacity-30 rounded-full hover:bg-opacity-50 transition-opacity z-10 md:block hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8">
+                    <path d="m15 18-6-6 6-6"></path>
+                </svg>
+            </button>
+
+            <div id="banner-content" class="container mx-auto px-4 relative z-10 text-white text-left">
+                <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4">
+                    <span id="banner-title1"></span><br />
+                    <span id="banner-title2" class="text-5xl md:text-7xl whitespace-nowrap"></span>
+                </h1>
+                <p id="banner-description" class="text-lg md:text-xl font-medium mb-6"></p>
+                <button class="px-6 py-3 bg-white text-teal-600 font-bold rounded-md text-lg hover:bg-gray-100 transition-colors duration-300">
+                    보러가기 &gt;
+                </button>
+            </div>
+
+            <button id="next-banner-btn" class="absolute right-4 p-2 text-white bg-black bg-opacity-30 rounded-full hover:bg-opacity-50 transition-opacity z-10 md:block hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8">
+                    <path d="m9 18 6-6-6-6"></path>
+                </svg>
+            </button>
+
+            <div id="pagination-dots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
+                </div>
+        </section>
+
+        <section class="container mx-auto px-4 py-8 mt-8">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-900">크래픽 인기 작품</h2>
+            <div class="flex space-x-4 mb-6 border-b border-gray-200">
+                <button id="tab-실시간" class="pb-2 text-lg font-semibold text-teal-600 border-b-2 border-teal-600 transition-colors duration-200" data-tab="실시간">
+                    실시간
+                </button>
+                <button id="tab-이번 주" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="이번 주">
+                    이번 주
+                </button>
+                <button id="tab-분기" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="분기">
+                    분기
+                </button>
+                <button id="tab-역대" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="역대">
+                    역대
+                </button>
+            </div>
+
+            <div id="popular-anime-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
+                </div>
+        </section>
+
+        <section class="container mx-auto px-4 py-8">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-900">최신 작품</h2>
+            <div id="exclusive-works-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
+                </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-10 px-4 mt-12">
+        <div class="container mx-auto text-center">
+            <div class="mb-4">
+                <a href="#" class="text-teal-400 hover:text-teal-300 mx-3 text-sm">이용약관</a>
+                <span class="text-gray-600 text-sm">|</span>
+                <a href="#" class="text-teal-400 hover:text-teal-300 mx-3 text-sm">개인정보처리방침</a>
+                <span class="text-gray-600 text-sm">|</span>
+                <a href="#" class="text-teal-400 hover:text-teal-300 mx-3 text-sm">문의하기</a>
+            </div>
+            <p class="text-xs">&copy; 2025 Crafiq. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Dummy data for Hero Banners
+        const heroBanners = [
+            {
+                id: 1,
+                title1: '무면허힐러',
+                title2: '즐겁게 살아가기',
+                description: '오늘부터 치원 정상영업합니다!',
+                imageUrl: 'https://placehold.co/1920x800/2D545E/FFFFFF?text=Your+Epic+Novel+Banner+1'
+            },
+            {
+                id: 2,
+                title1: '별빛 아래에서',
+                title2: '새로운 시작',
+                description: '꿈과 희망이 가득한 판타지 세계로 초대합니다!',
+                imageUrl: 'https://placehold.co/1920x800/4CAF50/FFFFFF?text=Your+Epic+Novel+Banner+2'
+            },
+            {
+                id: 3,
+                title1: '도시의 그림자',
+                title2: '숨겨진 이야기',
+                description: '어둠 속에 감춰진 진실을 파헤쳐라!',
+                imageUrl: 'https://placehold.co/1920x800/FF5722/FFFFFF?text=Your+Epic+Novel+Banner+3'
+            }
+        ];
+
+        // Dummy data for "크래픽 인기 작품" section
+        const popularAnime = [
+            {
+                id: 1,
+                rank: 1,
+                title: '덕선',
+                description: '순간 치료 능력자인데 노움이 안 된다.',
+                img: 'https://placehold.co/200x112/A0C49D/FFFFFF?text=Anime+1'
+            },
+            {
+                id: 2,
+                rank: 2,
+                title: '윈브레 - WINBRE - 시즌 2',
+                description: '추방당한 천재 치유사, 무면허 헐...',
+                img: 'https://placehold.co/200x112/C4D7B2/FFFFFF?text=Anime+2'
+            },
+            {
+                id: 3,
+                rank: 3,
+                title: '목은 숙녀의 소양이기에',
+                description: '커타지 지유',
+                img: 'https://placehold.co/200x112/E0A96D/FFFFFF?text=Anime+3'
+            },
+            {
+                id: 4,
+                rank: 4,
+                title: '병아리 같은 남동생을 키웁니다.',
+                description: '백돼지 귀족인데 전생의 기억이 떠돌',
+                img: 'https://placehold.co/200x112/B8621B/FFFFFF?text=Anime+4'
+            },
+            {
+                id: 5,
+                rank: 5,
+                title: '완벽해서 귀여운 구석이 없다고 파혼',
+                description: '판타지 액션',
+                img: 'https://placehold.co/200x112/5C8374/FFFFFF?text=Anime+5'
+            },
+            {
+                id: 6,
+                rank: 6,
+                title: '진석의 거인 The FINAL part 1',
+                description: '당한 성 너는 이웃 나라에 팔린다',
+                img: 'https://placehold.co/200x112/183D3D/FFFFFF?text=Anime+6'
+            },
+            {
+                id: 7,
+                rank: 7,
+                title: '유녀사',
+                description: '환생한 김에 인생 갈아엎는다',
+                img: 'https://placehold.co/200x112/93B1A6/FFFFFF?text=Anime+7'
+            },
+        ];
+
+        // Dummy data for "최신 작품" section
+        const exclusiveWorks = [
+            {
+                id: 1,
+                title: '듀라라라!!x2 결 - 판권 부활',
+                img: 'https://placehold.co/200x112/5C469C/FFFFFF?text=Exclusive+1'
+            },
+            {
+                id: 2,
+                title: '피라미드 게임',
+                img: 'https://placehold.co/200x112/333A73/FFFFFF?text=Exclusive+2'
+            },
+            {
+                id: 3,
+                title: 'S.A 스페셜 에이',
+                img: 'https://placehold.co/200x112/4E4F50/FFFFFF?text=Exclusive+3'
+            },
+            {
+                id: 4,
+                title: 'ID:INVADED',
+                img: 'https://placehold.co/200x112/7C7F7F/FFFFFF?text=Exclusive+4'
+            },
+            {
+                id: 5,
+                title: 'A3!',
+                img: 'https://placehold.co/200x112/9BABB8/FFFFFF?text=Exclusive+5'
+            },
+            {
+                id: 6,
+                title: '하늘색 유틸리티',
+                img: 'https://placehold.co/200x112/B7B7B7/FFFFFF?text=Exclusive+6'
+            },
+            {
+                id: 7,
+                title: '유녀사',
+                description: '환생한 김에 인생 갈아엎는다',
+                img: 'https://placehold.co/200x112/DCDCDC/FFFFFF?text=Exclusive+7'
+            },
+        ];
+
+        let currentBannerIndex = 0;
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let autoSlideInterval;
+
+        // Get DOM elements
+        const header = document.getElementById('main-header');
+        const heroSection = document.getElementById('hero-section');
+        const bannerTitle1 = document.getElementById('banner-title1');
+        const bannerTitle2 = document.getElementById('banner-title2');
+        const bannerDescription = document.getElementById('banner-description');
+        const prevBannerBtn = document.getElementById('prev-banner-btn');
+        const nextBannerBtn = document.getElementById('next-banner-btn');
+        const paginationDotsContainer = document.getElementById('pagination-dots');
+        const popularAnimeContainer = document.getElementById('popular-anime-container');
+        const exclusiveWorksContainer = document.getElementById('exclusive-works-container');
+        const tabButtons = document.querySelectorAll('.flex.space-x-4.mb-6 button');
+
+        /**
+         * Renders the current banner content and updates styling.
+         */
+        function renderBanner() {
+            const currentBanner = heroBanners[currentBannerIndex];
+            heroSection.style.backgroundImage = `url("${currentBanner.imageUrl}")`;
+            bannerTitle1.textContent = currentBanner.title1;
+            bannerTitle2.textContent = currentBanner.title2;
+            bannerDescription.textContent = currentBanner.description;
+            updatePaginationDots();
+        }
+
+        /**
+         * Updates the pagination dots to reflect the current banner.
+         */
+        function updatePaginationDots() {
+            paginationDotsContainer.innerHTML = ''; // Clear existing dots
+            heroBanners.forEach((_, index) => {
+                const dot = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                dot.setAttribute('width', '24');
+                dot.setAttribute('height', '24');
+                dot.setAttribute('viewBox', '0 0 24 24');
+                dot.setAttribute('fill', 'none');
+                dot.setAttribute('stroke', 'currentColor');
+                dot.setAttribute('stroke-width', '2');
+                dot.setAttribute('stroke-linecap', 'round');
+                dot.setAttribute('stroke-linejoin', 'round');
+                dot.classList.add('w-2', 'h-2', 'text-white', 'cursor-pointer');
+                dot.innerHTML = '<circle cx="12" cy="12" r="10"></circle>'; // Circle SVG path
+
+                if (currentBannerIndex === index) {
+                    dot.classList.add('fill-current', 'opacity-70');
+                } else {
+                    dot.classList.add('opacity-40');
+                }
+                dot.addEventListener('click', () => {
+                    currentBannerIndex = index;
+                    renderBanner();
+                    resetAutoSlide();
+                });
+                paginationDotsContainer.appendChild(dot);
+            });
+        }
+
+        /**
+         * Navigates to the previous banner.
+         */
+        function handlePrevBanner() {
+            currentBannerIndex = (currentBannerIndex === 0) ? heroBanners.length - 1 : currentBannerIndex - 1;
+            renderBanner();
+            resetAutoSlide();
+        }
+
+        /**
+         * Navigates to the next banner.
+         */
+        function handleNextBanner() {
+            currentBannerIndex = (currentBannerIndex === heroBanners.length - 1) ? 0 : currentBannerIndex + 1;
+            renderBanner();
+            resetAutoSlide();
+        }
+
+        /**
+         * Resets the automatic banner slide interval.
+         */
+        function resetAutoSlide() {
+            clearInterval(autoSlideInterval);
+            autoSlideInterval = setInterval(handleNextBanner, 5000); // 5 seconds
+        }
+
+        /**
+         * Handles scroll event to change header style.
+         */
+        function handleScroll() {
+            if (window.scrollY > 50) {
+                header.classList.add('bg-white', 'shadow-sm');
+                header.querySelector('a.text-2xl').classList.replace('text-white', 'text-teal-500');
+                header.querySelectorAll('nav a').forEach(link => {
+                    link.classList.replace('text-white', 'text-gray-700');
+                    link.classList.replace('hover:text-gray-300', 'hover:text-teal-600');
+                });
+                header.querySelector('button svg').parentNode.classList.replace('text-white', 'text-gray-600');
+                header.querySelector('button svg').parentNode.classList.replace('hover:text-gray-300', 'hover:text-teal-600');
+
+                const loginButton = header.querySelector('button.hidden.md\\:block');
+                if (loginButton) {
+                    loginButton.classList.replace('text-white', 'text-teal-600');
+                    loginButton.classList.replace('border-white', 'border-teal-600');
+                    loginButton.classList.replace('hover:bg-white', 'hover:bg-teal-50');
+                    loginButton.classList.replace('hover:text-teal-600', 'hover:text-teal-600'); // Keep this as is
+                }
+
+            } else {
+                header.classList.remove('bg-white', 'shadow-sm');
+                header.querySelector('a.text-2xl').classList.replace('text-teal-500', 'text-white');
+                header.querySelectorAll('nav a').forEach(link => {
+                    link.classList.replace('text-gray-700', 'text-white');
+                    link.classList.replace('hover:text-teal-600', 'hover:text-gray-300');
+                });
+                header.querySelector('button svg').parentNode.classList.replace('text-gray-600', 'text-white');
+                header.querySelector('button svg').parentNode.classList.replace('hover:text-teal-600', 'hover:text-gray-300');
+
+                const loginButton = header.querySelector('button.hidden.md\\:block');
+                if (loginButton) {
+                    loginButton.classList.replace('text-teal-600', 'text-white');
+                    loginButton.classList.replace('border-teal-600', 'border-white');
+                    loginButton.classList.replace('hover:bg-teal-50', 'hover:bg-white');
+                    loginButton.classList.replace('hover:text-teal-600', 'hover:text-teal-600'); // Keep this as is
+                }
+            }
+        }
+
+        /**
+         * Handles touch start event for swipe.
+         * @param {TouchEvent} e - The touch event.
+         */
+        function handleTouchStart(e) {
+            touchStartX = e.touches[0].clientX;
+        }
+
+        /**
+         * Handles touch move event for swipe.
+         * @param {TouchEvent} e - The touch event.
+         */
+        function handleTouchMove(e) {
+            touchEndX = e.touches[0].clientX;
+        }
+
+        /**
+         * Handles touch end event for swipe and determines swipe direction.
+         */
+        function handleTouchEnd() {
+            const swipeDistance = touchStartX - touchEndX;
+            const minSwipeDistance = 50; // Minimum distance for a recognized swipe
+
+            if (swipeDistance > minSwipeDistance) {
+                // Swiped left (next banner)
+                handleNextBanner();
+            } else if (swipeDistance < -minSwipeDistance) {
+                // Swiped right (previous banner)
+                handlePrevBanner();
+            }
+        }
+
+        /**
+         * Renders the popular anime section.
+         */
+        function renderPopularAnime() {
+            popularAnimeContainer.innerHTML = ''; // Clear existing items
+            popularAnime.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex-shrink-0 w-52 md:w-60 lg:w-72 cursor-pointer flex flex-col';
+                div.innerHTML = `
+                    <div class="relative">
+                        <img src="${item.img}" alt="${item.title}" class="w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/200x112/CCCCCC/333333?text=Image+Error';"/>
+                    </div>
+                    <div class="flex items-start pt-2">
+                        <div class="text-5xl font-extrabold text-black mr-2">${item.rank}</div>
+                        <div class="flex-1">
+                            <h3 class="text-base md:text-lg font-bold text-gray-900 truncate mb-1">${item.title}</h3>
+                            <p class="text-sm text-gray-600 line-clamp-2">${item.description}</p>
+                        </div>
+                    </div>
+                `;
+                popularAnimeContainer.appendChild(div);
+            });
+        }
+
+        /**
+         * Renders the exclusive works section.
+         */
+        function renderExclusiveWorks() {
+            exclusiveWorksContainer.innerHTML = ''; // Clear existing items
+            exclusiveWorks.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex-shrink-0 w-52 md:w-60 lg:w-72 cursor-pointer';
+                div.innerHTML = `
+                    <div class="relative">
+                        <img src="${item.img}" alt="${item.title}" class="w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/200x112/CCCCCC/333333?text=Image+Error';"/>
+                        </div>
+                    <div class="pt-2">
+                        <h3 class="text-base md:text-lg font-bold text-gray-900 truncate">
+                            ${item.title}
+                        </h3>
+                    </div>
+                `;
+                exclusiveWorksContainer.appendChild(div);
+            });
+        }
+
+        /**
+         * Handles tab clicks for popular works section.
+         * @param {Event} event - The click event.
+         */
+        function handleTabClick(event) {
+            tabButtons.forEach(button => {
+                button.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
+                button.classList.add('text-gray-600', 'hover:text-teal-600');
+            });
+            event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
+            event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
+            // In a real app, you would fetch/filter data based on the active tab here
+            // For this example, we just change the active state.
+        }
+
+        // Event Listeners
+        window.addEventListener('load', () => {
+            renderBanner(); // Initial render of the banner
+            resetAutoSlide(); // Start auto-slide
+            renderPopularAnime(); // Render popular anime section
+            renderExclusiveWorks(); // Render exclusive works section
+        });
+
+        window.addEventListener('scroll', handleScroll);
+        prevBannerBtn.addEventListener('click', handlePrevBanner);
+        nextBannerBtn.addEventListener('click', handleNextBanner);
+
+        heroSection.addEventListener('touchstart', handleTouchStart);
+        heroSection.addEventListener('touchmove', handleTouchMove);
+        heroSection.addEventListener('touchend', handleTouchEnd);
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', handleTabClick);
+        });
+
+    </script>
+</body>
+</html>
