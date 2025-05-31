@@ -112,7 +112,7 @@
     </header>
 
     <main>
-        <section id="hero-section" class="relative w-full h-[450px] md:h-[600px] bg-cover bg-center flex items-center overflow-hidden transition-all duration-500 ease-in-out">
+        <section id="hero-section" class="relative w-full h-[600px] md:h-[800px] bg-cover bg-center flex items-center overflow-hidden transition-all duration-500 ease-in-out">
             <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent"></div>
             <div class="absolute inset-0 bg-gradient-to-l from-black/10 to-transparent"></div> <button id="prev-banner-btn" class="absolute left-4 p-2 text-white bg-black bg-opacity-30 rounded-full hover:bg-opacity-50 transition-opacity z-10 md:block hidden">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8">
@@ -620,10 +620,10 @@
 
         // 드롭다운 토글 버튼 클릭 핸들러
         dropdownToggleBtn.addEventListener('click', (event) => {
-            event.stopPropagation(); // 클릭 이벤트가 문서로 버블링되는 것을 방지
+            event.stopPropagation();
             userDropdownMenu.classList.toggle('hidden');
             if (dropdownArrowIcon) {
-                dropdownArrowIcon.classList.toggle('rotate-180'); // 화살표 아이콘 회전 토글
+                dropdownArrowIcon.classList.toggle('rotate-180');
             }
         });
 
@@ -643,7 +643,7 @@
             if (!userDropdownMenu.contains(event.target) && !dropdownToggleBtn.contains(event.target)) {
                 userDropdownMenu.classList.add('hidden');
                 if (dropdownArrowIcon) {
-                    dropdownArrowIcon.classList.remove('rotate-180'); // 화살표 아이콘 회전 초기화
+                    dropdownArrowIcon.classList.remove('rotate-180');
                 }
             }
         });
