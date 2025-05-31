@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRAFIQ - 읽는 당신이 특별해지는 곳</title>
+    <title>CRAFIQ - HTML Version</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Pretendard Web Font Definitions */
@@ -66,17 +66,17 @@
             </a>
 
             <nav class="hidden md:flex space-x-6">
-                <a href="#" class="text-sm font-semibold transition-colors duration-500 text-white hover:text-gray-300">
+                <a href="about.html" class="text-sm font-semibold transition-colors duration-500 text-white hover:text-gray-300">
                     소개
                 </a>
                 <a href="#" class="text-sm font-semibold transition-colors duration-500 text-white hover:text-gray-300">
                     인기작품
                 </a>
-                <a href="#" class="text-sm font-semibold transition-colors duration-500 text-white hover:text-gray-300">
-                    더빙/자막 선택
+                <a href="author.html" class="text-sm font-semibold transition-colors duration-500 text-white hover:text-gray-300">
+                    작가 페이지
                 </a>
                 <a href="#" class="text-sm font-semibold transition-colors duration-500 text-white hover:text-gray-300">
-                    팬심
+                    커뮤니티
                 </a>
             </nav>
 
@@ -99,7 +99,7 @@
                             </svg>
                         </button>
                         <div id="user-dropdown-menu" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden z-20">
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 프로필</a>
+                            <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 프로필</a>
                             <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">설정</a>
                             <button id="logout-btn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 로그아웃
@@ -201,24 +201,24 @@
         const heroBanners = [
             {
                 id: 1,
-                title1: '무면허힐러',
-                title2: '즐겁게 살아가기',
-                description: '오늘부터 치원 정상영업합니다!',
-                imageUrl: 'https://placehold.co/1920x800/2D545E/FFFFFF?text=Your+Epic+Novel+Banner+1'
+                title1: '눈부신 건',
+                title2: '너였다',
+                description: '너무 평범해서 몰랐던 일상이, 너로 인해 처음으로 빛나기 시작했다.',
+                imageUrl: '/image/hero1.png'
             },
             {
                 id: 2,
-                title1: '별빛 아래에서',
-                title2: '새로운 시작',
-                description: '꿈과 희망이 가득한 판타지 세계로 초대합니다!',
-                imageUrl: 'https://placehold.co/1920x800/4CAF50/FFFFFF?text=Your+Epic+Novel+Banner+2'
+                title1: '우리가',
+                title2: '빛을 잃기 전에',
+                description: '점점 멀어지는 마음 속에서도 서로를 잊지 않기 위한 마지막 기록.',
+                imageUrl: '/image/hero2.png'
             },
             {
                 id: 3,
-                title1: '도시의 그림자',
-                title2: '숨겨진 이야기',
-                description: '어둠 속에 감춰진 진실을 파헤쳐라!',
-                imageUrl: 'https://placehold.co/1920x800/FF5722/FFFFFF?text=Your+Epic+Novel+Banner+3'
+                title1: '서랍 속에',
+                title2: '남겨진 말들',
+                description: '가슴 깊이 묻어둔 기억들이 다시 피어나는 순간.',
+                imageUrl: '/image/hero3.png'
             }
         ];
 
