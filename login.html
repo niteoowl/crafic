@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRAFIQ - 로그인</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Pretendard Web Font Definitions */
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-SemiBold.woff') format('woff');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Bold.woff') format('woff');
+            font-weight: 700;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-ExtraBold.woff') format('woff');
+            font-weight: 800;
+            font-style: normal;
+        }
+
+        /* Base font application */
+        body {
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        /* Custom focus ring for inputs to ensure consistency */
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 179, 179, 0.5); /* Teal focus ring */
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-white text-gray-800 flex flex-col">
+
+    <div class="absolute top-4 left-4 z-50">
+        <a href="#" class="text-xl font-extrabold text-gray-900">
+            CRAFIQ
+        </a>
+    </div>
+
+    <main class="flex-grow flex items-center justify-center">
+        <div class="relative z-10 p-8 md:p-12 w-full max-w-sm mx-4">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">로그인</h2>
+
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">이메일 주소</label>
+                    <input type="email" id="email" name="email" required
+                           class="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
+                           placeholder="이메일을 입력하세요">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">비밀번호</label>
+                    <input type="password" id="password" name="password" required
+                           class="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
+                           placeholder="비밀번호를 입력하세요">
+                </div>
+
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center">
+                        <input id="remember-me" name="remember-me" type="checkbox"
+                               class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded">
+                        <label for="remember-me" class="ml-2 block text-gray-900">
+                            로그인 정보 기억하기
+                        </label>
+                    </div>
+                    <a href="1.com" class="font-medium text-teal-600 hover:text-teal-500 transition-colors duration-200">
+                        비밀번호 찾기
+                    </a>
+                </div>
+
+                <div>
+                    <button type="submit"
+                            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-semibold text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-300 transform hover:-translate-y-0.5">
+                        로그인
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 text-center text-sm">
+                <p class="text-gray-600">
+                    계정이 없으신가요?
+                    <a href="signin.html" class="font-medium text-teal-600 hover:text-teal-500 transition-colors duration-200">
+                        회원가입
+                    </a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // Firestore is not strictly needed for login, but included for consistency if user profiles are fetched after login
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration (provided by the environment)
+        const firebaseConfig = JSON.parse(`{"apiKey": "AIzaSyBJFAV4-QMggAW2K1YtpsXIZ5PQ8KJzo9k", "authDomain": "crafiq-a.firebaseapp.com", "projectId": "crafiq-a", "storageBucket": "crafiq-a.firebasestorage.app", "messagingSenderId": "176082460783", "appId": "1:176082460783:web:cd0b594cc803932eaa2d9a", "measurementId": "G-QB84Z9EMZW"}`);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use __app_id if available
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app); // Initialize Firestore
+
+        // Get the login form elements
+        const loginForm = document.getElementById('login-form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const rememberMeCheckbox = document.getElementById('remember-me');
+
+        /**
+         * Displays a temporary message at the bottom right of the screen.
+         * @param {string} message - The message to display.
+         * @param {string} bgColorClass - Tailwind CSS background color class (e.g., 'bg-teal-600', 'bg-red-600').
+         */
+        function showMessage(message, bgColorClass) {
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = message;
+            messageDiv.className = `fixed bottom-4 right-4 ${bgColorClass} text-white px-4 py-2 rounded-md shadow-lg transition-opacity duration-300 opacity-0`;
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.classList.remove('opacity-0');
+                messageDiv.classList.add('opacity-100');
+            }, 10); // Small delay to trigger transition
+
+            setTimeout(() => {
+                messageDiv.classList.remove('opacity-100');
+                messageDiv.classList.add('opacity-0');
+                messageDiv.addEventListener('transitionend', () => messageDiv.remove());
+            }, 3000); // Message disappears after 3 seconds
+        }
+
+        /**
+         * Handles the form submission for user login with Firebase.
+         * @param {Event} event - The submit event.
+         */
+        loginForm.addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            const rememberMe = rememberMeCheckbox.checked; // Not directly used by Firebase auth, but can be for persistence
+
+            try {
+                // Sign in user with email and password
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                console.log('로그인 성공:', user);
+                showMessage('로그인 성공! 환영합니다.', 'bg-teal-600');
+
+                // Redirect to the home page (index.html or a dashboard) after successful login
+                // For this example, we'll redirect to index.html
+                window.location.href = 'index.html';
+
+            } catch (error) {
+                console.error('로그인 오류:', error);
+                let errorMessage = '로그인 중 오류가 발생했습니다. 다시 시도해주세요.';
+
+                // Handle specific Firebase Auth errors
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = '잘못된 이메일 또는 비밀번호입니다.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = '유효하지 않은 이메일 주소입니다.';
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMessage = '로그인 시도 횟수가 너무 많습니다. 잠시 후 다시 시도해주세요.';
+                }
+                showMessage(errorMessage, 'bg-red-600');
+            }
+        });
+    </script>
+</body>
+</html>
