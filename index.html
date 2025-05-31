@@ -27,7 +27,7 @@
         }
         @font-face {
             font-family: 'Pretendard';
-            src: url('https://fastly.jsdelivr.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-ExtraBold.woff') format('woff');
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-ExtraBold.woff') format('woff');
             font-weight: 800;
             font-style: normal;
         }
@@ -77,9 +77,17 @@
                         <path d="m21 21-4.3-4.3"></path>
                     </svg>
                 </button>
-                <button class="hidden md:block px-4 py-2 rounded-full text-sm font-semibold transition-all duration-500 text-white border border-white hover:bg-white hover:text-teal-600">
-                    로그인/회원가입
-                </button>
+                <div id="auth-section" class="flex items-center space-x-4">
+                    <button id="login-signup-btn" class="hidden md:block px-4 py-2 rounded-full text-sm font-semibold transition-all duration-500 text-white border border-white hover:bg-white hover:text-teal-600">
+                        로그인/회원가입
+                    </button>
+                    <div id="user-info-display" class="hidden items-center space-x-2">
+                        <span id="user-nickname" class="text-sm font-semibold text-white"></span>
+                        <button id="logout-btn" class="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-500 text-white border border-white hover:bg-white hover:text-teal-600">
+                            로그아웃
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -96,7 +104,7 @@
             <div id="banner-content" class="container mx-auto px-4 relative z-10 text-white text-left">
                 <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4">
                     <span id="banner-title1"></span><br />
-                    <span id="banner-title2" class="text-5xl md:text-7xl whitespace-nowrap"></span>
+                    <span id="banner-title2" class="text-5xl md:text-7xl whitespace-nowap"></span>
                 </h1>
                 <p id="banner-description" class="text-lg md:text-xl font-medium mb-6"></p>
                 <button class="px-6 py-3 bg-white text-teal-600 font-bold rounded-md text-lg hover:bg-gray-100 transition-colors duration-300">
@@ -155,7 +163,21 @@
         </div>
     </footer>
 
-    <script>
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration (replace with your actual config or load from environment)
+        const firebaseConfig = JSON.parse(`{"apiKey": "AIzaSyBJFAV4-QMggAW2K1YtpsXIZ5PQ8KJzo9k", "authDomain": "crafiq-a.firebaseapp.com", "projectId": "crafiq-a", "storageBucket": "crafiq-a.firebasestorage.app", "messagingSenderId": "176082460783", "appId": "1:176082460783:web:cd0b594cc803932eaa2d9a", "measurementId": "G-QB84Z9EMZW"}`);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use __app_id if available
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
         // Dummy data for Hero Banners
         const heroBanners = [
             {
@@ -292,6 +314,13 @@
         const exclusiveWorksContainer = document.getElementById('exclusive-works-container');
         const tabButtons = document.querySelectorAll('.flex.space-x-4.mb-6 button');
 
+        // Auth-related DOM elements
+        const authSection = document.getElementById('auth-section');
+        const loginSignupBtn = document.getElementById('login-signup-btn');
+        const userInfoDisplay = document.getElementById('user-info-display');
+        const userNicknameSpan = document.getElementById('user-nickname');
+        const logoutBtn = document.getElementById('logout-btn');
+
         /**
          * Renders the current banner content and updates styling.
          */
@@ -366,42 +395,47 @@
          * Handles scroll event to change header style.
          */
         function handleScroll() {
-            if (window.scrollY > 50) {
-                header.classList.add('bg-white', 'shadow-sm');
-                header.querySelector('a.text-2xl').classList.replace('text-white', 'text-teal-500');
-                header.querySelectorAll('nav a').forEach(link => {
-                    link.classList.replace('text-white', 'text-gray-700');
-                    link.classList.replace('hover:text-gray-300', 'hover:text-teal-600');
-                });
-                header.querySelector('button svg').parentNode.classList.replace('text-white', 'text-gray-600');
-                header.querySelector('button svg').parentNode.classList.replace('hover:text-gray-300', 'hover:text-teal-600');
+            const isScrolled = window.scrollY > 50;
+            header.classList.toggle('bg-white', isScrolled);
+            header.classList.toggle('shadow-sm', isScrolled);
 
-                const loginButton = header.querySelector('button.hidden.md\\:block');
-                if (loginButton) {
-                    loginButton.classList.replace('text-white', 'text-teal-600');
-                    loginButton.classList.replace('border-white', 'border-teal-600');
-                    loginButton.classList.replace('hover:bg-white', 'hover:bg-teal-50');
-                    loginButton.classList.replace('hover:text-teal-600', 'hover:text-teal-600'); // Keep this as is
-                }
+            // Update logo color
+            header.querySelector('a.text-2xl').classList.toggle('text-teal-500', isScrolled);
+            header.querySelector('a.text-2xl').classList.toggle('text-white', !isScrolled);
 
-            } else {
-                header.classList.remove('bg-white', 'shadow-sm');
-                header.querySelector('a.text-2xl').classList.replace('text-teal-500', 'text-white');
-                header.querySelectorAll('nav a').forEach(link => {
-                    link.classList.replace('text-gray-700', 'text-white');
-                    link.classList.replace('hover:text-teal-600', 'hover:text-gray-300');
-                });
-                header.querySelector('button svg').parentNode.classList.replace('text-gray-600', 'text-white');
-                header.querySelector('button svg').parentNode.classList.replace('hover:text-teal-600', 'hover:text-gray-300');
+            // Update nav links color
+            header.querySelectorAll('nav a').forEach(link => {
+                link.classList.toggle('text-gray-700', isScrolled);
+                link.classList.toggle('text-white', !isScrolled);
+                link.classList.toggle('hover:text-teal-600', isScrolled);
+                link.classList.toggle('hover:text-gray-300', !isScrolled);
+            });
 
-                const loginButton = header.querySelector('button.hidden.md\\:block');
-                if (loginButton) {
-                    loginButton.classList.replace('text-teal-600', 'text-white');
-                    loginButton.classList.replace('border-teal-600', 'border-white');
-                    loginButton.classList.replace('hover:bg-teal-50', 'hover:bg-white');
-                    loginButton.classList.replace('hover:text-teal-600', 'hover:text-teal-600'); // Keep this as is
-                }
+            // Update search icon color
+            header.querySelector('button svg').parentNode.classList.toggle('text-gray-600', isScrolled);
+            header.querySelector('button svg').parentNode.classList.toggle('text-white', !isScrolled);
+            header.querySelector('button svg').parentNode.classList.toggle('hover:text-teal-600', isScrolled);
+            header.querySelector('button svg').parentNode.classList.toggle('hover:text-gray-300', !isScrolled);
+
+            // Update login/signup or logout button styles
+            if (loginSignupBtn.classList.contains('hidden')) { // User is logged in, show logout button
+                logoutBtn.classList.toggle('text-teal-600', isScrolled);
+                logoutBtn.classList.toggle('text-white', !isScrolled);
+                logoutBtn.classList.toggle('border-teal-600', isScrolled);
+                logoutBtn.classList.toggle('border-white', !isScrolled);
+                logoutBtn.classList.toggle('hover:bg-teal-50', isScrolled);
+                logoutBtn.classList.toggle('hover:bg-white', !isScrolled);
+            } else { // User is not logged in, show login/signup button
+                loginSignupBtn.classList.toggle('text-teal-600', isScrolled);
+                loginSignupBtn.classList.toggle('text-white', !isScrolled);
+                loginSignupBtn.classList.toggle('border-teal-600', isScrolled);
+                loginSignupBtn.classList.toggle('border-white', !isScrolled);
+                loginSignupBtn.classList.toggle('hover:bg-teal-50', isScrolled);
+                loginSignupBtn.classList.toggle('hover:bg-white', !isScrolled);
             }
+            // Update user nickname color
+            userNicknameSpan.classList.toggle('text-gray-700', isScrolled);
+            userNicknameSpan.classList.toggle('text-white', !isScrolled);
         }
 
         /**
@@ -497,12 +531,72 @@
             // For this example, we just change the active state.
         }
 
+        /**
+         * Updates the header's authentication section based on user login status.
+         * @param {Object|null} user - The Firebase User object or null if logged out.
+         */
+        async function updateAuthSection(user) {
+            if (user) {
+                // User is logged in
+                loginSignupBtn.classList.add('hidden');
+                userInfoDisplay.classList.remove('hidden');
+                userInfoDisplay.classList.add('flex'); // Ensure it's flex for layout
+
+                // Fetch user's nickname from Firestore
+                const userProfileRef = doc(db, `artifacts/${appId}/users/${user.uid}/userProfiles`, user.uid);
+                try {
+                    const docSnap = await getDoc(userProfileRef);
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data();
+                        userNicknameSpan.textContent = userData.nickname || user.email; // Display nickname or email
+                    } else {
+                        userNicknameSpan.textContent = user.email || '사용자'; // Fallback to email or generic
+                    }
+                } catch (error) {
+                    console.error("Error fetching user profile:", error);
+                    userNicknameSpan.textContent = user.email || '사용자'; // Fallback on error
+                }
+            } else {
+                // User is logged out
+                loginSignupBtn.classList.remove('hidden');
+                userInfoDisplay.classList.add('hidden');
+                userInfoDisplay.classList.remove('flex');
+                userNicknameSpan.textContent = '';
+            }
+            // Re-apply scroll-based styles after updating visibility
+            handleScroll();
+        }
+
+        // Firebase Auth State Listener
+        onAuthStateChanged(auth, (user) => {
+            updateAuthSection(user);
+        });
+
+        // Handle Login/Signup Button Click
+        loginSignupBtn.addEventListener('click', () => {
+            window.location.href = 'login.html'; // Redirect to login page
+        });
+
+        // Handle Logout
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                console.log("User signed out successfully.");
+                // updateAuthSection will be called by onAuthStateChanged listener
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+
         // Event Listeners
         window.addEventListener('load', () => {
             renderBanner(); // Initial render of the banner
             resetAutoSlide(); // Start auto-slide
             renderPopularAnime(); // Render popular anime section
             renderExclusiveWorks(); // Render exclusive works section
+            // Initial call to handleScroll to set header style based on initial position
+            handleScroll();
         });
 
         window.addEventListener('scroll', handleScroll);
