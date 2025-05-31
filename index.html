@@ -45,6 +45,16 @@
             -ms-overflow-style: none;  /* IE and Edge */
             scrollbar-width: none;  /* Firefox */
         }
+
+        /* Custom style for dropdown arrow rotation */
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        .transition-transform {
+            transition-property: transform;
+            transition-duration: 300ms;
+            transition-timing-function: ease-in-out;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-800">
@@ -84,11 +94,11 @@
                     <div id="user-info-display" class="relative hidden items-center space-x-2">
                         <div id="user-nickname-container" class="cursor-pointer flex items-center space-x-1">
                             <span id="user-nickname" class="text-sm font-semibold text-white"></span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                            <svg id="dropdown-arrow-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white transition-transform" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
                         </div>
-                        <div id="user-dropdown-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden z-20">
+                        <div id="user-dropdown-menu" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden z-20">
                             <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 프로필</a>
                             <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">설정</a>
                             <button id="logout-btn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -327,10 +337,11 @@
         const authSection = document.getElementById('auth-section');
         const loginSignupBtn = document.getElementById('login-signup-btn');
         const userInfoDisplay = document.getElementById('user-info-display');
-        const userNicknameContainer = document.getElementById('user-nickname-container'); // New
+        const userNicknameContainer = document.getElementById('user-nickname-container');
         const userNicknameSpan = document.getElementById('user-nickname');
-        const userDropdownMenu = document.getElementById('user-dropdown-menu'); // New
-        const logoutBtn = document.getElementById('logout-btn'); // Still needed for the dropdown
+        const dropdownArrowIcon = document.getElementById('dropdown-arrow-icon'); // New: Get the arrow icon
+        const userDropdownMenu = document.getElementById('user-dropdown-menu');
+        const logoutBtn = document.getElementById('logout-btn');
 
         /**
          * Renders the current banner content and updates styling.
@@ -431,9 +442,9 @@
             // Update user nickname color and dropdown icon color
             userNicknameSpan.classList.toggle('text-gray-700', isScrolled);
             userNicknameSpan.classList.toggle('text-white', !isScrolled);
-            if (userNicknameContainer.querySelector('svg')) {
-                userNicknameContainer.querySelector('svg').classList.toggle('text-gray-700', isScrolled);
-                userNicknameContainer.querySelector('svg').classList.toggle('text-white', !isScrolled);
+            if (dropdownArrowIcon) { // Check if the element exists
+                dropdownArrowIcon.classList.toggle('text-gray-700', isScrolled);
+                dropdownArrowIcon.classList.toggle('text-white', !isScrolled);
             }
         }
 
@@ -537,9 +548,9 @@
         async function updateAuthSection(user) {
             if (user) {
                 // User is logged in
-                loginSignupBtn.classList.add('hidden');
+                loginSignupBtn.classList.add('hidden'); // 로그인/회원가입 버튼 숨김
                 userInfoDisplay.classList.remove('hidden');
-                userInfoDisplay.classList.add('flex'); // Ensure it's flex for layout
+                userInfoDisplay.classList.add('flex'); // 레이아웃을 위해 flex로 설정
 
                 // Fetch user's nickname from Firestore
                 const userProfileRef = doc(db, `artifacts/${appId}/users/${user.uid}/userProfiles`, user.uid);
@@ -547,23 +558,26 @@
                     const docSnap = await getDoc(userProfileRef);
                     if (docSnap.exists()) {
                         const userData = docSnap.data();
-                        userNicknameSpan.textContent = userData.nickname || user.email; // Display nickname or email
+                        userNicknameSpan.textContent = userData.nickname || user.email; // 닉네임 또는 이메일 표시
                     } else {
-                        userNicknameSpan.textContent = user.email || '사용자'; // Fallback to email or generic
+                        userNicknameSpan.textContent = user.email || '사용자'; // 이메일 또는 일반적인 사용자명으로 폴백
                     }
                 } catch (error) {
                     console.error("Error fetching user profile:", error);
-                    userNicknameSpan.textContent = user.email || '사용자'; // Fallback on error
+                    userNicknameSpan.textContent = user.email || '사용자'; // 오류 시 폴백
                 }
             } else {
                 // User is logged out
-                loginSignupBtn.classList.remove('hidden');
+                loginSignupBtn.classList.remove('hidden'); // 로그인/회원가입 버튼 표시
                 userInfoDisplay.classList.add('hidden');
                 userInfoDisplay.classList.remove('flex');
                 userNicknameSpan.textContent = '';
-                userDropdownMenu.classList.add('hidden'); // Hide dropdown if logged out
+                userDropdownMenu.classList.add('hidden'); // 로그아웃 시 드롭다운 메뉴 숨김
+                if (dropdownArrowIcon) {
+                    dropdownArrowIcon.classList.remove('rotate-180'); // 화살표 아이콘 회전 초기화
+                }
             }
-            // Re-apply scroll-based styles after updating visibility
+            // 가시성 업데이트 후 스크롤 기반 스타일 다시 적용
             handleScroll();
         }
 
@@ -574,13 +588,16 @@
 
         // Handle Login/Signup Button Click
         loginSignupBtn.addEventListener('click', () => {
-            window.location.href = 'login.html'; // Redirect to login page
+            window.location.href = 'login.html'; // 로그인 페이지로 리디렉션
         });
 
         // Handle Nickname Container Click to Toggle Dropdown
         userNicknameContainer.addEventListener('click', (event) => {
-            event.stopPropagation(); // Prevent click from bubbling to document
+            event.stopPropagation(); // 클릭 이벤트가 문서로 버블링되는 것을 방지
             userDropdownMenu.classList.toggle('hidden');
+            if (dropdownArrowIcon) {
+                dropdownArrowIcon.classList.toggle('rotate-180'); // 화살표 아이콘 회전 토글
+            }
         });
 
         // Handle Logout Button Click (inside dropdown)
@@ -588,7 +605,7 @@
             try {
                 await signOut(auth);
                 console.log("User signed out successfully.");
-                // updateAuthSection will be called by onAuthStateChanged listener
+                // onAuthStateChanged 리스너에 의해 updateAuthSection이 호출될 것임
             } catch (error) {
                 console.error("Error signing out:", error);
             }
@@ -598,17 +615,20 @@
         document.addEventListener('click', (event) => {
             if (!userDropdownMenu.contains(event.target) && !userNicknameContainer.contains(event.target)) {
                 userDropdownMenu.classList.add('hidden');
+                if (dropdownArrowIcon) {
+                    dropdownArrowIcon.classList.remove('rotate-180'); // 화살표 아이콘 회전 초기화
+                }
             }
         });
 
 
         // Event Listeners
         window.addEventListener('load', () => {
-            renderBanner(); // Initial render of the banner
-            resetAutoSlide(); // Start auto-slide
-            renderPopularAnime(); // Render popular anime section
-            renderExclusiveWorks(); // Render exclusive works section
-            // Initial call to handleScroll to set header style based on initial position
+            renderBanner(); // 배너 초기 렌더링
+            resetAutoSlide(); // 자동 슬라이드 시작
+            renderPopularAnime(); // 인기 작품 섹션 렌더링
+            renderExclusiveWorks(); // 최신 작품 섹션 렌더링
+            // 초기 위치에 따라 헤더 스타일을 설정하기 위한 handleScroll 초기 호출
             handleScroll();
         });
 
