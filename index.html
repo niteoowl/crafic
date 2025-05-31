@@ -81,11 +81,20 @@
                     <button id="login-signup-btn" class="hidden md:block px-4 py-2 rounded-full text-sm font-semibold transition-all duration-500 text-white border border-white hover:bg-white hover:text-teal-600">
                         로그인/회원가입
                     </button>
-                    <div id="user-info-display" class="hidden items-center space-x-2">
-                        <span id="user-nickname" class="text-sm font-semibold text-white"></span>
-                        <button id="logout-btn" class="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-500 text-white border border-white hover:bg-white hover:text-teal-600">
-                            로그아웃
-                        </button>
+                    <div id="user-info-display" class="relative hidden items-center space-x-2">
+                        <div id="user-nickname-container" class="cursor-pointer flex items-center space-x-1">
+                            <span id="user-nickname" class="text-sm font-semibold text-white"></span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div id="user-dropdown-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden z-20">
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 프로필</a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">설정</a>
+                            <button id="logout-btn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                로그아웃
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -104,7 +113,7 @@
             <div id="banner-content" class="container mx-auto px-4 relative z-10 text-white text-left">
                 <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4">
                     <span id="banner-title1"></span><br />
-                    <span id="banner-title2" class="text-5xl md:text-7xl whitespace-nowap"></span>
+                    <span id="banner-title2" class="text-5xl md:text-7xl whitespace-nowrap"></span>
                 </h1>
                 <p id="banner-description" class="text-lg md:text-xl font-medium mb-6"></p>
                 <button class="px-6 py-3 bg-white text-teal-600 font-bold rounded-md text-lg hover:bg-gray-100 transition-colors duration-300">
@@ -318,8 +327,10 @@
         const authSection = document.getElementById('auth-section');
         const loginSignupBtn = document.getElementById('login-signup-btn');
         const userInfoDisplay = document.getElementById('user-info-display');
+        const userNicknameContainer = document.getElementById('user-nickname-container'); // New
         const userNicknameSpan = document.getElementById('user-nickname');
-        const logoutBtn = document.getElementById('logout-btn');
+        const userDropdownMenu = document.getElementById('user-dropdown-menu'); // New
+        const logoutBtn = document.getElementById('logout-btn'); // Still needed for the dropdown
 
         /**
          * Renders the current banner content and updates styling.
@@ -417,25 +428,13 @@
             header.querySelector('button svg').parentNode.classList.toggle('hover:text-teal-600', isScrolled);
             header.querySelector('button svg').parentNode.classList.toggle('hover:text-gray-300', !isScrolled);
 
-            // Update login/signup or logout button styles
-            if (loginSignupBtn.classList.contains('hidden')) { // User is logged in, show logout button
-                logoutBtn.classList.toggle('text-teal-600', isScrolled);
-                logoutBtn.classList.toggle('text-white', !isScrolled);
-                logoutBtn.classList.toggle('border-teal-600', isScrolled);
-                logoutBtn.classList.toggle('border-white', !isScrolled);
-                logoutBtn.classList.toggle('hover:bg-teal-50', isScrolled);
-                logoutBtn.classList.toggle('hover:bg-white', !isScrolled);
-            } else { // User is not logged in, show login/signup button
-                loginSignupBtn.classList.toggle('text-teal-600', isScrolled);
-                loginSignupBtn.classList.toggle('text-white', !isScrolled);
-                loginSignupBtn.classList.toggle('border-teal-600', isScrolled);
-                loginSignupBtn.classList.toggle('border-white', !isScrolled);
-                loginSignupBtn.classList.toggle('hover:bg-teal-50', isScrolled);
-                loginSignupBtn.classList.toggle('hover:bg-white', !isScrolled);
-            }
-            // Update user nickname color
+            // Update user nickname color and dropdown icon color
             userNicknameSpan.classList.toggle('text-gray-700', isScrolled);
             userNicknameSpan.classList.toggle('text-white', !isScrolled);
+            if (userNicknameContainer.querySelector('svg')) {
+                userNicknameContainer.querySelector('svg').classList.toggle('text-gray-700', isScrolled);
+                userNicknameContainer.querySelector('svg').classList.toggle('text-white', !isScrolled);
+            }
         }
 
         /**
@@ -562,6 +561,7 @@
                 userInfoDisplay.classList.add('hidden');
                 userInfoDisplay.classList.remove('flex');
                 userNicknameSpan.textContent = '';
+                userDropdownMenu.classList.add('hidden'); // Hide dropdown if logged out
             }
             // Re-apply scroll-based styles after updating visibility
             handleScroll();
@@ -577,7 +577,13 @@
             window.location.href = 'login.html'; // Redirect to login page
         });
 
-        // Handle Logout
+        // Handle Nickname Container Click to Toggle Dropdown
+        userNicknameContainer.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent click from bubbling to document
+            userDropdownMenu.classList.toggle('hidden');
+        });
+
+        // Handle Logout Button Click (inside dropdown)
         logoutBtn.addEventListener('click', async () => {
             try {
                 await signOut(auth);
@@ -585,6 +591,13 @@
                 // updateAuthSection will be called by onAuthStateChanged listener
             } catch (error) {
                 console.error("Error signing out:", error);
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!userDropdownMenu.contains(event.target) && !userNicknameContainer.contains(event.target)) {
+                userDropdownMenu.classList.add('hidden');
             }
         });
 
