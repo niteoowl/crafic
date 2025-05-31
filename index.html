@@ -338,7 +338,7 @@
         const loginSignupBtn = document.getElementById('login-signup-btn');
         const userInfoDisplay = document.getElementById('user-info-display');
         const userNicknameSpan = document.getElementById('user-nickname');
-        const dropdownToggleBtn = document.getElementById('dropdown-toggle-btn'); // Renamed from userNicknameContainer
+        const dropdownToggleBtn = document.getElementById('dropdown-toggle-btn');
         const dropdownArrowIcon = document.getElementById('dropdown-arrow-icon');
         const userDropdownMenu = document.getElementById('user-dropdown-menu');
         const logoutBtn = document.getElementById('logout-btn');
@@ -562,8 +562,12 @@
             if (user) {
                 // User is logged in
                 loginSignupBtn.classList.add('hidden'); // 로그인/회원가입 버튼 숨김
-                userInfoDisplay.classList.remove('hidden');
+                authSection.classList.remove('hidden'); // Ensure auth-section is visible
+                userInfoDisplay.classList.remove('hidden'); // Show user info display
                 userInfoDisplay.classList.add('flex'); // 레이아웃을 위해 flex로 설정
+
+                // Immediately set a temporary display, e.g., email or "로딩 중..."
+                userNicknameSpan.textContent = user.email || '로딩 중...';
 
                 // Fetch user's nickname from Firestore
                 const userProfileRef = doc(db, `artifacts/${appId}/users/${user.uid}/userProfiles`, user.uid);
@@ -571,21 +575,26 @@
                     const docSnap = await getDoc(userProfileRef);
                     if (docSnap.exists()) {
                         const userData = docSnap.data();
-                        userNicknameSpan.textContent = userData.nickname || user.email; // 닉네임 또는 이메일 표시
+                        // If nickname exists, update the display
+                        if (userData.nickname) {
+                            userNicknameSpan.textContent = userData.nickname;
+                        }
                     } else {
-                        userNicknameSpan.textContent = user.email || '사용자'; // 이메일 또는 일반적인 사용자명으로 폴백
+                        // Document doesn't exist, keep user.email or "로딩 중..."
+                        console.warn("User profile document not found for:", user.uid);
                     }
                 } catch (error) {
                     console.error("Error fetching user profile:", error);
-                    userNicknameSpan.textContent = user.email || '사용자'; // 오류 시 폴백
+                    // On error, ensure some text is still displayed, e.g., email or "오류"
+                    userNicknameSpan.textContent = user.email || '오류';
                 }
             } else {
                 // User is logged out
                 loginSignupBtn.classList.remove('hidden'); // 로그인/회원가입 버튼 표시
-                userInfoDisplay.classList.add('hidden');
+                userInfoDisplay.classList.add('hidden'); // Hide user info display
                 userInfoDisplay.classList.remove('flex');
-                userNicknameSpan.textContent = '';
-                userDropdownMenu.classList.add('hidden'); // 로그아웃 시 드롭다운 메뉴 숨김
+                userNicknameSpan.textContent = ''; // Clear nickname
+                userDropdownMenu.classList.add('hidden'); // Hide dropdown menu
                 if (dropdownArrowIcon) {
                     dropdownArrowIcon.classList.remove('rotate-180'); // 화살표 아이콘 회전 초기화
                 }
