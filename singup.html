@@ -115,7 +115,8 @@
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Import collection, query, where, getDocs, and collectionGroup for nickname duplication check
+        import { getFirestore, doc, setDoc, collection, query, where, getDocs, collectionGroup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase configuration (provided by the environment)
         const firebaseConfig = JSON.parse(`{"apiKey": "AIzaSyBJFAV4-QMggAW2K1YtpsXIZ5PQ8KJzo9k", "authDomain": "crafiq-a.firebaseapp.com", "projectId": "crafiq-a", "storageBucket": "crafiq-a.firebasestorage.app", "messagingSenderId": "176082460783", "appId": "1:176082460783:web:cd0b594cc803932eaa2d9a", "measurementId": "G-QB84Z9EMZW"}`);
@@ -125,9 +126,6 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
-        // Removed authenticateUser call as it's not needed for email/password registration
-        // and was causing custom token errors.
 
         // Get the registration form elements
         const registrationForm = document.getElementById('registration-form');
@@ -218,6 +216,27 @@
                 return;
             }
 
+            // --- Nickname Duplication Check ---
+            try {
+                // Use collectionGroup to query across all 'userProfiles' subcollections
+                // This allows checking for nicknames regardless of the parent user ID.
+                const q = query(collectionGroup(db, 'userProfiles'), where("nickname", "==", nickname));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    // If the querySnapshot is not empty, it means a user with this nickname already exists
+                    console.error('이미 사용 중인 닉네임입니다.');
+                    showMessage('이미 사용 중인 닉네임입니다.', 'bg-red-600');
+                    return; // Stop the registration process
+                }
+            } catch (error) {
+                console.error('닉네임 중복 확인 중 오류 발생:', error);
+                showMessage('닉네임 중복 확인 중 오류가 발생했습니다. 다시 시도해주세요.', 'bg-red-600');
+                return; // Stop the registration process on error
+            }
+            // --- End Nickname Duplication Check ---
+
+
             try {
                 // 1. Create user with email and password in Firebase Authentication
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -226,10 +245,11 @@
 
                 // 2. Store additional user profile data (nickname) in Firestore
                 // Path: /artifacts/{appId}/users/{userId}/userProfiles/{userId}
+                // Note: The document ID for the user profile will be the userId itself.
                 const userProfileRef = doc(db, `artifacts/${appId}/users/${userId}/userProfiles`, userId);
                 await setDoc(userProfileRef, {
                     email: email,
-                    nickname: nickname,
+                    nickname: nickname, // This line ensures the nickname is saved
                     createdAt: new Date().toISOString(),
                     // Add any other profile data here
                 });
