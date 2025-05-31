@@ -567,7 +567,8 @@
                 userInfoDisplay.classList.add('flex'); // 레이아웃을 위해 flex로 설정
 
                 // Immediately set a temporary display, e.g., email or "로딩 중..."
-                userNicknameSpan.textContent = user.email || '로딩 중...';
+                // Prioritize nickname, then email, then generic "사용자"
+                userNicknameSpan.textContent = user.email || '사용자'; // Start with email as a fallback
 
                 // Fetch user's nickname from Firestore
                 const userProfileRef = doc(db, `artifacts/${appId}/users/${user.uid}/userProfiles`, user.uid);
@@ -575,12 +576,16 @@
                     const docSnap = await getDoc(userProfileRef);
                     if (docSnap.exists()) {
                         const userData = docSnap.data();
-                        // If nickname exists, update the display
                         if (userData.nickname) {
-                            userNicknameSpan.textContent = userData.nickname;
+                            userNicknameSpan.textContent = userData.nickname; // Display nickname if available
+                        } else {
+                            // If profile exists but no nickname, keep email or generic
+                            userNicknameSpan.textContent = user.email || '사용자';
+                            console.warn("User profile found but no nickname:", user.uid);
                         }
                     } else {
-                        // Document doesn't exist, keep user.email or "로딩 중..."
+                        // If no user profile document, keep email or generic
+                        userNicknameSpan.textContent = user.email || '사용자';
                         console.warn("User profile document not found for:", user.uid);
                     }
                 } catch (error) {
