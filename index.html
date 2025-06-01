@@ -500,10 +500,11 @@
             popularAnimeContainer.innerHTML = ''; // Clear existing items
             popularAnime.forEach(item => {
                 const div = document.createElement('div');
-                div.className = 'flex-shrink-0 w-52 md:w-60 lg:w-72 cursor-pointer flex flex-col';
+                // Increased width classes for carousel items and added rounded-md to images
+                div.className = 'flex-shrink-0 w-64 md:w-72 lg:w-80 cursor-pointer flex flex-col';
                 div.innerHTML = `
                     <div class="relative">
-                        <img src="${item.img}" alt="${item.title}" class="w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/200x112/CCCCCC/333333?text=Image+Error';"/>
+                        <img src="${item.img}" alt="${item.title}" class="w-full h-auto object-cover rounded-md" onerror="this.onerror=null;this.src='https://placehold.co/200x112/CCCCCC/333333?text=Image+Error';"/>
                     </div>
                     <div class="flex items-start pt-2">
                         <div class="text-5xl font-extrabold text-black mr-2">${item.rank}</div>
@@ -524,10 +525,11 @@
             exclusiveWorksContainer.innerHTML = ''; // Clear existing items
             exclusiveWorks.forEach(item => {
                 const div = document.createElement('div');
-                div.className = 'flex-shrink-0 w-52 md:w-60 lg:w-72 cursor-pointer';
+                // Increased width classes for carousel items and added rounded-md to images
+                div.className = 'flex-shrink-0 w-64 md:w-72 lg:w-80 cursor-pointer';
                 div.innerHTML = `
                     <div class="relative">
-                        <img src="${item.img}" alt="${item.title}" class="w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/200x112/CCCCCC/333333?text=Image+Error';"/>
+                        <img src="${item.img}" alt="${item.title}" class="w-full h-auto object-cover rounded-md" onerror="this.onerror=null;this.src='https://placehold.co/200x112/CCCCCC/333333?text=Image+Error';"/>
                         </div>
                     <div class="pt-2">
                         <h3 class="text-base md:text-lg font-bold text-gray-900 truncate">
