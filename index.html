@@ -306,43 +306,8 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Dummy data for Hero Banners (kept for example, but can be fetched from DB too)
-        const heroBanners = [
-            {
-                id: 1,
-                tags: ['실시간 인기작', '소설', 'fantasy'],
-                title: 'sdf',
-                description: 'sdf',
-                views: 14,
-                likes: 1,
-                author: 'by xx.niteowl@gmail.com',
-                imageUrl: 'https://quick-tv.com/data/editor/2407/3732456066_1720032578.7054.png' // Placeholder matching the dark blue/purple gradient
-            },
-            {
-                id: 2,
-                tags: ['신작', '로맨스', '드라마'],
-                title: '우리가 빛을 잃기 전에',
-                description: '점점 멀어지는 마음 속에서도 서로를 잊지 않기 위한 마지막 기록.',
-                views: 500,
-                likes: 50,
-                author: 'by 작가명 A',
-                imageUrl: 'https://placehold.co/1200x800/3a3a5e/ffffff?text=Hero+Banner+2'
-            },
-            {
-                id: 3,
-                tags: ['추천', '판타지', '액션'],
-                title: '서랍 속에 남겨진 말들',
-                description: '가슴 깊이 묻어둔 기억들이 다시 피어나는 순간.',
-                views: 1200,
-                likes: 120,
-                author: 'by 작가명 B',
-                imageUrl: 'https://placehold.co/1200x800/4a4a6e/ffffff?text=Hero+Banner+3'
-            }
-        ];
-
-        // Dummy data for "크래픽 인기 작품" section has been removed.
-        // It will now be fetched from Firestore based on views.
-
+        // Global variable to store hero banner data
+        let heroBanners = [];
         let currentBannerIndex = 0;
         let touchStartX = 0;
         let touchEndX = 0;
@@ -379,23 +344,38 @@
          * Renders the current banner content and updates styling.
          */
         function renderBanner() {
+            if (heroBanners.length === 0) {
+                heroSection.style.backgroundImage = `url('https://placehold.co/1200x800/2a2a4e/ffffff?text=No+Banners')`;
+                bannerTitleElement.textContent = '작품을 찾을 수 없습니다';
+                bannerDescriptionElement.textContent = '아직 업로드된 작품이 없거나 로드할 수 없습니다.';
+                heroTagsContainer.innerHTML = '';
+                bannerViews.textContent = '0';
+                bannerLikes.textContent = '0';
+                bannerAuthor.textContent = '';
+                paginationDotsContainer.innerHTML = '';
+                return;
+            }
+
             const currentBanner = heroBanners[currentBannerIndex];
-            heroSection.style.backgroundImage = `url("${currentBanner.imageUrl}")`;
+            heroSection.style.backgroundImage = `url("${currentBanner.thumbnailUrl || 'https://placehold.co/1200x800/2a2a4e/ffffff?text=No+Image'}")`;
 
             // Clear previous tags
             heroTagsContainer.innerHTML = '';
-            // Add new tags
-            currentBanner.tags.forEach(tag => {
-                const tagSpan = document.createElement('span');
-                tagSpan.textContent = tag;
-                heroTagsContainer.appendChild(tagSpan);
-            });
+            // Add new tags (limit to 3 for cleaner display)
+            if (currentBanner.tags && Array.isArray(currentBanner.tags)) {
+                currentBanner.tags.slice(0, 3).forEach(tag => {
+                    const tagSpan = document.createElement('span');
+                    tagSpan.textContent = tag;
+                    heroTagsContainer.appendChild(tagSpan);
+                });
+            }
 
-            bannerTitleElement.textContent = currentBanner.title;
-            bannerDescriptionElement.textContent = currentBanner.description;
-            bannerViews.textContent = currentBanner.views;
-            bannerLikes.textContent = currentBanner.likes;
-            bannerAuthor.textContent = currentBanner.author;
+
+            bannerTitleElement.textContent = currentBanner.title || '제목 없음';
+            bannerDescriptionElement.textContent = currentBanner.introduction || '소개 없음';
+            bannerViews.textContent = currentBanner.views || 0;
+            bannerLikes.textContent = currentBanner.likes || 0;
+            bannerAuthor.textContent = `by ${currentBanner.authorNickname || '알 수 없음'}`;
 
             updatePaginationDots();
         }
@@ -455,7 +435,9 @@
          */
         function resetAutoSlide() {
             clearInterval(autoSlideInterval);
-            autoSlideInterval = setInterval(handleNextBanner, 5000); // 5 seconds
+            if (heroBanners.length > 1) { // Only auto-slide if there's more than one banner
+                autoSlideInterval = setInterval(handleNextBanner, 5000); // 5 seconds
+            }
         }
 
         /**
@@ -729,6 +711,46 @@
             });
         }
 
+        /**
+         * Fetches and renders the top 3 popular works for the hero banner.
+         */
+        function fetchAndRenderHeroBanners() {
+            const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
+            const q = query(worksCollectionRef, orderBy('views', 'desc'), limit(3)); // Get top 3 by views
+
+            onSnapshot(q, (snapshot) => {
+                heroBanners = []; // Clear existing banners
+                if (snapshot.empty) {
+                    console.log("No works found for hero banners.");
+                    renderBanner(); // Render with default "no banners" message
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const work = doc.data();
+                    heroBanners.push({
+                        id: doc.id,
+                        tags: work.tags || [],
+                        title: work.title || '제목 없음',
+                        description: work.introduction || '소개 없음',
+                        views: work.views || 0,
+                        likes: work.likes || 0,
+                        author: `by ${work.authorNickname || '알 수 없음'}`,
+                        thumbnailUrl: work.thumbnailUrl || 'https://placehold.co/1200x800/2a2a4e/ffffff?text=No+Image'
+                    });
+                });
+
+                currentBannerIndex = 0; // Reset to the first banner
+                renderBanner(); // Render the fetched banners
+                resetAutoSlide(); // Restart auto-slide with new banners
+            }, (error) => {
+                console.error("Error fetching hero banners:", error);
+                // Fallback or error message for hero section
+                heroBanners = []; // Clear banners on error
+                renderBanner(); // Render with "no banners" message
+            });
+        }
+
 
         /**
          * Handles tab clicks for popular works section.
@@ -870,8 +892,7 @@
                 applyDarkModeToPage(savedDarkMode === 'true');
             }
 
-            renderBanner(); // 배너 초기 렌더링
-            resetAutoSlide(); // 자동 슬라이드 시작
+            fetchAndRenderHeroBanners(); // Fetch and render hero banners
             fetchAndRenderPopularWorks(); // 인기 작품 섹션 렌더링 (Firestore에서 조회수 기반으로 가져옴)
             fetchAndRenderLatestWorks(); // 최신 작품 섹션 렌더링 (Firestore에서 가져옴)
             // 초기 위치에 따라 헤더 스타일을 설정하기 위한 handleScroll 초기 호출
