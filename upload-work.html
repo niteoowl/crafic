@@ -416,7 +416,7 @@
                 <a href="#" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
                     인기작품
                 </a>
-                <a href="author.html" class="text-sm font-semibold transition-colors duration-500 text-teal-600 hover:text-teal-600">
+                <a href="author.html" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
                     작가 페이지
                 </a>
                 <a href="#" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
@@ -1074,7 +1074,7 @@
                 myWorksListContainer.querySelectorAll('.edit-work-btn').forEach(button => {
                     button.addEventListener('click', (event) => {
                         const idToEdit = event.target.dataset.workId;
-                        window.location.href = `hello-world-tabs.html?workId=${idToEdit}`; // Redirect to upload page for editing
+                        window.location.href = `upload-work.html?workId=${idToEdit}`; // Redirect to upload page for editing
                     });
                 });
 
@@ -1211,6 +1211,9 @@
 
             // Call handler to set initial visibility and content based on default/loaded type
             handleWorkTypeChange();
+
+            // Explicitly scroll to the top of the page after everything is loaded and rendered
+            window.scrollTo(0, 0);
         });
 
         // Firebase Auth State Listener
@@ -1283,6 +1286,12 @@
         // Handle work type change event
         workTypeSelect.addEventListener('change', handleWorkTypeChange);
 
+        // Add scroll to top on dropdown changes
+        workTypeSelect.addEventListener('change', () => window.scrollTo(0, 0));
+        workGenreSelect.addEventListener('change', () => window.scrollTo(0, 0));
+        ageRatingSelect.addEventListener('change', () => window.scrollTo(0, 0));
+        publicSettingSelect.addEventListener('change', () => window.scrollTo(0, 0));
+
 
         // Handle work upload button click
         uploadWorkBtn.addEventListener('click', async () => {
@@ -1346,7 +1355,7 @@
                     likes: 0 // Initialize likes
                 };
 
-                // Determine if it's a new work or an update
+                // Determine if it's a new work or an an update
                 if (currentWorkId) {
                     // Update existing work
                     await updateDoc(doc(db, `artifacts/${appId}/public/data/works`, currentWorkId), workData);
@@ -1360,7 +1369,7 @@
                 }
                 
                 // Redirect to the manage tab after successful upload/update
-                window.location.href = 'hello-world-tabs.html?tab=manage';
+                window.location.href = 'upload-work.html?tab=manage';
 
             } catch (error) {
                 console.error("작품 업로드/업데이트 중 오류 발생:", error);
@@ -1400,6 +1409,8 @@
                         noWorksMessage.classList.add('hidden');
                     }
                 }
+                // Always scroll to top when switching tabs
+                window.scrollTo(0, 0);
             });
         });
 
