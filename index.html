@@ -55,6 +55,67 @@
             transition-duration: 300ms;
             transition-timing-function: ease-in-out;
         }
+
+        /* Dark mode styles for home page */
+        body.dark-mode {
+            background-color: #121212; /* Very dark gray/near black */
+            color: #e0e0e0; /* Light gray text */
+        }
+        body.dark-mode header.bg-white { /* Header when scrolled in dark mode */
+            background-color: #1e1e1e; /* Darker header */
+            box-shadow: none; /* Remove shadow */
+            border-bottom: 1px solid #3a3a3a; /* Darker border */
+        }
+        body.dark-mode header a.text-teal-500 { /* CRAFIQ logo when scrolled */
+            color: #2dd4bf; /* Teal-400 in dark mode */
+        }
+        body.dark-mode header a.text-gray-700 { /* Nav links when scrolled */
+            color: #c0c0c0; /* Gray-300 */
+        }
+        body.dark-mode header .hover\:text-teal-600:hover {
+            color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode header button.text-gray-600 { /* Search icon when scrolled */
+            color: #c0c0c0; /* Gray-300 */
+        }
+        body.dark-mode header button.hover\:text-teal-600:hover {
+            color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode span.text-gray-700 { /* User nickname when scrolled */
+            color: #c0c0c0; /* Gray-300 */
+        }
+        body.dark-mode svg.text-gray-700 { /* Dropdown arrow when scrolled */
+            color: #c0c0c0; /* Gray-300 */
+        }
+        body.dark-mode button.border-teal-600 { /* Login/Signup button when scrolled */
+            border-color: #2dd4bf; /* Teal-400 */
+            color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode button.hover\:bg-teal-50:hover {
+            background-color: #2a2a2a; /* Darker hover */
+        }
+
+        /* Main content sections in dark mode */
+        body.dark-mode section.bg-white {
+            background-color: #1e1e1e; /* Darker card background */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        body.dark-mode h2.text-gray-900 {
+            color: #e0e0e0; /* Light headings */
+        }
+        body.dark-mode p.text-gray-600 {
+            color: #c0c0c0; /* Gray-300 */
+        }
+        body.dark-mode footer {
+            background-color: #121212; /* Dark footer */
+            color: #c0c0c0;
+        }
+        body.dark-mode footer .text-teal-400 {
+            color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode footer .text-gray-600 {
+            color: #888888; /* Gray-400 */
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-800">
@@ -100,7 +161,7 @@
                         </button>
                         <div id="user-dropdown-menu" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden z-20">
                             <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 프로필</a>
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">설정</a>
+                            <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">설정</a>
                             <button id="logout-btn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 로그아웃
                             </button>
@@ -418,46 +479,145 @@
          */
         function handleScroll() {
             const isScrolled = window.scrollY > 50;
-            header.classList.toggle('bg-white', isScrolled);
-            header.classList.toggle('shadow-sm', isScrolled);
+            const isDarkMode = document.body.classList.contains('dark-mode');
+
+            // Header background and shadow
+            if (isScrolled) {
+                if (isDarkMode) {
+                    header.style.backgroundColor = '#1e1e1e'; /* Darker header for dark mode */
+                    header.classList.remove('shadow-sm'); /* Remove shadow */
+                    header.style.borderBottom = '1px solid #3a3a3a'; /* Darker border */
+                } else {
+                    header.classList.add('bg-white');
+                    header.classList.remove('shadow-sm'); /* Remove shadow */
+                    header.style.backgroundColor = ''; // Reset to default white
+                    header.style.borderBottom = '1px solid #d1d5db'; /* Light gray border */
+                }
+            } else {
+                header.classList.remove('bg-white');
+                header.classList.remove('shadow-sm'); /* Remove shadow */
+                header.style.backgroundColor = 'transparent'; // Transparent when not scrolled
+                header.style.borderBottom = 'none'; /* No border when transparent */
+            }
 
             // Update logo color
-            header.querySelector('a.text-2xl').classList.toggle('text-teal-500', isScrolled);
-            header.querySelector('a.text-2xl').classList.toggle('text-white', !isScrolled);
+            const logo = header.querySelector('a.text-2xl');
+            if (isScrolled) {
+                logo.classList.remove('text-white');
+                if (isDarkMode) {
+                    logo.style.color = '#2dd4bf'; // Teal-400 for dark mode
+                } else {
+                    logo.classList.add('text-teal-500');
+                    logo.style.color = ''; // Reset to default teal
+                }
+            } else {
+                logo.classList.remove('text-teal-500');
+                logo.classList.add('text-white');
+                logo.style.color = ''; // Reset to default white
+            }
+
 
             // Update nav links color
             header.querySelectorAll('nav a').forEach(link => {
-                link.classList.toggle('text-gray-700', isScrolled);
-                link.classList.toggle('text-white', !isScrolled);
-                link.classList.toggle('hover:text-teal-600', isScrolled);
-                link.classList.toggle('hover:text-gray-300', !isScrolled);
+                if (isScrolled) {
+                    link.classList.remove('text-white', 'hover:text-gray-300');
+                    if (isDarkMode) {
+                        link.style.color = '#c0c0c0'; // Gray-300
+                        link.style.setProperty('color', '#2dd4bf', 'important'); // Teal-400 for hover
+                    } else {
+                        link.classList.add('text-gray-700', 'hover:text-teal-600');
+                        link.style.color = '';
+                        link.style.setProperty('color', '', 'important');
+                    }
+                } else {
+                    link.classList.remove('text-gray-700', 'hover:text-teal-600');
+                    link.classList.add('text-white', 'hover:text-gray-300');
+                    link.style.color = '';
+                    link.style.setProperty('color', '', 'important');
+                }
             });
 
             // Update search icon color
             const searchButton = document.querySelector('header .flex.items-center.space-x-4:last-child button');
             if (searchButton) {
-                searchButton.classList.toggle('text-gray-600', isScrolled);
-                searchButton.classList.toggle('text-white', !isScrolled);
-                searchButton.classList.toggle('hover:text-teal-600', isScrolled);
-                searchButton.classList.toggle('hover:text-gray-300', !isScrolled);
+                if (isScrolled) {
+                    searchButton.classList.remove('text-white', 'hover:text-gray-300');
+                    if (isDarkMode) {
+                        searchButton.style.color = '#c0c0c0'; // Gray-300
+                        searchButton.style.setProperty('color', '#2dd4bf', 'important'); // Teal-400 for hover
+                    } else {
+                        searchButton.classList.add('text-gray-600', 'hover:text-teal-600');
+                        searchButton.style.color = '';
+                        searchButton.style.setProperty('color', '', 'important');
+                    }
+                } else {
+                    searchButton.classList.remove('text-gray-600', 'hover:text-teal-600');
+                    searchButton.classList.add('text-white', 'hover:text-gray-300');
+                    searchButton.style.color = '';
+                    searchButton.style.setProperty('color', '', 'important');
+                }
             }
 
             // Update user nickname color and dropdown icon color
-            userNicknameSpan.classList.toggle('text-gray-700', isScrolled);
-            userNicknameSpan.classList.toggle('text-white', !isScrolled);
+            if (userNicknameSpan) {
+                if (isScrolled) {
+                    userNicknameSpan.classList.remove('text-white');
+                    if (isDarkMode) {
+                        userNicknameSpan.style.color = '#c0c0c0'; // Gray-300
+                    } else {
+                        userNicknameSpan.classList.add('text-gray-700');
+                        userNicknameSpan.style.color = '';
+                    }
+                } else {
+                    userNicknameSpan.classList.remove('text-gray-700');
+                    userNicknameSpan.classList.add('text-white');
+                    userNicknameSpan.style.color = '';
+                }
+            }
             if (dropdownArrowIcon) {
-                dropdownArrowIcon.classList.toggle('text-gray-700', isScrolled);
-                dropdownArrowIcon.classList.toggle('text-white', !isScrolled);
+                if (isScrolled) {
+                    dropdownArrowIcon.classList.remove('text-white');
+                    if (isDarkMode) {
+                        dropdownArrowIcon.style.color = '#c0c0c0'; // Gray-300
+                    } else {
+                        dropdownArrowIcon.classList.add('text-gray-700');
+                        dropdownArrowIcon.style.color = '';
+                    }
+                } else {
+                    dropdownArrowIcon.classList.remove('text-gray-700');
+                    dropdownArrowIcon.classList.add('text-white');
+                    dropdownArrowIcon.style.color = '';
+                }
             }
 
             // Update login/signup button style if it's visible
-            if (!loginSignupBtn.classList.contains('hidden')) {
-                loginSignupBtn.classList.toggle('text-teal-600', isScrolled);
-                loginSignupBtn.classList.toggle('text-white', !isScrolled);
-                loginSignupBtn.classList.toggle('border-teal-600', isScrolled);
-                loginSignupBtn.classList.toggle('border-white', !isScrolled);
-                loginSignupBtn.classList.toggle('hover:bg-teal-50', isScrolled);
-                loginSignupBtn.classList.toggle('hover:bg-white', !isScrolled);
+            if (loginSignupBtn && !loginSignupBtn.classList.contains('hidden')) {
+                if (isScrolled) {
+                    loginSignupBtn.classList.remove('text-white', 'border-white', 'hover:bg-white', 'hover:text-teal-600');
+                    if (isDarkMode) {
+                        loginSignupBtn.style.color = '#2dd4bf'; // Teal-400
+                        loginSignupBtn.style.borderColor = '#2dd4bf'; // Teal-400
+                        loginSignupBtn.style.backgroundColor = ''; // Reset background
+                        loginSignupBtn.classList.remove('hover:bg-teal-50');
+                        loginSignupBtn.style.setProperty('background-color', '#2a2a2a', 'important'); // Darker hover
+                        loginSignupBtn.style.setProperty('color', '#2dd4bf', 'important'); // Teal-400 on hover
+                    } else {
+                        loginSignupBtn.classList.add('text-teal-600', 'border-teal-600', 'hover:bg-teal-50');
+                        loginSignupBtn.style.color = '';
+                        loginSignupBtn.style.borderColor = '';
+                        loginSignupBtn.style.backgroundColor = '';
+                        loginSignupBtn.style.setProperty('background-color', '', 'important');
+                        loginSignupBtn.style.setProperty('color', '', 'important');
+                    }
+                } else {
+                    loginSignupBtn.classList.remove('text-teal-600', 'border-teal-600', 'hover:bg-teal-50');
+                    loginSignupBtn.classList.add('text-white', 'border-white', 'hover:bg-white', 'hover:text-teal-600');
+                    loginSignupBtn.style.color = '';
+                    loginSignupBtn.style.borderColor = '';
+                    loginSignupBtn.style.backgroundColor = '';
+                    loginSignupBtn.style.setProperty('background-color', '', 'important');
+                    loginSignupBtn.style.setProperty('color', '', 'important');
+                }
             }
         }
 
@@ -610,6 +770,21 @@
             handleScroll();
         }
 
+        /**
+         * Applies or removes dark mode based on the toggle state.
+         * This function is called on page load and when the dark mode toggle is changed.
+         */
+        function applyDarkModeToPage(isDarkMode) {
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+            // Re-apply scroll-based header styles after dark mode change
+            handleScroll();
+        }
+
+
         // Firebase 인증 상태 리스너
         onAuthStateChanged(auth, (user) => {
             updateAuthSection(user);
@@ -653,6 +828,12 @@
 
         // 이벤트 리스너
         window.addEventListener('load', () => {
+            // Check for dark mode preference on page load
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode !== null) {
+                applyDarkModeToPage(savedDarkMode === 'true');
+            }
+
             renderBanner(); // 배너 초기 렌더링
             resetAutoSlide(); // 자동 슬라이드 시작
             renderPopularAnime(); // 인기 작품 섹션 렌더링
