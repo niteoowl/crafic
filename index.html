@@ -349,7 +349,7 @@
     <script type="module">
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase configuration (replace with your actual config or load from environment)
@@ -396,6 +396,7 @@
         let autoSlideInterval;
         let touchStartX = 0;
         let touchEndX = 0;
+        // Removed isAuthReady flag as fetchAndRenderAllWorks will always run for public data
 
         /**
          * Renders the hero section with a specific work or a default message.
@@ -583,6 +584,7 @@
             const allWorksQuery = query(worksCollectionRef, orderBy('timestamp', 'desc')); // Order by timestamp for consistent hero selection
             onSnapshot(allWorksQuery, (snapshot) => {
                 allWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                console.log("Fetched all works:", allWorks);
 
                 // Update hero banner
                 if (allWorks.length > 0) {
@@ -611,6 +613,7 @@
                 const popularWorksQuery = query(worksCollectionRef, orderBy(sortField, 'desc'), limit(10));
                 onSnapshot(popularWorksQuery, (snapshot) => {
                     const popularWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    console.log(`Fetched popular works by ${sortField}:`, popularWorks);
                     renderWorkCards(popularWorksContainer, popularWorks, 'popular');
                 }, (error) => {
                     console.error(`Error fetching popular works by ${sortField}:`, error);
@@ -631,8 +634,9 @@
                     event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
                     event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
 
-                    currentPopularSortField = event.target.dataset.tab;
-                    renderPopularBySort(currentPopularSortField);
+                    const sortField = event.target.dataset.tab; // 'views' or 'likes'
+                    // Re-fetch and render popular works based on the selected tab
+                    renderPopularBySort(sortField);
                 });
             });
         }
@@ -835,8 +839,20 @@
 
 
         // Firebase 인증 상태 리스너
-        onAuthStateChanged(auth, (user) => {
-            updateAuthSection(user);
+        onAuthStateChanged(auth, async (user) => {
+            await updateAuthSection(user); // UI 업데이트
+            if (user) {
+                // isAuthReady = true; // 이 플래그는 더 이상 사용되지 않습니다.
+                console.log("Authentication state changed: User is logged in.", user.uid);
+            } else {
+                // isAuthReady = false; // 이 플래그는 더 이상 사용되지 않습니다.
+                console.log("Authentication state changed: User is logged out.");
+                // 사용자가 로그아웃하면 닉네임과 드롭다운을 지웁니다.
+                userNicknameSpan.textContent = '';
+                userDropdownMenu.classList.add('hidden');
+            }
+            // 인증 상태와 관계없이 작품을 가져옵니다.
+            fetchAndRenderAllWorks();
         });
 
         // 로그인/회원가입 버튼 클릭 핸들러
@@ -877,27 +893,36 @@
 
         // 이벤트 리스너
         window.addEventListener('load', async () => {
-            // Authenticate with Firebase on load
+            // Firebase 인증 시도
             try {
                 if (initialAuthToken) {
+                    console.log("Attempting sign-in with custom token...");
                     await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Signed in with custom token successfully.");
                 } else {
-                    await signInAnonymously(auth);
+                    console.log("No custom token found. User will be unauthenticated unless they log in.");
+                    // 익명 로그인 시도 제거
                 }
-                console.log("Firebase authenticated.");
             } catch (error) {
-                console.error("Firebase authentication failed:", error);
-                // Optionally, show an alert or message to the user
+                console.error("Firebase authentication failed during initial sign-in attempt:", error);
+                // auth/custom-token-mismatch 오류 발생 시 익명 로그인으로 폴백하지 않고, 그냥 비인증 상태로 둡니다.
+                if (error.code === 'auth/custom-token-mismatch' || error.code === 'auth/invalid-custom-token') {
+                    console.warn("Custom token mismatch/invalid. User will remain unauthenticated.");
+                } else {
+                    alert("Firebase 인증에 실패했습니다. 페이지 기능을 사용하려면 다시 시도해주세요.");
+                }
+                // 로그인 실패 시 UI를 업데이트합니다.
+                updateAuthSection(null);
             }
 
-            // Check for dark mode preference on page load
+            // 다크 모드 설정 불러오기
             const savedDarkMode = localStorage.getItem('darkMode');
             if (savedDarkMode !== null) {
                 applyDarkModeToPage(savedDarkMode === 'true');
             }
 
-            fetchAndRenderAllWorks(); // Fetch and render all works from Firestore
-            handleScroll(); // Initial header style setup
+            handleScroll(); // 초기 헤더 스타일 설정
+            // fetchAndRenderAllWorks는 onAuthStateChanged에서 호출되므로 여기서 직접 호출할 필요 없습니다.
         });
 
         window.addEventListener('scroll', handleScroll);
@@ -918,11 +943,11 @@
                 event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
 
                 const sortField = event.target.dataset.tab; // 'views' or 'likes'
-                // Re-fetch and render popular works based on the selected tab
                 const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
                 const popularWorksQuery = query(worksCollectionRef, orderBy(sortField, 'desc'), limit(10));
                 onSnapshot(popularWorksQuery, (snapshot) => {
                     const popularWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    console.log(`Fetched popular works by ${sortField}:`, popularWorks);
                     renderWorkCards(popularWorksContainer, popularWorks, 'popular');
                 }, (error) => {
                     console.error(`Error fetching popular works by ${sortField}:`, error);
