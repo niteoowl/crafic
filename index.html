@@ -35,6 +35,9 @@
         /* Base font application */
         body {
             font-family: 'Pretendard', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Tailwind CSS Scrollbar Hide Utility (Optional, but good for aesthetics) */
@@ -64,7 +67,6 @@
         body.dark-mode header.bg-white { /* Header when scrolled in dark mode */
             background-color: #1e1e1e; /* Darker header */
             box-shadow: none; /* Remove shadow */
-            /* border-bottom: 1px solid #3a3a3a; Removed border */
         }
         body.dark-mode header a.text-teal-500 { /* CRAFIQ logo when scrolled */
             color: #2dd4bf; /* Teal-400 in dark mode */
@@ -115,6 +117,76 @@
         }
         body.dark-mode footer .text-gray-600 {
             color: #888888; /* Gray-400 */
+        }
+
+        /* Hero section specific styles */
+        #hero-section .hero-tags span {
+            background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white for tags */
+            padding: 0.25rem 0.75rem; /* px-3 py-1 */
+            border-radius: 9999px; /* rounded-full */
+            font-size: 0.75rem; /* text-xs */
+            font-weight: 600; /* font-semibold */
+            color: #ffffff; /* text-white */
+        }
+
+        #hero-section .hero-info span {
+            font-size: 0.875rem; /* text-sm */
+            color: #ffffff; /* text-white */
+            opacity: 0.8; /* Slightly transparent */
+        }
+        #hero-section .hero-info svg {
+            width: 1rem; /* w-4 */
+            height: 1rem; /* h-4 */
+            color: #ffffff; /* text-white */
+            opacity: 0.8;
+        }
+
+        /* Work card styles */
+        .work-card {
+            flex-shrink: 0;
+            width: 200px; /* Fixed width for consistent display */
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            border-radius: 0.5rem; /* rounded-md */
+            overflow: hidden; /* Ensures image corners are rounded */
+        }
+        .work-card img {
+            width: 100%;
+            height: 112px; /* Fixed height for consistent image size */
+            object-fit: cover;
+            border-radius: 0.375rem; /* rounded-md */
+        }
+        .work-card .rank {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 800; /* font-extrabold */
+            color: #333; /* Default dark color */
+        }
+        body.dark-mode .work-card .rank {
+            color: #e0e0e0; /* Light color in dark mode */
+        }
+        .work-card h3 {
+            font-size: 1rem; /* text-base */
+            font-weight: 700; /* font-bold */
+            color: #333; /* Default dark color */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        body.dark-mode .work-card h3 {
+            color: #e0e0e0; /* Light color in dark mode */
+        }
+        .work-card p {
+            font-size: 0.875rem; /* text-sm */
+            color: #6b7280; /* Default gray */
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        body.dark-mode .work-card p {
+            color: #c0c0c0; /* Light gray in dark mode */
         }
     </style>
 </head>
@@ -174,22 +246,50 @@
 
     <main>
         <section id="hero-section" class="relative w-full h-[600px] md:h-[800px] bg-cover bg-center flex items-center overflow-hidden transition-all duration-500 ease-in-out">
-            <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent"></div>
-            <div class="absolute inset-0 bg-gradient-to-l from-black/10 to-transparent"></div> <button id="prev-banner-btn" class="absolute left-4 p-2 text-white bg-black bg-opacity-30 rounded-full hover:bg-opacity-50 transition-opacity z-10 md:block hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-[#2a2a4e] to-[#0a0a2a] opacity-90"></div>
+
+            <button id="prev-banner-btn" class="absolute left-4 p-2 text-white bg-black bg-opacity-30 rounded-full hover:bg-opacity-50 transition-opacity z-10 md:block hidden">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8">
                     <path d="m15 18-6-6 6-6"></path>
                 </svg>
             </button>
 
             <div id="banner-content" class="container mx-auto px-4 relative z-10 text-white text-left">
-                <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4">
-                    <span id="banner-title1"></span><br />
-                    <span id="banner-title2" class="text-5xl md:text-7xl whitespace-nowrap"></span>
-                </h1>
-                <p id="banner-description" class="text-lg md:text-xl font-medium mb-6"></p>
-                <button class="px-6 py-3 bg-white text-teal-600 font-bold rounded-md text-lg hover:bg-gray-100 transition-colors duration-300">
-                    보러가기 &gt;
-                </button>
+                <div id="hero-tags" class="flex space-x-2 mb-4 hero-tags">
+                    </div>
+
+                <h1 id="banner-title" class="text-4xl md:text-6xl font-extrabold leading-tight mb-2">
+                    </h1>
+                <p id="banner-description" class="text-lg md:text-xl font-medium mb-4"></p>
+
+                <div id="hero-info" class="flex items-center space-x-4 mb-8 hero-info">
+                    <span class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <span id="banner-views"></span>
+                    </span>
+                    <span class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                        </svg>
+                        <span id="banner-likes"></span>
+                    </span>
+                    <span id="banner-author" class="text-sm font-semibold"></span>
+                </div>
+
+                <div class="flex space-x-4">
+                    <button class="px-6 py-3 bg-white text-teal-600 font-bold rounded-md text-lg hover:bg-gray-100 transition-colors duration-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        지금 읽기
+                    </button>
+                    <button class="px-6 py-3 border border-white text-white font-bold rounded-md text-lg hover:bg-white hover:text-teal-600 transition-colors duration-300">
+                        상세 보기
+                    </button>
+                </div>
             </div>
 
             <button id="next-banner-btn" class="absolute right-4 p-2 text-white bg-black bg-opacity-30 rounded-full hover:bg-opacity-50 transition-opacity z-10 md:block hidden">
@@ -200,33 +300,36 @@
 
             <div id="pagination-dots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
                 </div>
+            <div id="no-works-hero" class="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-4 z-20 hidden">
+                <h2 class="text-3xl md:text-5xl font-extrabold mb-4">CRAFIQ에 오신 것을 환영합니다!</h2>
+                <p class="text-lg md:text-xl font-medium mb-6">아직 작품이 업로드되지 않았습니다. 첫 작품을 시작해 보세요!</p>
+                <a href="upload-work.html" class="px-6 py-3 bg-teal-600 text-white font-bold rounded-md text-lg hover:bg-teal-700 transition-colors duration-300">
+                    작품 업로드하기
+                </a>
+            </div>
         </section>
 
         <section class="container mx-auto px-4 py-8 mt-8">
             <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-900">크래픽 인기 작품</h2>
             <div class="flex space-x-4 mb-6 border-b border-gray-200">
-                <button id="tab-실시간" class="pb-2 text-lg font-semibold text-teal-600 border-b-2 border-teal-600 transition-colors duration-200" data-tab="실시간">
-                    실시간
+                <button id="tab-views" class="pb-2 text-lg font-semibold text-teal-600 border-b-2 border-teal-600 transition-colors duration-200" data-tab="views">
+                    조회수 순
                 </button>
-                <button id="tab-이번 주" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="이번 주">
-                    이번 주
-                </button>
-                <button id="tab-분기" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="분기">
-                    분기
-                </button>
-                <button id="tab-역대" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="역대">
-                    역대
+                <button id="tab-likes" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="likes">
+                    좋아요 순
                 </button>
             </div>
 
-            <div id="popular-anime-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
-                </div>
+            <div id="popular-works-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
+                <p class="text-gray-500">인기 작품을 로딩 중입니다...</p>
+            </div>
         </section>
 
         <section class="container mx-auto px-4 py-8">
             <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-900">최신 작품</h2>
-            <div id="exclusive-works-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
-                </div>
+            <div id="latest-works-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
+                <p class="text-gray-500">최신 작품을 로딩 중입니다...</p>
+            </div>
         </section>
     </main>
 
@@ -246,156 +349,40 @@
     <script type="module">
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase configuration (replace with your actual config or load from environment)
         const firebaseConfig = JSON.parse(`{"apiKey": "AIzaSyBJFAV4-QMggAW2K1YtpsXIZ5PQ8KJzo9k", "authDomain": "crafiq-a.firebaseapp.com", "projectId": "crafiq-a", "storageBucket": "crafiq-a.firebasestorage.app", "messagingSenderId": "176082460783", "appId": "1:176082460783:web:cd0b594cc803932eaa2d9a", "measurementId": "G-QB84Z9EMZW"}`);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use __app_id if available
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Dummy data for Hero Banners
-        const heroBanners = [
-            {
-                id: 1,
-                title1: '눈부신 건',
-                title2: '너였다',
-                description: '너무 평범해서 몰랐던 일상이, 너로 인해 처음으로 빛나기 시작했다.',
-                imageUrl: '/image/hero1.png'
-            },
-            {
-                id: 2,
-                title1: '우리가',
-                title2: '빛을 잃기 전에',
-                description: '점점 멀어지는 마음 속에서도 서로를 잊지 않기 위한 마지막 기록.',
-                imageUrl: '/image/hero2.png'
-            },
-            {
-                id: 3,
-                title1: '서랍 속에',
-                title2: '남겨진 말들',
-                description: '가슴 깊이 묻어둔 기억들이 다시 피어나는 순간.',
-                imageUrl: '/image/hero3.png'
-            }
-        ];
-
-        // Dummy data for "크래픽 인기 작품" section
-        const popularAnime = [
-            {
-                id: 1,
-                rank: 1,
-                title: '덕선',
-                description: '순간 치료 능력자인데 노움이 안 된다.',
-                img: 'https://placehold.co/200x112/A0C49D/FFFFFF?text=Anime+1'
-            },
-            {
-                id: 2,
-                rank: 2,
-                title: '윈브레 - WINBRE - 시즌 2',
-                description: '추방당한 천재 치유사, 무면허 헐...',
-                img: 'https://placehold.co/200x112/C4D7B2/FFFFFF?text=Anime+2'
-            },
-            {
-                id: 3,
-                rank: 3,
-                title: '목은 숙녀의 소양이기에',
-                description: '커타지 지유',
-                img: 'https://placehold.co/200x112/E0A96D/FFFFFF?text=Anime+3'
-            },
-            {
-                id: 4,
-                rank: 4,
-                title: '병아리 같은 남동생을 키웁니다.',
-                description: '백돼지 귀족인데 전생의 기억이 떠돌',
-                img: 'https://placehold.co/200x112/B8621B/FFFFFF?text=Anime+4'
-            },
-            {
-                id: 5,
-                rank: 5,
-                title: '완벽해서 귀여운 구석이 없다고 파혼',
-                description: '판타지 액션',
-                img: 'https://placehold.co/200x112/5C8374/FFFFFF?text=Anime+5'
-            },
-            {
-                id: 6,
-                rank: 6,
-                title: '진석의 거인 The FINAL part 1',
-                description: '당한 성 너는 이웃 나라에 팔린다',
-                img: 'https://placehold.co/200x112/183D3D/FFFFFF?text=Anime+6'
-            },
-            {
-                id: 7,
-                rank: 7,
-                title: '유녀사',
-                description: '환생한 김에 인생 갈아엎는다',
-                img: 'https://placehold.co/200x112/93B1A6/FFFFFF?text=Anime+7'
-            },
-        ];
-
-        // Dummy data for "최신 작품" section
-        const exclusiveWorks = [
-            {
-                id: 1,
-                title: '듀라라라!!x2 결 - 판권 부활',
-                img: 'https://placehold.co/200x112/5C469C/FFFFFF?text=Exclusive+1'
-            },
-            {
-                id: 2,
-                title: '피라미드 게임',
-                img: 'https://placehold.co/200x112/333A73/FFFFFF?text=Exclusive+2'
-            },
-            {
-                id: 3,
-                title: 'S.A 스페셜 에이',
-                img: 'https://placehold.co/200x112/4E4F50/FFFFFF?text=Exclusive+3'
-            },
-            {
-                id: 4,
-                title: 'ID:INVADED',
-                img: 'https://placehold.co/200x112/7C7F7F/FFFFFF?text=Exclusive+4'
-            },
-            {
-                id: 5,
-                title: 'A3!',
-                img: 'https://placehold.co/200x112/9BABB8/FFFFFF?text=Exclusive+5'
-            },
-            {
-                id: 6,
-                title: '하늘색 유틸리티',
-                img: 'https://placehold.co/200x112/B7B7B7/FFFFFF?text=Exclusive+6'
-            },
-            {
-                id: 7,
-                title: '유녀사',
-                description: '환생한 김에 인생 갈아엎는다',
-                img: 'https://placehold.co/200x112/DCDCDC/FFFFFF?text=Exclusive+7'
-            },
-        ];
-
-        let currentBannerIndex = 0;
-        let touchStartX = 0;
-        let touchEndX = 0;
-        let autoSlideInterval;
-
         // Get DOM elements
         const header = document.getElementById('main-header');
         const heroSection = document.getElementById('hero-section');
-        const bannerTitle1 = document.getElementById('banner-title1');
-        const bannerTitle2 = document.getElementById('banner-title2');
-        const bannerDescription = document.getElementById('banner-description');
+        const bannerContent = document.getElementById('banner-content'); // Renamed from heroContent
+        const noWorksHero = document.getElementById('no-works-hero');
+        const bannerTitleElement = document.getElementById('banner-title');
+        const bannerDescriptionElement = document.getElementById('banner-description');
+        const heroTagsContainer = document.getElementById('hero-tags');
+        const bannerViews = document.getElementById('banner-views');
+        const bannerLikes = document.getElementById('banner-likes');
+        const bannerAuthor = document.getElementById('banner-author');
+
         const prevBannerBtn = document.getElementById('prev-banner-btn');
         const nextBannerBtn = document.getElementById('next-banner-btn');
         const paginationDotsContainer = document.getElementById('pagination-dots');
-        const popularAnimeContainer = document.getElementById('popular-anime-container');
-        const exclusiveWorksContainer = document.getElementById('exclusive-works-container');
-        const tabButtons = document.querySelectorAll('.flex.space-x-4.mb-6 button');
+        const popularWorksContainer = document.getElementById('popular-works-container'); // Renamed from popularAnimeContainer
+        const latestWorksContainer = document.getElementById('latest-works-container'); // Renamed from exclusiveWorksContainer
+        const tabButtons = document.querySelectorAll('#popular-works-section button[data-tab]'); // Select tabs within popular section
 
         // Auth-related DOM elements
-        const authSection = document.getElementById('auth-section'); // This now contains both login/signup and user info display
+        const authSection = document.getElementById('auth-section');
         const loginSignupBtn = document.getElementById('login-signup-btn');
         const userInfoDisplay = document.getElementById('user-info-display');
         const userNicknameSpan = document.getElementById('user-nickname');
@@ -404,16 +391,67 @@
         const userDropdownMenu = document.getElementById('user-dropdown-menu');
         const logoutBtn = document.getElementById('logout-btn');
 
+        let allWorks = []; // To store all fetched works
+        let currentBannerIndex = 0; // Index for the hero banner carousel
+        let autoSlideInterval;
+        let touchStartX = 0;
+        let touchEndX = 0;
+
         /**
-         * Renders the current banner content and updates styling.
+         * Renders the hero section with a specific work or a default message.
+         * @param {Object|null} work - The work object to display, or null for default.
+         * @param {boolean} isInitialLoad - True if this is the initial load, to prevent immediate auto-slide reset.
          */
-        function renderBanner() {
-            const currentBanner = heroBanners[currentBannerIndex];
-            heroSection.style.backgroundImage = `url("${currentBanner.imageUrl}")`;
-            bannerTitle1.textContent = currentBanner.title1;
-            bannerTitle2.textContent = currentBanner.title2;
-            bannerDescription.textContent = currentBanner.description;
-            updatePaginationDots();
+        function renderHeroSection(work, isInitialLoad = false) {
+            if (work) {
+                bannerContent.classList.remove('hidden');
+                noWorksHero.classList.add('hidden');
+                heroSection.style.backgroundImage = `url("${work.thumbnailUrl || 'https://placehold.co/1200x800/2a2a4e/ffffff?text=CRAFIQ'}")`;
+
+                heroTagsContainer.innerHTML = '';
+                if (work.tags && work.tags.length > 0) {
+                    work.tags.forEach(tag => {
+                        const tagSpan = document.createElement('span');
+                        tagSpan.textContent = tag;
+                        heroTagsContainer.appendChild(tagSpan);
+                    });
+                } else {
+                    const defaultTag = document.createElement('span');
+                    defaultTag.textContent = work.type === 'novel' ? '소설' : '웹툰';
+                    heroTagsContainer.appendChild(defaultTag);
+                }
+
+                bannerTitleElement.textContent = work.title || '제목 없음';
+                bannerDescriptionElement.textContent = work.introduction || '설명 없음';
+                bannerViews.textContent = work.views !== undefined ? work.views.toLocaleString() : '0';
+                bannerLikes.textContent = work.likes !== undefined ? work.likes.toLocaleString() : '0';
+                bannerAuthor.textContent = work.authorNickname ? `by ${work.authorNickname}` : 'by 익명';
+
+                // Show navigation buttons and dots only if there's more than one work
+                if (allWorks.length > 1) {
+                    prevBannerBtn.classList.remove('hidden');
+                    nextBannerBtn.classList.remove('hidden');
+                    paginationDotsContainer.classList.remove('hidden');
+                } else {
+                    prevBannerBtn.classList.add('hidden');
+                    nextBannerBtn.classList.add('hidden');
+                    paginationDotsContainer.classList.add('hidden');
+                }
+
+                updatePaginationDots();
+                if (!isInitialLoad) {
+                    resetAutoSlide();
+                }
+            } else {
+                // No works uploaded
+                bannerContent.classList.add('hidden');
+                noWorksHero.classList.remove('hidden');
+                heroSection.style.backgroundImage = `url('https://placehold.co/1200x800/2a2a4e/ffffff?text=CRAFIQ')`; // Default background
+                prevBannerBtn.classList.add('hidden');
+                nextBannerBtn.classList.add('hidden');
+                paginationDotsContainer.classList.add('hidden');
+                clearInterval(autoSlideInterval); // Stop auto-slide if no works
+            }
         }
 
         /**
@@ -421,7 +459,7 @@
          */
         function updatePaginationDots() {
             paginationDotsContainer.innerHTML = ''; // Clear existing dots
-            heroBanners.forEach((_, index) => {
+            allWorks.forEach((_, index) => {
                 const dot = document.createElementNS("http://www.w3.org/2000/svg", "svg");
                 dot.setAttribute('width', '24');
                 dot.setAttribute('height', '24');
@@ -441,8 +479,7 @@
                 }
                 dot.addEventListener('click', () => {
                     currentBannerIndex = index;
-                    renderBanner();
-                    resetAutoSlide();
+                    renderHeroSection(allWorks[currentBannerIndex]);
                 });
                 paginationDotsContainer.appendChild(dot);
             });
@@ -452,18 +489,16 @@
          * Navigates to the previous banner.
          */
         function handlePrevBanner() {
-            currentBannerIndex = (currentBannerIndex === 0) ? heroBanners.length - 1 : currentBannerIndex - 1;
-            renderBanner();
-            resetAutoSlide();
+            currentBannerIndex = (currentBannerIndex === 0) ? allWorks.length - 1 : currentBannerIndex - 1;
+            renderHeroSection(allWorks[currentBannerIndex]);
         }
 
         /**
          * Navigates to the next banner.
          */
         function handleNextBanner() {
-            currentBannerIndex = (currentBannerIndex === heroBanners.length - 1) ? 0 : currentBannerIndex + 1;
-            renderBanner();
-            resetAutoSlide();
+            currentBannerIndex = (currentBannerIndex === allWorks.length - 1) ? 0 : currentBannerIndex + 1;
+            renderHeroSection(allWorks[currentBannerIndex]);
         }
 
         /**
@@ -471,8 +506,137 @@
          */
         function resetAutoSlide() {
             clearInterval(autoSlideInterval);
-            autoSlideInterval = setInterval(handleNextBanner, 5000); // 5 seconds
+            if (allWorks.length > 1) { // Only auto-slide if there's more than one banner
+                autoSlideInterval = setInterval(handleNextBanner, 5000); // 5 seconds
+            }
         }
+
+        /**
+         * Handles touch start event for swipe.
+         * @param {TouchEvent} e - The touch event.
+         */
+        function handleTouchStart(e) {
+            touchStartX = e.touches[0].clientX;
+        }
+
+        /**
+         * Handles touch move event for swipe.
+         * @param {TouchEvent} e - The touch event.
+         */
+        function handleTouchMove(e) {
+            touchEndX = e.touches[0].clientX;
+        }
+
+        /**
+         * Handles touch end event for swipe and determines swipe direction.
+         */
+        function handleTouchEnd() {
+            const swipeDistance = touchStartX - touchEndX;
+            const minSwipeDistance = 50; // Minimum distance for a recognized swipe
+
+            if (swipeDistance > minSwipeDistance) {
+                // Swiped left (next banner)
+                handleNextBanner();
+            } else if (swipeDistance < -minSwipeDistance) {
+                // Swiped right (previous banner)
+                handlePrevBanner();
+            }
+        }
+
+        /**
+         * Renders a list of works into a container.
+         * @param {HTMLElement} container - The DOM element to render works into.
+         * @param {Array<Object>} works - An array of work objects.
+         * @param {string} sectionType - 'popular' or 'latest' to adjust card style.
+         */
+        function renderWorkCards(container, works, sectionType) {
+            container.innerHTML = ''; // Clear existing items
+            if (works.length === 0) {
+                container.innerHTML = `<p class="text-gray-500 dark:text-gray-400">아직 ${sectionType === 'popular' ? '인기' : '최신'} 작품이 없습니다.</p>`;
+                return;
+            }
+
+            works.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'work-card flex-shrink-0 w-48 md:w-56 lg:w-64 cursor-pointer'; // Adjusted width for better fit
+                div.innerHTML = `
+                    <div class="relative">
+                        <img src="${item.thumbnailUrl || 'https://placehold.co/200x112/CCCCCC/333333?text=No+Image'}" alt="${item.title}" class="w-full h-auto object-cover rounded-md" onerror="this.onerror=null;this.src='https://placehold.co/200x112/CCCCCC/333333?text=Image+Error';"/>
+                    </div>
+                    <div class="pt-2">
+                        ${sectionType === 'popular' ? `<div class="text-4xl font-extrabold text-black dark:text-e0e0e0 mb-1">${index + 1}</div>` : ''}
+                        <h3 class="text-base md:text-lg font-bold text-gray-900 dark:text-e0e0e0 truncate mb-1">${item.title}</h3>
+                        <p class="text-sm text-gray-600 dark:text-c0c0c0 line-clamp-2">${item.introduction || '설명 없음'}</p>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        /**
+         * Fetches and renders all works from Firestore.
+         */
+        function fetchAndRenderAllWorks() {
+            const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
+
+            // Listen for changes in all public works to update the hero banner and latest works
+            const allWorksQuery = query(worksCollectionRef, orderBy('timestamp', 'desc')); // Order by timestamp for consistent hero selection
+            onSnapshot(allWorksQuery, (snapshot) => {
+                allWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Update hero banner
+                if (allWorks.length > 0) {
+                    // Ensure currentBannerIndex is within bounds if works are removed
+                    if (currentBannerIndex >= allWorks.length) {
+                        currentBannerIndex = 0;
+                    }
+                    renderHeroSection(allWorks[currentBannerIndex]);
+                } else {
+                    renderHeroSection(null); // Show default message if no works
+                }
+
+                // Render latest works (top 10 by timestamp)
+                const latestWorks = allWorks.slice(0, 10);
+                renderWorkCards(latestWorksContainer, latestWorks, 'latest');
+            }, (error) => {
+                console.error("Error fetching all works:", error);
+                latestWorksContainer.innerHTML = '<p class="text-red-500">작품을 불러오는 데 실패했습니다.</p>';
+                renderHeroSection(null); // Show default message on error
+            });
+
+
+            // Listen for popular works (initially by views)
+            let currentPopularSortField = 'views';
+            const renderPopularBySort = (sortField) => {
+                const popularWorksQuery = query(worksCollectionRef, orderBy(sortField, 'desc'), limit(10));
+                onSnapshot(popularWorksQuery, (snapshot) => {
+                    const popularWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderWorkCards(popularWorksContainer, popularWorks, 'popular');
+                }, (error) => {
+                    console.error(`Error fetching popular works by ${sortField}:`, error);
+                    popularWorksContainer.innerHTML = '<p class="text-red-500">인기 작품을 불러오는 데 실패했습니다.</p>';
+                });
+            };
+
+            // Initial render for popular works
+            renderPopularBySort(currentPopularSortField);
+
+            // Add event listeners for popular works tabs
+            tabButtons.forEach(button => {
+                button.addEventListener('click', (event) => {
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
+                        btn.classList.add('text-gray-600', 'hover:text-teal-600');
+                    });
+                    event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
+                    event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
+
+                    currentPopularSortField = event.target.dataset.tab;
+                    renderPopularBySort(currentPopularSortField);
+                });
+            });
+        }
+
 
         /**
          * Handles scroll event to change header style.
@@ -488,14 +652,12 @@
                     header.classList.remove('shadow-sm'); /* Remove shadow */
                     header.style.borderBottom = 'none'; /* No border */
                 } else {
-                    header.classList.add('bg-white');
-                    header.classList.remove('shadow-sm'); /* Remove shadow */
+                    header.classList.add('bg-white', 'shadow-sm'); /* Add shadow back */
                     header.style.backgroundColor = ''; // Reset to default white
                     header.style.borderBottom = 'none'; /* No border */
                 }
             } else {
-                header.classList.remove('bg-white');
-                header.classList.remove('shadow-sm'); /* Remove shadow */
+                header.classList.remove('bg-white', 'shadow-sm'); /* Remove shadow */
                 header.style.backgroundColor = 'transparent'; // Transparent when not scrolled
                 header.style.borderBottom = 'none'; /* No border when transparent */
             }
@@ -523,17 +685,15 @@
                     link.classList.remove('text-white', 'hover:text-gray-300');
                     if (isDarkMode) {
                         link.style.color = '#c0c0c0'; // Gray-300
-                        link.style.setProperty('color', '#2dd4bf', 'important'); // Teal-400 for hover
+                        // No specific hover color needed here, Tailwind's hover:text-teal-600 will apply
                     } else {
                         link.classList.add('text-gray-700', 'hover:text-teal-600');
                         link.style.color = '';
-                        link.style.setProperty('color', '', 'important');
                     }
                 } else {
                     link.classList.remove('text-gray-700', 'hover:text-teal-600');
                     link.classList.add('text-white', 'hover:text-gray-300');
                     link.style.color = '';
-                    link.style.setProperty('color', '', 'important');
                 }
             });
 
@@ -544,17 +704,14 @@
                     searchButton.classList.remove('text-white', 'hover:text-gray-300');
                     if (isDarkMode) {
                         searchButton.style.color = '#c0c0c0'; // Gray-300
-                        searchButton.style.setProperty('color', '#2dd4bf', 'important'); // Teal-400 for hover
                     } else {
                         searchButton.classList.add('text-gray-600', 'hover:text-teal-600');
                         searchButton.style.color = '';
-                        searchButton.style.setProperty('color', '', 'important');
                     }
                 } else {
                     searchButton.classList.remove('text-gray-600', 'hover:text-teal-600');
                     searchButton.classList.add('text-white', 'hover:text-gray-300');
                     searchButton.style.color = '';
-                    searchButton.style.setProperty('color', '', 'important');
                 }
             }
 
@@ -597,123 +754,15 @@
                     if (isDarkMode) {
                         loginSignupBtn.style.color = '#2dd4bf'; // Teal-400
                         loginSignupBtn.style.borderColor = '#2dd4bf'; // Teal-400
-                        loginSignupBtn.style.backgroundColor = ''; // Reset background
-                        loginSignupBtn.classList.remove('hover:bg-teal-50');
-                        loginSignupBtn.style.setProperty('background-color', '#2a2a2a', 'important'); // Darker hover
-                        loginSignupBtn.style.setProperty('color', '#2dd4bf', 'important'); // Teal-400 on hover
+                        loginSignupBtn.classList.add('hover:bg-teal-50'); // Keep hover effect
                     } else {
                         loginSignupBtn.classList.add('text-teal-600', 'border-teal-600', 'hover:bg-teal-50');
-                        loginSignupBtn.style.color = '';
-                        loginSignupBtn.style.borderColor = '';
-                        loginSignupBtn.style.backgroundColor = '';
-                        loginSignupBtn.style.setProperty('background-color', '', 'important');
-                        loginSignupBtn.style.setProperty('color', '', 'important');
                     }
                 } else {
                     loginSignupBtn.classList.remove('text-teal-600', 'border-teal-600', 'hover:bg-teal-50');
                     loginSignupBtn.classList.add('text-white', 'border-white', 'hover:bg-white', 'hover:text-teal-600');
-                    loginSignupBtn.style.color = '';
-                    loginSignupBtn.style.borderColor = '';
-                    loginSignupBtn.style.backgroundColor = '';
-                    loginSignupBtn.style.setProperty('background-color', '', 'important');
-                    loginSignupBtn.style.setProperty('color', '', 'important');
                 }
             }
-        }
-
-        /**
-         * Handles touch start event for swipe.
-         * @param {TouchEvent} e - The touch event.
-         */
-        function handleTouchStart(e) {
-            touchStartX = e.touches[0].clientX;
-        }
-
-        /**
-         * Handles touch move event for swipe.
-         * @param {TouchEvent} e - The touch event.
-         */
-        function handleTouchMove(e) {
-            touchEndX = e.touches[0].clientX;
-        }
-
-        /**
-         * Handles touch end event for swipe and determines swipe direction.
-         */
-        function handleTouchEnd() {
-            const swipeDistance = touchStartX - touchEndX;
-            const minSwipeDistance = 50; // Minimum distance for a recognized swipe
-
-            if (swipeDistance > minSwipeDistance) {
-                // Swiped left (next banner)
-                handleNextBanner();
-            } else if (swipeDistance < -minSwipeDistance) {
-                // Swiped right (previous banner)
-                handlePrevBanner();
-            }
-        }
-
-        /**
-         * Renders the popular anime section.
-         */
-        function renderPopularAnime() {
-            popularAnimeContainer.innerHTML = ''; // Clear existing items
-            popularAnime.forEach(item => {
-                const div = document.createElement('div');
-                // Increased width classes for carousel items and added rounded-md to images
-                div.className = 'flex-shrink-0 w-64 md:w-72 lg:w-80 cursor-pointer flex flex-col';
-                div.innerHTML = `
-                    <div class="relative">
-                        <img src="${item.img}" alt="${item.title}" class="w-full h-auto object-cover rounded-md" onerror="this.onerror=null;this.src='https://placehold.co/200x112/CCCCCC/333333?text=Image+Error';"/>
-                    </div>
-                    <div class="flex items-start pt-2">
-                        <div class="text-5xl font-extrabold text-black mr-2">${item.rank}</div>
-                        <div class="flex-1">
-                            <h3 class="text-base md:text-lg font-bold text-gray-900 truncate mb-1">${item.title}</h3>
-                            <p class="text-sm text-gray-600 line-clamp-2">${item.description}</p>
-                        </div>
-                    </div>
-                `;
-                popularAnimeContainer.appendChild(div);
-            });
-        }
-
-        /**
-         * Renders the exclusive works section.
-         */
-        function renderExclusiveWorks() {
-            exclusiveWorksContainer.innerHTML = ''; // Clear existing items
-            exclusiveWorks.forEach(item => {
-                const div = document.createElement('div');
-                // Increased width classes for carousel items and added rounded-md to images
-                div.className = 'flex-shrink-0 w-64 md:w-72 lg:w-80 cursor-pointer';
-                div.innerHTML = `
-                    <div class="relative">
-                        <img src="${item.img}" alt="${item.title}" class="w-full h-auto object-cover rounded-md" onerror="this.onerror=null;this.src='https://placehold.co/200x112/CCCCCC/333333?text=Image+Error';"/>
-                        </div>
-                    <div class="pt-2">
-                        <h3 class="text-base md:text-lg font-bold text-gray-900 truncate">
-                            ${item.title}
-                        </h3>
-                    </div>
-                `;
-                exclusiveWorksContainer.appendChild(div);
-            });
-        }
-
-        /**
-         * Handles tab clicks for popular works section.
-         * @param {Event} event - The click event.
-         */
-        function handleTabClick(event) {
-            tabButtons.forEach(button => {
-                button.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
-                button.classList.add('text-gray-600', 'hover:text-teal-600');
-            });
-            event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
-            event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
-            // In a real app, you would fetch/filter data based on the active tab here
-            // For this example, we just change the active state.
         }
 
         /**
@@ -827,19 +876,28 @@
 
 
         // 이벤트 리스너
-        window.addEventListener('load', () => {
+        window.addEventListener('load', async () => {
+            // Authenticate with Firebase on load
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                console.log("Firebase authenticated.");
+            } catch (error) {
+                console.error("Firebase authentication failed:", error);
+                // Optionally, show an alert or message to the user
+            }
+
             // Check for dark mode preference on page load
             const savedDarkMode = localStorage.getItem('darkMode');
             if (savedDarkMode !== null) {
                 applyDarkModeToPage(savedDarkMode === 'true');
             }
 
-            renderBanner(); // 배너 초기 렌더링
-            resetAutoSlide(); // 자동 슬라이드 시작
-            renderPopularAnime(); // 인기 작품 섹션 렌더링
-            renderExclusiveWorks(); // 최신 작품 섹션 렌더링
-            // 초기 위치에 따라 헤더 스타일을 설정하기 위한 handleScroll 초기 호출
-            handleScroll();
+            fetchAndRenderAllWorks(); // Fetch and render all works from Firestore
+            handleScroll(); // Initial header style setup
         });
 
         window.addEventListener('scroll', handleScroll);
@@ -851,7 +909,26 @@
         heroSection.addEventListener('touchend', handleTouchEnd);
 
         tabButtons.forEach(button => {
-            button.addEventListener('click', handleTabClick);
+            button.addEventListener('click', (event) => {
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
+                    btn.classList.add('text-gray-600', 'hover:text-teal-600');
+                });
+                event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
+                event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
+
+                const sortField = event.target.dataset.tab; // 'views' or 'likes'
+                // Re-fetch and render popular works based on the selected tab
+                const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
+                const popularWorksQuery = query(worksCollectionRef, orderBy(sortField, 'desc'), limit(10));
+                onSnapshot(popularWorksQuery, (snapshot) => {
+                    const popularWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderWorkCards(popularWorksContainer, popularWorks, 'popular');
+                }, (error) => {
+                    console.error(`Error fetching popular works by ${sortField}:`, error);
+                    popularWorksContainer.innerHTML = '<p class="text-red-500">인기 작품을 불러오는 데 실패했습니다.</p>';
+                });
+            });
         });
 
     </script>
