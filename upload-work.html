@@ -535,7 +535,7 @@
     <script type="module">
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase configuration (replace with your actual config or load from environment)
@@ -588,57 +588,9 @@
 
         let novelPages = ['<p>이것은 첫 번째 페이지의 내용입니다. 소설을 책처럼 넘기면서 작성해 보세요!</p>']; // Array to hold HTML content for each page
         let currentPageIndex = 0; // Current active page index (0-based)
-        let currentNovelId = new URLSearchParams(window.location.search).get('novelId'); // Get novelId from URL if editing existing
+        let currentWorkId = new URLSearchParams(window.location.search).get('workId'); // Unified ID for novel/webtoon
+
         let quill; // Quill editor instance
-
-        // Dummy data for existing novels (simulate fetching from Firestore)
-        // These will be replaced by actual Firestore data if implemented
-        const dummyNovels = {
-            'novel-1': {
-                title: '나의 첫 번째 소설',
-                pages: [
-                    '<p>이것은 나의 첫 번째 소설의 첫 페이지입니다. 마법과 모험의 세계로 떠나볼까요?</p><p>새로운 문단을 시작하려면 엔터를 두 번 누르세요.</p>',
-                    '<p>두 번째 페이지에는 <strong>새로운 인물들</strong>이 등장합니다. 그들의 운명은 어떻게 될까요?</p><p>Quill.js 에디터를 사용해 텍스트를 <u>강조</u>하거나 <span style="color: rgb(230, 0, 0);">색상</span>을 변경할 수 있습니다.</p>',
-                    '<p>세 번째 페이지, 이야기는 절정으로 치닫습니다. 예측 불가능한 반전이 기다립니다!</p><p>글쓰기에 집중해 보세요.</p>'
-                ]
-            },
-            'novel-2': {
-                title: '어둠 속 한 줄기 빛',
-                pages: [
-                    '<p>어두운 도시의 밤, 한 줄기 빛이 절망에 빠진 이들을 비춥니다.</p>',
-                    '<p>빛을 따라 나선 여정, 그 끝에는 어떤 진실이 숨겨져 있을까요?</p>',
-                    '<p>사랑과 희생, 그리고 용기가 필요한 순간. 그들은 빛을 지켜낼 수 있을까요?</p>'
-                ]
-            },
-            'novel-3': {
-                title: '시간 여행자의 일기',
-                pages: [
-                    '<p>낡은 일기장 속에서 발견된 시간 여행의 비밀. 나는 과거로 떠난다.</p>',
-                    '<p>빅토리아 시대 런던, 예상치 못한 만남과 사건들이 나를 기다린다.</p>',
-                    '<p>미래로의 도약, 인류의 운명을 바꿀 수 있을까? 나의 선택은...</p>'
-                ]
-            }
-        };
-
-        // Dummy data for existing webtoons (for testing purposes) - now using HTML content with images
-        const dummyWebtoons = {
-            'webtoon-1': {
-                title: '용사님, 다시 태어났습니다!',
-                pages: [
-                    '<p>프롤로그: 이세계 전생</p><p><img src="https://placehold.co/300x200/FFD700/000000?text=EP1_Image" alt="Episode 1 Image"></p><p>용사가 이세계로 전생하는 이야기의 시작입니다.</p>',
-                    '<p>1화: 새로운 시작</p><p>새로운 모험이 시작됩니다.</p><p><img src="https://placehold.co/300x200/C0C0C0/000000?text=EP2_Image" alt="Episode 2 Image"></p>',
-                    '<p>2화: 마왕성으로 가는 길</p><p>험난한 여정의 시작.</p><p><img src="https://placehold.co/300x200/808080/FFFFFF?text=EP3_Image" alt="Episode 3 Image"></p>'
-                ]
-            },
-            'webtoon-2': {
-                title: '옆집 마법사는 사실 아이돌',
-                pages: [
-                    '<p>1화: 수상한 이웃</p><p><img src="https://placehold.co/300x200/ADD8E6/000000?text=EP1_Image" alt="Episode 1 Image"></p><p>옆집에 사는 수상한 이웃의 정체는?</p>',
-                    '<p>2화: 콘서트에서 만난 그</p><p>놀라운 비밀이 밝혀진다!</p><p><img src="https://placehold.co/300x200/90EE90/000000?text=EP2_Image" alt="Episode 2 Image"></p>'
-                ]
-            }
-        };
-
 
         /**
          * Updates the header's style (shadow and border) based on dark mode.
@@ -790,9 +742,8 @@
                 }
 
                 contentWrapper.appendChild(contentElement);
-                thumbnailDiv.appendChild(pageNumberDiv);
-
-                const pageNumberDiv = document.createElement('div');
+                
+                const pageNumberDiv = document.createElement('div'); // Corrected: moved declaration before usage
                 pageNumberDiv.className = 'page-thumbnail-number';
                 pageNumberDiv.textContent = `${pagePrefix}${index + 1}`;
                 thumbnailDiv.appendChild(pageNumberDiv);
@@ -819,9 +770,9 @@
         function saveCurrentPageContent() {
             novelPages[currentPageIndex] = quill.root.innerHTML; // Get HTML content from Quill
             renderCurrentPage(); // Update display with saved content
-            alert('페이지 내용이 저장되었습니다!');
-            // In a real app, you would save this to Firestore for the current novelId
-            // Example: setDoc(doc(db, `artifacts/${appId}/novels`, currentNovelId), { pages: novelPages }, { merge: true });
+            showCustomAlert('페이지 내용이 저장되었습니다!');
+            // In a real app, you would save this to Firestore for the current novelId/workId
+            // Example: if (currentWorkId) { updateDoc(doc(db, `artifacts/${appId}/public/data/works`, currentWorkId), { content: novelPages }); }
         }
 
         /**
@@ -854,7 +805,7 @@
             novelPages.splice(currentPageIndex + 1, 0, '<p><br></p>'); // Insert empty HTML paragraph for Quill
             currentPageIndex++; // Move to the new page
             renderCurrentPage();
-            alert('새 페이지가 추가되었습니다!');
+            showCustomAlert('새 페이지가 추가되었습니다!');
         }
 
         /**
@@ -862,17 +813,17 @@
          */
         function deletePage() {
             if (novelPages.length === 1) {
-                alert('마지막 페이지는 삭제할 수 없습니다.');
+                showCustomAlert('마지막 페이지는 삭제할 수 없습니다.');
                 return;
             }
-            if (confirm('정말로 현재 페이지를 삭제하시겠습니까?')) {
+            showCustomConfirm('정말로 현재 페이지를 삭제하시겠습니까?', () => {
                 novelPages.splice(currentPageIndex, 1); // Remove current page
                 if (currentPageIndex >= novelPages.length) {
                     currentPageIndex = novelPages.length - 1; // Adjust index if last page was deleted
                 }
                 renderCurrentPage();
-                alert('페이지가 삭제되었습니다.');
-            }
+                showCustomAlert('페이지가 삭제되었습니다.');
+            });
         }
 
         /**
@@ -886,7 +837,7 @@
                 contentTypeTitle.textContent = '소설';
                 contentTypeDescription.textContent = '책처럼 페이지별로 소설을 작성해 보세요';
                 // If switching from webtoon, reset novelPages to a default empty page if it was empty
-                if (novelPages.length === 0) {
+                if (novelPages.length === 0 || (novelPages.length === 1 && novelPages[0].trim() === '<p><br></p>')) {
                     novelPages = ['<p>여기에 내용을 작성해 보세요.</p>'];
                 }
                 currentPageIndex = 0; // Always start at first page when switching types
@@ -895,12 +846,53 @@
                 contentTypeTitle.textContent = '웹툰';
                 contentTypeDescription.textContent = '각 에피소드 내용을 페이지별로 작성하고 이미지를 추가하세요.';
                 // If switching from novel, reset novelPages to a default empty page if it was empty
-                if (novelPages.length === 0) {
+                if (novelPages.length === 0 || (novelPages.length === 1 && novelPages[0].trim() === '<p><br></p>')) {
                     novelPages = ['<p>여기에 에피소드 내용을 작성하고 이미지를 추가하세요.</p>'];
                 }
                 currentPageIndex = 0; // Always start at first page when switching types
                 renderCurrentPage(); // Render webtoon page (using same novel page logic)
             }
+        }
+
+        /**
+         * Displays a custom alert message.
+         * @param {string} message - The message to display.
+         */
+        function showCustomAlert(message) {
+            const alertModal = document.createElement('div');
+            alertModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            alertModal.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+                    <p class="text-lg font-semibold text-gray-800 mb-4">${message}</p>
+                    <button class="px-6 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors" onclick="this.closest('.fixed').remove()">확인</button>
+                </div>
+            `;
+            document.body.appendChild(alertModal);
+        }
+
+        /**
+         * Displays a custom confirmation dialog.
+         * @param {string} message - The confirmation message.
+         * @param {Function} onConfirm - Callback function to execute if confirmed.
+         */
+        function showCustomConfirm(message, onConfirm) {
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            confirmModal.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+                    <p class="text-lg font-semibold text-gray-800 mb-4">${message}</p>
+                    <div class="flex justify-center space-x-4">
+                        <button class="px-6 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors" onclick="this.closest('.fixed').remove()">취소</button>
+                        <button class="px-6 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors" id="confirm-action-btn">확인</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmModal);
+
+            document.getElementById('confirm-action-btn').addEventListener('click', () => {
+                onConfirm();
+                confirmModal.remove();
+            });
         }
 
 
@@ -909,14 +901,20 @@
             // Authenticate with Firebase on load
             try {
                 if (initialAuthToken) {
+                    console.log("Attempting sign-in with custom token...");
                     await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Signed in with custom token successfully.");
                 } else {
-                    await signInAnonymously(auth);
+                    console.log("No custom token found. User will be unauthenticated unless they log in.");
                 }
-                console.log("Firebase authenticated.");
             } catch (error) {
-                console.error("Firebase authentication failed:", error);
-                alert("Firebase 인증에 실패했습니다. 페이지를 새로고침하거나 나중에 다시 시도해주세요.");
+                console.error("Firebase authentication failed during initial sign-in attempt:", error);
+                if (error.code === 'auth/custom-token-mismatch' || error.code === 'auth/invalid-custom-token') {
+                    console.warn("Custom token mismatch/invalid. User will remain unauthenticated.");
+                } else {
+                    showCustomAlert("Firebase 인증에 실패했습니다. 페이지 기능을 사용하려면 다시 시도해주세요.");
+                }
+                updateAuthSection(null);
             }
 
             const savedDarkMode = localStorage.getItem('darkMode');
@@ -949,31 +947,51 @@
                 // No live preview needed here, just ensure the content is internally updated if needed.
             });
 
-            // Determine initial content based on URL parameters (for editing existing work)
-            const urlParams = new URLSearchParams(window.location.search);
-            const novelIdParam = urlParams.get('novelId');
-            const webtoonIdParam = urlParams.get('webtoonId'); // Assuming a webtoonId param for webtoons
-            const workNameParam = urlParams.get('novelName') || urlParams.get('webtoonName') || ''; // Unified name param
+            // Load existing work if workId is present in URL
+            if (currentWorkId) {
+                try {
+                    const workDocRef = doc(db, `artifacts/${appId}/public/data/works`, currentWorkId);
+                    const workDocSnap = await getDoc(workDocRef);
 
+                    if (workDocSnap.exists()) {
+                        const workData = workDocSnap.data();
+                        workTitleInput.value = workData.title || '';
+                        workTypeSelect.value = workData.type || 'novel';
+                        document.getElementById('work-genre').value = workData.genre || '';
+                        document.getElementById('age-rating').value = workData.ageRating || '';
+                        workIntroductionTextarea.value = workData.introduction || '';
+                        document.getElementById('thumbnail-url').value = workData.thumbnailUrl || '';
+                        document.getElementById('public-setting').value = workData.publicSetting || 'public';
 
-            if (novelIdParam && dummyNovels[novelIdParam]) {
-                // Load existing novel
-                workTitleInput.value = dummyNovels[novelIdParam].title;
-                novelPages = [...dummyNovels[novelIdParam].pages];
-                currentPageIndex = 0;
-                workTypeSelect.value = 'novel';
-            } else if (webtoonIdParam && dummyWebtoons[webtoonIdParam]) {
-                // Load existing webtoon
-                workTitleInput.value = dummyWebtoons[webtoonIdParam].title;
-                novelPages = [...dummyWebtoons[webtoonIdParam].pages]; // Load webtoon pages into novelPages
-                currentPageIndex = 0;
-                workTypeSelect.value = 'webtoon';
+                        // Clear existing tags and add loaded tags
+                        tagsContainer.innerHTML = '';
+                        if (workData.tags && Array.isArray(workData.tags)) {
+                            workData.tags.forEach(tag => addTag(tag));
+                        }
+
+                        // Load content pages
+                        if (workData.content && Array.isArray(workData.content) && workData.content.length > 0) {
+                            novelPages = [...workData.content];
+                        } else {
+                            novelPages = ['<p>여기에 내용을 작성해 보세요.</p>']; // Default if no content
+                        }
+                        currentPageIndex = 0;
+                        console.log("Work loaded successfully:", workData);
+                    } else {
+                        console.log("No such work found for ID:", currentWorkId);
+                        novelPages = ['<p>여기에 내용을 작성해 보세요.</p>']; // Default for new work
+                        const workNameParam = new URLSearchParams(window.location.search).get('workName') || '';
+                        workTitleInput.value = workNameParam;
+                    }
+                } catch (error) {
+                    console.error("Error loading work from Firestore:", error);
+                    showCustomAlert("작품을 불러오는 중 오류가 발생했습니다.");
+                    novelPages = ['<p>여기에 내용을 작성해 보세요.</p>']; // Default for new work on error
+                }
             } else {
-                // Default to a new novel if no existing work is specified
-                novelPages = ['<p>여기에 내용을 작성해 보세요.</p>'];
+                novelPages = ['<p>여기에 내용을 작성해 보세요.</p>']; // Default for new work
+                const workNameParam = new URLSearchParams(window.location.search).get('workName') || '';
                 workTitleInput.value = workNameParam;
-                currentPageIndex = 0;
-                workTypeSelect.value = 'novel'; // Default to novel
             }
 
             // Call handler to set initial visibility and content based on default/loaded type
@@ -1055,7 +1073,7 @@
         uploadWorkBtn.addEventListener('click', async () => {
             // Check if user is logged in
             if (!auth.currentUser) {
-                alert('작품을 업로드하려면 로그인해야 합니다.');
+                showCustomAlert('작품을 업로드하려면 로그인해야 합니다.');
                 window.location.href = 'login.html'; // Redirect to login page
                 return;
             }
@@ -1079,19 +1097,19 @@
                 const publicSetting = document.getElementById('public-setting').value;
                 const currentTags = Array.from(tagsContainer.querySelectorAll('.tag-item span')).map(span => span.textContent);
 
-                let contentToUpload = novelPages; // Always novelPages now, containing HTML for both novel/webtoon
+                let contentToUpload = novelPages; // This will be novelPages for both novel and webtoon
 
                 if (!workTitle || !workType || !workGenre || !workIntroduction) {
-                    alert('필수 입력 항목 (제목, 유형, 장르, 소개)을 모두 채워주세요.');
+                    showCustomAlert('필수 입력 항목 (제목, 유형, 장르, 소개)을 모두 채워주세요.');
                     return;
                 }
 
                 // Validate content based on type
                 if (contentToUpload.length === 0 || contentToUpload.every(page => page.trim() === '<p><br></p>' || page.trim() === '')) {
                     if (workType === 'novel') {
-                        alert('소설 내용을 한 페이지 이상 작성해주세요.');
+                        showCustomAlert('소설 내용을 한 페이지 이상 작성해주세요.');
                     } else { // webtoon
-                        alert('웹툰 에피소드를 한 개 이상 작성해주세요.');
+                        showCustomAlert('웹툰 에피소드를 한 개 이상 작성해주세요.');
                     }
                     return;
                 }
@@ -1113,16 +1131,24 @@
                     likes: 0 // Initialize likes
                 };
 
-                // Save to Firestore in a public collection
-                const docRef = await addDoc(collection(db, `artifacts/${appId}/public/data/works`), workData);
-                console.log("Document written with ID: ", docRef.id);
-
-                alert('작품이 성공적으로 업로드되었습니다!');
-                window.location.href = 'index.html'; // Redirect to home page after successful upload
+                // Determine if it's a new work or an update
+                if (currentWorkId) {
+                    // Update existing work
+                    await updateDoc(doc(db, `artifacts/${appId}/public/data/works`, currentWorkId), workData);
+                    console.log("Document updated with ID: ", currentWorkId);
+                    showCustomAlert('작품이 성공적으로 업데이트되었습니다!');
+                } else {
+                    // Add new work
+                    const docRef = await addDoc(collection(db, `artifacts/${appId}/public/data/works`), workData);
+                    console.log("Document written with ID: ", docRef.id);
+                    showCustomAlert('작품이 성공적으로 업로드되었습니다!');
+                }
+                
+                window.location.href = 'index.html'; // Redirect to home page after successful upload/update
 
             } catch (error) {
-                console.error("작품 업로드 중 오류 발생:", error);
-                alert(`작품 업로드에 실패했습니다: ${error.message}`);
+                console.error("작품 업로드/업데이트 중 오류 발생:", error);
+                showCustomAlert(`작품 업로드/업데이트에 실패했습니다: ${error.message}`);
             } finally {
                 // Hide loading state
                 uploadButtonText.textContent = '작품 업로드';
