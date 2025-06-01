@@ -842,12 +842,9 @@
         onAuthStateChanged(auth, async (user) => {
             await updateAuthSection(user); // UI 업데이트
             if (user) {
-                // isAuthReady = true; // 이 플래그는 더 이상 사용되지 않습니다.
                 console.log("Authentication state changed: User is logged in.", user.uid);
             } else {
-                // isAuthReady = false; // 이 플래그는 더 이상 사용되지 않습니다.
                 console.log("Authentication state changed: User is logged out.");
-                // 사용자가 로그아웃하면 닉네임과 드롭다운을 지웁니다.
                 userNicknameSpan.textContent = '';
                 userDropdownMenu.classList.add('hidden');
             }
@@ -901,17 +898,14 @@
                     console.log("Signed in with custom token successfully.");
                 } else {
                     console.log("No custom token found. User will be unauthenticated unless they log in.");
-                    // 익명 로그인 시도 제거
                 }
             } catch (error) {
                 console.error("Firebase authentication failed during initial sign-in attempt:", error);
-                // auth/custom-token-mismatch 오류 발생 시 익명 로그인으로 폴백하지 않고, 그냥 비인증 상태로 둡니다.
                 if (error.code === 'auth/custom-token-mismatch' || error.code === 'auth/invalid-custom-token') {
                     console.warn("Custom token mismatch/invalid. User will remain unauthenticated.");
                 } else {
                     alert("Firebase 인증에 실패했습니다. 페이지 기능을 사용하려면 다시 시도해주세요.");
                 }
-                // 로그인 실패 시 UI를 업데이트합니다.
                 updateAuthSection(null);
             }
 
