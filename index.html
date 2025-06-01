@@ -35,9 +35,6 @@
         /* Base font application */
         body {
             font-family: 'Pretendard', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
 
         /* Tailwind CSS Scrollbar Hide Utility (Optional, but good for aesthetics) */
@@ -140,17 +137,6 @@
             color: #ffffff; /* text-white */
             opacity: 0.8;
         }
-
-        /* Text stroke for rank numbers */
-        .text-stroke-2-black {
-            -webkit-text-stroke: 2px black;
-            text-stroke: 2px black;
-            color: transparent; /* Makes the fill transparent so only the stroke is visible */
-        }
-        body.dark-mode .text-stroke-2-black {
-            -webkit-text-stroke: 2px white; /* White stroke in dark mode */
-            text-stroke: 2px white;
-        }
     </style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-800">
@@ -250,8 +236,7 @@
                         지금 읽기
                     </button>
                     <button class="px-6 py-3 border border-white text-white font-bold rounded-md text-lg hover:bg-white hover:text-teal-600 transition-colors duration-300">
-                        상세 보기
-                    </button>
+                        </button>
                 </div>
             </div>
 
@@ -263,42 +248,33 @@
 
             <div id="pagination-dots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
                 </div>
-            <div id="no-works-hero" class="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-4 z-20 hidden">
-                <h2 class="text-3xl md:text-5xl font-extrabold mb-4">CRAFIQ에 오신 것을 환영합니다!</h2>
-                <p class="text-lg md:text-xl font-medium mb-6">아직 작품이 업로드되지 않았습니다. 첫 작품을 시작해 보세요!</p>
-                <a href="upload-work.html" class="px-6 py-3 bg-teal-600 text-white font-bold rounded-md text-lg hover:bg-teal-700 transition-colors duration-300">
-                    작품 업로드하기
-                </a>
-            </div>
         </section>
 
         <section class="container mx-auto px-4 py-8 mt-8">
             <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-900">크래픽 인기 작품</h2>
             <div class="flex space-x-4 mb-6 border-b border-gray-200">
-                <button id="tab-실시간" class="pb-2 text-lg font-semibold text-teal-600 border-b-2 border-teal-600 transition-colors duration-200" data-tab="views">
+                <button id="tab-실시간" class="pb-2 text-lg font-semibold text-teal-600 border-b-2 border-teal-600 transition-colors duration-200" data-tab="실시간">
                     실시간
                 </button>
-                <button id="tab-이번 주" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="views">
+                <button id="tab-이번 주" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="이번 주">
                     이번 주
                 </button>
-                <button id="tab-분기" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="likes">
+                <button id="tab-분기" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="분기">
                     분기
                 </button>
-                <button id="tab-역대" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="likes">
+                <button id="tab-역대" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="역대">
                     역대
                 </button>
             </div>
 
             <div id="popular-anime-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
-                <p class="text-gray-500">인기 작품을 로딩 중입니다...</p>
-            </div>
+                </div>
         </section>
 
         <section class="container mx-auto px-4 py-8">
             <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-900">최신 작품</h2>
-            <div id="exclusive-works-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
-                <p class="text-gray-500">최신 작품을 로딩 중입니다...</p>
-            </div>
+            <div id="exclusive-works-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                </div>
         </section>
     </main>
 
@@ -318,24 +294,63 @@
     <script type="module">
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase configuration (replace with your actual config or load from environment)
         const firebaseConfig = JSON.parse(`{"apiKey": "AIzaSyBJFAV4-QMggAW2K1YtpsXIZ5PQ8KJzo9k", "authDomain": "crafiq-a.firebaseapp.com", "projectId": "crafiq-a", "storageBucket": "crafiq-a.firebasestorage.app", "messagingSenderId": "176082460783", "appId": "1:176082460783:web:cd0b594cc803932eaa2d9a", "measurementId": "G-QB84Z9EMZW"}`);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use __app_id if available
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Dummy data for Hero Banners (kept for example, but can be fetched from DB too)
+        const heroBanners = [
+            {
+                id: 1,
+                tags: ['실시간 인기작', '소설', 'fantasy'],
+                title: 'sdf',
+                description: 'sdf',
+                views: 14,
+                likes: 1,
+                author: 'by xx.niteowl@gmail.com',
+                imageUrl: 'https://quick-tv.com/data/editor/2407/3732456066_1720032578.7054.png' // Placeholder matching the dark blue/purple gradient
+            },
+            {
+                id: 2,
+                tags: ['신작', '로맨스', '드라마'],
+                title: '우리가 빛을 잃기 전에',
+                description: '점점 멀어지는 마음 속에서도 서로를 잊지 않기 위한 마지막 기록.',
+                views: 500,
+                likes: 50,
+                author: 'by 작가명 A',
+                imageUrl: 'https://placehold.co/1200x800/3a3a5e/ffffff?text=Hero+Banner+2'
+            },
+            {
+                id: 3,
+                tags: ['추천', '판타지', '액션'],
+                title: '서랍 속에 남겨진 말들',
+                description: '가슴 깊이 묻어둔 기억들이 다시 피어나는 순간.',
+                views: 1200,
+                likes: 120,
+                author: 'by 작가명 B',
+                imageUrl: 'https://placehold.co/1200x800/4a4a6e/ffffff?text=Hero+Banner+3'
+            }
+        ];
+
+        // Dummy data for "크래픽 인기 작품" section has been removed.
+        // It will now be fetched from Firestore based on views.
+
+        let currentBannerIndex = 0;
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let autoSlideInterval;
+
         // Get DOM elements
         const header = document.getElementById('main-header');
         const heroSection = document.getElementById('hero-section');
-        const bannerContent = document.getElementById('banner-content');
-        const noWorksHero = document.getElementById('no-works-hero');
         const bannerTitleElement = document.getElementById('banner-title');
         const bannerDescriptionElement = document.getElementById('banner-description');
         const heroTagsContainer = document.getElementById('hero-tags');
@@ -346,9 +361,9 @@
         const prevBannerBtn = document.getElementById('prev-banner-btn');
         const nextBannerBtn = document.getElementById('next-banner-btn');
         const paginationDotsContainer = document.getElementById('pagination-dots');
-        const popularAnimeContainer = document.getElementById('popular-anime-container'); // Updated ID
-        const exclusiveWorksContainer = document.getElementById('exclusive-works-container'); // Updated ID
-        const tabButtons = document.querySelectorAll('.flex.space-x-4.mb-6.border-b.border-gray-200 button[data-tab]'); // Corrected selector
+        const popularAnimeContainer = document.getElementById('popular-anime-container');
+        const exclusiveWorksContainer = document.getElementById('exclusive-works-container'); // Now for Firestore data
+        const tabButtons = document.querySelectorAll('.flex.space-x-4.mb-6 button');
 
         // Auth-related DOM elements
         const authSection = document.getElementById('auth-section');
@@ -360,73 +375,37 @@
         const userDropdownMenu = document.getElementById('user-dropdown-menu');
         const logoutBtn = document.getElementById('logout-btn');
 
-        let allWorks = [];
-        let currentBannerIndex = 0;
-        let autoSlideInterval;
-        let touchStartX = 0;
-        let touchEndX = 0;
-
         /**
-         * Renders the hero section with a specific work or a default message.
-         * @param {Object|null} work - The work object to display, or null for default.
-         * @param {boolean} isInitialLoad - True if this is the initial load, to prevent immediate auto-slide reset.
+         * Renders the current banner content and updates styling.
          */
-        function renderHeroSection(work, isInitialLoad = false) {
-            if (work) {
-                bannerContent.classList.remove('hidden');
-                noWorksHero.classList.add('hidden');
-                heroSection.style.backgroundImage = `url("${work.thumbnailUrl || 'https://placehold.co/1200x800/2a2a4e/ffffff?text=CRAFIQ'}")`;
+        function renderBanner() {
+            const currentBanner = heroBanners[currentBannerIndex];
+            heroSection.style.backgroundImage = `url("${currentBanner.imageUrl}")`;
 
-                heroTagsContainer.innerHTML = '';
-                if (work.tags && work.tags.length > 0) {
-                    work.tags.forEach(tag => {
-                        const tagSpan = document.createElement('span');
-                        tagSpan.textContent = tag;
-                        heroTagsContainer.appendChild(tagSpan);
-                    });
-                } else {
-                    const defaultTag = document.createElement('span');
-                    defaultTag.textContent = work.type === 'novel' ? '소설' : '웹툰';
-                    heroTagsContainer.appendChild(defaultTag);
-                }
+            // Clear previous tags
+            heroTagsContainer.innerHTML = '';
+            // Add new tags
+            currentBanner.tags.forEach(tag => {
+                const tagSpan = document.createElement('span');
+                tagSpan.textContent = tag;
+                heroTagsContainer.appendChild(tagSpan);
+            });
 
-                bannerTitleElement.textContent = work.title || '제목 없음';
-                bannerDescriptionElement.textContent = work.introduction || '설명 없음';
-                bannerViews.textContent = work.views !== undefined ? work.views.toLocaleString() : '0';
-                bannerLikes.textContent = work.likes !== undefined ? work.likes.toLocaleString() : '0';
-                bannerAuthor.textContent = work.authorNickname ? `by ${work.authorNickname}` : 'by 익명';
+            bannerTitleElement.textContent = currentBanner.title;
+            bannerDescriptionElement.textContent = currentBanner.description;
+            bannerViews.textContent = currentBanner.views;
+            bannerLikes.textContent = currentBanner.likes;
+            bannerAuthor.textContent = currentBanner.author;
 
-                if (allWorks.length > 1) {
-                    prevBannerBtn.classList.remove('hidden');
-                    nextBannerBtn.classList.remove('hidden');
-                    paginationDotsContainer.classList.remove('hidden');
-                } else {
-                    prevBannerBtn.classList.add('hidden');
-                    nextBannerBtn.classList.add('hidden');
-                    paginationDotsContainer.classList.add('hidden');
-                }
-
-                updatePaginationDots();
-                if (!isInitialLoad) {
-                    resetAutoSlide();
-                }
-            } else {
-                bannerContent.classList.add('hidden');
-                noWorksHero.classList.remove('hidden');
-                heroSection.style.backgroundImage = `url('https://placehold.co/1200x800/2a2a4e/ffffff?text=CRAFIQ')`;
-                prevBannerBtn.classList.add('hidden');
-                nextBannerBtn.classList.add('hidden');
-                paginationDotsContainer.classList.add('hidden');
-                clearInterval(autoSlideInterval);
-            }
+            updatePaginationDots();
         }
 
         /**
          * Updates the pagination dots to reflect the current banner.
          */
         function updatePaginationDots() {
-            paginationDotsContainer.innerHTML = '';
-            allWorks.forEach((_, index) => {
+            paginationDotsContainer.innerHTML = ''; // Clear existing dots
+            heroBanners.forEach((_, index) => {
                 const dot = document.createElementNS("http://www.w3.org/2000/svg", "svg");
                 dot.setAttribute('width', '24');
                 dot.setAttribute('height', '24');
@@ -437,7 +416,7 @@
                 dot.setAttribute('stroke-linecap', 'round');
                 dot.setAttribute('stroke-linejoin', 'round');
                 dot.classList.add('w-2', 'h-2', 'text-white', 'cursor-pointer');
-                dot.innerHTML = '<circle cx="12" cy="12" r="10"></circle>';
+                dot.innerHTML = '<circle cx="12" cy="12" r="10"></circle>'; // Circle SVG path
 
                 if (currentBannerIndex === index) {
                     dot.classList.add('fill-current', 'opacity-70');
@@ -446,7 +425,8 @@
                 }
                 dot.addEventListener('click', () => {
                     currentBannerIndex = index;
-                    renderHeroSection(allWorks[currentBannerIndex]);
+                    renderBanner();
+                    resetAutoSlide();
                 });
                 paginationDotsContainer.appendChild(dot);
             });
@@ -456,16 +436,18 @@
          * Navigates to the previous banner.
          */
         function handlePrevBanner() {
-            currentBannerIndex = (currentBannerIndex === 0) ? allWorks.length - 1 : currentBannerIndex - 1;
-            renderHeroSection(allWorks[currentBannerIndex]);
+            currentBannerIndex = (currentBannerIndex === 0) ? heroBanners.length - 1 : currentBannerIndex - 1;
+            renderBanner();
+            resetAutoSlide();
         }
 
         /**
          * Navigates to the next banner.
          */
         function handleNextBanner() {
-            currentBannerIndex = (currentBannerIndex === allWorks.length - 1) ? 0 : currentBannerIndex + 1;
-            renderHeroSection(allWorks[currentBannerIndex]);
+            currentBannerIndex = (currentBannerIndex === heroBanners.length - 1) ? 0 : currentBannerIndex + 1;
+            renderBanner();
+            resetAutoSlide();
         }
 
         /**
@@ -473,8 +455,153 @@
          */
         function resetAutoSlide() {
             clearInterval(autoSlideInterval);
-            if (allWorks.length > 1) {
-                autoSlideInterval = setInterval(handleNextBanner, 5000);
+            autoSlideInterval = setInterval(handleNextBanner, 5000); // 5 seconds
+        }
+
+        /**
+         * Handles scroll event to change header style.
+         */
+        function handleScroll() {
+            const isScrolled = window.scrollY > 50;
+            const isDarkMode = document.body.classList.contains('dark-mode');
+
+            // Header background and shadow
+            if (isScrolled) {
+                if (isDarkMode) {
+                    header.style.backgroundColor = '#1e1e1e'; /* Darker header for dark mode */
+                    header.classList.remove('shadow-sm'); /* Remove shadow */
+                    header.style.borderBottom = 'none'; /* No border */
+                } else {
+                    header.classList.add('bg-white');
+                    header.classList.remove('shadow-sm'); /* Remove shadow */
+                    header.style.backgroundColor = ''; // Reset to default white
+                    header.style.borderBottom = 'none'; /* No border */
+                }
+            } else {
+                header.classList.remove('bg-white');
+                header.classList.remove('shadow-sm'); /* Remove shadow */
+                header.style.backgroundColor = 'transparent'; // Transparent when not scrolled
+                header.style.borderBottom = 'none'; /* No border when transparent */
+            }
+
+            // Update logo color
+            const logo = header.querySelector('a.text-2xl');
+            if (isScrolled) {
+                logo.classList.remove('text-white');
+                if (isDarkMode) {
+                    logo.style.color = '#2dd4bf'; // Teal-400 for dark mode
+                } else {
+                    logo.classList.add('text-teal-500');
+                    logo.style.color = ''; // Reset to default teal
+                }
+            } else {
+                logo.classList.remove('text-teal-500');
+                logo.classList.add('text-white');
+                logo.style.color = ''; // Reset to default white
+            }
+
+
+            // Update nav links color
+            header.querySelectorAll('nav a').forEach(link => {
+                if (isScrolled) {
+                    link.classList.remove('text-white', 'hover:text-gray-300');
+                    if (isDarkMode) {
+                        link.style.color = '#c0c0c0'; // Gray-300
+                        link.style.setProperty('color', '#2dd4bf', 'important'); // Teal-400 for hover
+                    } else {
+                        link.classList.add('text-gray-700', 'hover:text-teal-600');
+                        link.style.color = '';
+                        link.style.setProperty('color', '', 'important');
+                    }
+                } else {
+                    link.classList.remove('text-gray-700', 'hover:text-teal-600');
+                    link.classList.add('text-white', 'hover:text-gray-300');
+                    link.style.color = '';
+                    link.style.setProperty('color', '', 'important');
+                }
+            });
+
+            // Update search icon color
+            const searchButton = document.querySelector('header .flex.items-center.space-x-4:last-child button');
+            if (searchButton) {
+                if (isScrolled) {
+                    searchButton.classList.remove('text-white', 'hover:text-gray-300');
+                    if (isDarkMode) {
+                        searchButton.style.color = '#c0c0c0'; // Gray-300
+                        searchButton.style.setProperty('color', '#2dd4bf', 'important'); // Teal-400 for hover
+                    } else {
+                        searchButton.classList.add('text-gray-600', 'hover:text-teal-600');
+                        searchButton.style.color = '';
+                        searchButton.style.setProperty('color', '', 'important');
+                    }
+                } else {
+                    searchButton.classList.remove('text-gray-600', 'hover:text-teal-600');
+                    searchButton.classList.add('text-white', 'hover:text-gray-300');
+                    searchButton.style.color = '';
+                    searchButton.style.setProperty('color', '', 'important');
+                }
+            }
+
+            // Update user nickname color and dropdown icon color
+            if (userNicknameSpan) {
+                if (isScrolled) {
+                    userNicknameSpan.classList.remove('text-white');
+                    if (isDarkMode) {
+                        userNicknameSpan.style.color = '#c0c0c0'; // Gray-300
+                    } else {
+                        userNicknameSpan.classList.add('text-gray-700');
+                        userNicknameSpan.style.color = '';
+                    }
+                } else {
+                    userNicknameSpan.classList.remove('text-gray-700');
+                    userNicknameSpan.classList.add('text-white');
+                    userNicknameSpan.style.color = '';
+                }
+            }
+            if (dropdownArrowIcon) {
+                if (isScrolled) {
+                    dropdownArrowIcon.classList.remove('text-white');
+                    if (isDarkMode) {
+                        dropdownArrowIcon.style.color = '#c0c0c0'; // Gray-300
+                    } else {
+                        dropdownArrowIcon.classList.add('text-gray-700');
+                        dropdownArrowIcon.style.color = '';
+                    }
+                } else {
+                    dropdownArrowIcon.classList.remove('text-gray-700');
+                    dropdownArrowIcon.classList.add('text-white');
+                    dropdownArrowIcon.style.color = '';
+                }
+            }
+
+            // Update login/signup button style if it's visible
+            if (loginSignupBtn && !loginSignupBtn.classList.contains('hidden')) {
+                if (isScrolled) {
+                    loginSignupBtn.classList.remove('text-white', 'border-white', 'hover:bg-white', 'hover:text-teal-600');
+                    if (isDarkMode) {
+                        loginSignupBtn.style.color = '#2dd4bf'; // Teal-400
+                        loginSignupBtn.style.borderColor = '#2dd4bf'; // Teal-400
+                        loginSignupBtn.style.backgroundColor = ''; // Reset background
+                        loginSignupBtn.classList.remove('hover:bg-teal-50');
+                        loginSignupBtn.style.setProperty('background-color', '#2a2a2a', 'important'); // Darker hover
+                        loginSignupBtn.style.setProperty('color', '#2dd4bf', 'important'); // Teal-400 on hover
+                    } else {
+                        loginSignupBtn.classList.add('text-teal-600', 'border-teal-600', 'hover:bg-teal-50');
+                        loginSignupBtn.style.color = '';
+                        loginSignupBtn.style.borderColor = '';
+                        loginSignupBtn.style.backgroundColor = '';
+                        loginSignupBtn.style.setProperty('background-color', '', 'important');
+                        loginSignupBtn.style.setProperty('color', '', 'important');
+                    }
+                } else {
+                    loginSignupBtn.classList.remove('text-teal-600', 'border-teal-600', 'hover:bg-teal-50');
+                    loginSignupBtn.classList.add('text-white', 'border-white', 'hover:bg-white', 'hover:text-teal-600');
+                    loginSignupBtn.style.color = '';
+                    loginSignupBtn.style.borderColor = '';
+                    loginSignupBtn.style.backgroundColor = '';
+                    loginSignupBtn.style.setProperty('background-color', '', 'important');
+                    loginSignupBtn.style.setProperty('color', '', 'important');
+                }
             }
         }
 
@@ -499,260 +626,129 @@
          */
         function handleTouchEnd() {
             const swipeDistance = touchStartX - touchEndX;
-            const minSwipeDistance = 50;
+            const minSwipeDistance = 50; // Minimum distance for a recognized swipe
 
             if (swipeDistance > minSwipeDistance) {
+                // Swiped left (next banner)
                 handleNextBanner();
             } else if (swipeDistance < -minSwipeDistance) {
+                // Swiped right (previous banner)
                 handlePrevBanner();
             }
         }
 
         /**
-         * Renders a list of works into a container.
-         * @param {HTMLElement} container - The DOM element to render works into.
-         * @param {Array<Object>} works - An array of work objects.
-         * @param {string} sectionType - 'popular' or 'latest' to adjust card style.
+         * Fetches and renders the popular works from Firestore based on views.
          */
-        function renderWorkCards(container, works, sectionType) {
-            container.innerHTML = '';
-            if (works.length === 0) {
-                container.innerHTML = `<p class="text-gray-500 dark:text-gray-400">아직 ${sectionType === 'popular' ? '인기' : '최신'} 작품이 없습니다.</p>`;
-                return;
-            }
+        function fetchAndRenderPopularWorks() {
+            const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
+            // Order by views in descending order to get the most popular works
+            const q = query(worksCollectionRef, orderBy('views', 'desc'), limit(7)); // Limit to 7 popular works
 
-            works.forEach((item, index) => {
-                const workItemWrapper = document.createElement('div'); // The main wrapper for each item in the carousel
+            onSnapshot(q, (snapshot) => {
+                popularAnimeContainer.innerHTML = ''; // Clear existing items
+                if (snapshot.empty) {
+                    popularAnimeContainer.innerHTML = '<p class="text-gray-500 text-center col-span-full">아직 인기 작품이 없습니다.</p>';
+                    return;
+                }
 
-                // Common card content structure (image, title, description)
-                const cardInnerContent = `
-                    <div class="relative w-full h-[200px] rounded-md overflow-hidden mb-2">
-                        <img src="${item.thumbnailUrl || 'https://placehold.co/200x200/CCCCCC/333333?text=No+Image'}" alt="${item.title}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/200x200/CCCCCC/333333?text=Image+Error';"/>
-                    </div>
-                    <div class="p-3">
-                        <h3 class="text-base md:text-lg font-bold text-gray-900 dark:text-e0e0e0 mb-1">${item.title}</h3>
-                        <p class="text-sm text-gray-600 dark:text-c0c0c0 line-clamp-2">${item.introduction || '설명 없음'}</p>
-                    </div>
-                `;
-
-                if (sectionType === 'popular') {
-                    // For popular works, combine rank and card content
-                    workItemWrapper.className = 'flex flex-row items-start space-x-2 flex-shrink-0 w-[250px]'; // Fixed width for the entire rank+card item
-                    workItemWrapper.innerHTML = `
-                        <div class="rank text-4xl font-extrabold text-stroke-2-black pt-1">
-                            ${index + 1}
+                let rank = 1;
+                snapshot.forEach(doc => {
+                    const work = doc.data();
+                    const div = document.createElement('div');
+                    // Increased width classes for carousel items and added rounded-md to images
+                    div.className = 'flex-shrink-0 w-64 md:w-72 lg:w-80 cursor-pointer flex flex-col';
+                    div.innerHTML = `
+                        <div class="relative">
+                            <img src="${work.thumbnailUrl || 'https://placehold.co/200x112/CCCCCC/333333?text=No+Thumbnail'}" alt="${work.title}" class="w-full h-auto object-cover rounded-md" onerror="this.onerror=null;this.src='https://placehold.co/200x112/CCCCCC/333333?text=Image+Error';"/>
                         </div>
-                        <div class="bg-white shadow-md dark:bg-1e1e1e dark:shadow-none rounded-md flex-grow">
-                            ${cardInnerContent}
+                        <div class="flex items-start pt-2">
+                            <div class="text-5xl font-extrabold text-black mr-2">${rank}</div>
+                            <div class="flex-1">
+                                <h3 class="text-base md:text-lg font-bold text-gray-900 truncate mb-1">${work.title}</h3>
+                                <p class="text-sm text-gray-600 line-clamp-2">${work.introduction || '소개 없음'}</p>
+                            </div>
                         </div>
                     `;
-                } else { // latest works (just the card)
-                    workItemWrapper.className = 'bg-white shadow-md dark:bg-1e1e1e dark:shadow-none rounded-md flex-shrink-0 w-[200px]'; // Fixed width for the card itself
-                    workItemWrapper.innerHTML = cardInnerContent;
-                }
-                container.appendChild(workItemWrapper);
-            });
-        }
-
-        /**
-         * Fetches and renders all works from Firestore.
-         */
-        function fetchAndRenderAllWorks() {
-            const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
-
-            // Listen for changes in all public works to update the hero banner and latest works
-            const allWorksQuery = query(worksCollectionRef, orderBy('timestamp', 'desc'));
-            onSnapshot(allWorksQuery, (snapshot) => {
-                allWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                // Update hero banner
-                if (allWorks.length > 0) {
-                    if (currentBannerIndex >= allWorks.length) {
-                        currentBannerIndex = 0;
-                    }
-                    renderHeroSection(allWorks[currentBannerIndex]);
-                } else {
-                    renderHeroSection(null);
-                }
-
-                // Render latest works (top 10 by timestamp)
-                const latestWorks = allWorks.slice(0, 10);
-                renderWorkCards(exclusiveWorksContainer, latestWorks, 'latest'); // Changed to exclusiveWorksContainer
+                    popularAnimeContainer.appendChild(div);
+                    rank++;
+                });
             }, (error) => {
-                console.error("Error fetching all works:", error);
-                exclusiveWorksContainer.innerHTML = '<p class="text-red-500">작품을 불러오는 데 실패했습니다.</p>';
-                renderHeroSection(null);
-            });
-
-
-            // Listen for popular works (initially by views)
-            let currentPopularSortField = 'views';
-            const renderPopularBySort = (sortField) => {
-                const popularWorksQuery = query(worksCollectionRef, orderBy(sortField, 'desc'), limit(10));
-                onSnapshot(popularWorksQuery, (snapshot) => {
-                    const popularWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderWorkCards(popularAnimeContainer, popularWorks, 'popular'); // Changed to popularAnimeContainer
-                }, (error) => {
-                    console.error(`Error fetching popular works by ${sortField}:`, error);
-                    popularAnimeContainer.innerHTML = '<p class="text-red-500">인기 작품을 불러오는 데 실패했습니다.</p>';
-                });
-            };
-
-            // Initial render for popular works
-            renderPopularBySort(currentPopularSortField);
-
-            // Add event listeners for popular works tabs
-            tabButtons.forEach(button => {
-                button.addEventListener('click', (event) => {
-                    tabButtons.forEach(btn => {
-                        btn.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
-                        btn.classList.add('text-gray-600', 'hover:text-teal-600');
-                    });
-                    event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
-                    event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
-
-                    let firestoreSortField = 'views';
-                    switch (event.target.dataset.tab) {
-                        case '실시간':
-                        case '이번 주':
-                            firestoreSortField = 'views';
-                            break;
-                        case '분기':
-                        case '역대':
-                            firestoreSortField = 'likes';
-                            break;
-                        default:
-                            firestoreSortField = 'views';
-                    }
-                    renderPopularBySort(firestoreSortField);
-                });
+                console.error("Error fetching popular works:", error);
+                popularAnimeContainer.innerHTML = '<p class="text-red-500 text-center col-span-full">인기 작품을 불러오는 중 오류가 발생했습니다.</p>';
             });
         }
 
 
         /**
-         * Handles scroll event to change header style.
+         * Fetches and renders the latest works from Firestore.
          */
-        function handleScroll() {
-            const isScrolled = window.scrollY > 50;
-            const isDarkMode = document.body.classList.contains('dark-mode');
+        function fetchAndRenderLatestWorks() {
+            const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
+            // Order by timestamp in descending order to get the latest works
+            const q = query(worksCollectionRef, orderBy('timestamp', 'desc'), limit(10)); // Limit to 10 latest works
 
-            // Header background and shadow
-            if (isScrolled) {
-                if (isDarkMode) {
-                    header.style.backgroundColor = '#1e1e1e';
-                    header.classList.remove('shadow-sm');
-                    header.style.borderBottom = 'none';
-                } else {
-                    header.classList.add('bg-white', 'shadow-sm');
-                    header.style.backgroundColor = '';
-                    header.style.borderBottom = 'none';
+            onSnapshot(q, (snapshot) => {
+                exclusiveWorksContainer.innerHTML = ''; // Clear existing items
+                if (snapshot.empty) {
+                    exclusiveWorksContainer.innerHTML = '<p class="text-gray-500 text-center col-span-full">아직 업로드된 작품이 없습니다.</p>';
+                    return;
                 }
-            } else {
-                header.classList.remove('bg-white', 'shadow-sm');
-                header.style.backgroundColor = 'transparent';
-                header.style.borderBottom = 'none';
-            }
 
-            // Update logo color
-            const logo = header.querySelector('a.text-2xl');
-            if (isScrolled) {
-                logo.classList.remove('text-white');
-                if (isDarkMode) {
-                    logo.style.color = '#2dd4bf';
-                } else {
-                    logo.classList.add('text-teal-500');
-                    logo.style.color = '';
-                }
-            } else {
-                logo.classList.remove('text-teal-500');
-                logo.classList.add('text-white');
-                logo.style.color = '';
-            }
-
-
-            // Update nav links color
-            header.querySelectorAll('nav a').forEach(link => {
-                if (isScrolled) {
-                    link.classList.remove('text-white', 'hover:text-gray-300');
-                    if (isDarkMode) {
-                        link.style.color = '#c0c0c0';
-                    } else {
-                        link.classList.add('text-gray-700', 'hover:text-teal-600');
-                        link.style.color = '';
-                    }
-                } else {
-                    link.classList.remove('text-gray-700', 'hover:text-teal-600');
-                    link.classList.add('text-white', 'hover:text-gray-300');
-                    link.style.color = '';
-                }
+                snapshot.forEach(doc => {
+                    const work = doc.data();
+                    const workId = doc.id;
+                    const div = document.createElement('div');
+                    div.className = 'flex-shrink-0 w-full cursor-pointer bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 hover:shadow-md transition-shadow duration-200';
+                    div.innerHTML = `
+                        <a href="upload.html?workId=${workId}" class="block">
+                            <img src="${work.thumbnailUrl || 'https://placehold.co/400x225/CCCCCC/333333?text=No+Thumbnail'}" alt="${work.title}" class="w-full h-40 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/400x225/CCCCCC/333333?text=No+Thumbnail';"/>
+                            <div class="p-4">
+                                <h3 class="text-lg font-bold text-gray-900 truncate mb-1">${work.title}</h3>
+                                <p class="text-sm text-gray-600 line-clamp-2 mb-2">${work.introduction || '소개 없음'}</p>
+                                <div class="flex items-center text-xs text-gray-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                    <span>${work.views || 0}</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 ml-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                                    </svg>
+                                    <span>${work.likes || 0}</span>
+                                    <span class="ml-auto">by ${work.authorNickname || '알 수 없음'}</span>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                    exclusiveWorksContainer.appendChild(div);
+                });
+            }, (error) => {
+                console.error("Error fetching latest works:", error);
+                exclusiveWorksContainer.innerHTML = '<p class="text-red-500 text-center col-span-full">작품을 불러오는 중 오류가 발생했습니다.</p>';
             });
+        }
 
-            // Update search icon color
-            const searchButton = document.querySelector('header .flex.items-center.space-x-4:last-child button');
-            if (searchButton) {
-                if (isScrolled) {
-                    searchButton.classList.remove('text-white', 'hover:text-gray-300');
-                    if (isDarkMode) {
-                        searchButton.style.color = '#c0c0c0';
-                    } else {
-                        searchButton.classList.add('text-gray-600', 'hover:text-teal-600');
-                        searchButton.style.color = '';
-                    }
-                } else {
-                    searchButton.classList.remove('text-gray-600', 'hover:text-teal-600');
-                    searchButton.classList.add('text-white', 'hover:text-gray-300');
-                    searchButton.style.color = '';
-                }
-            }
 
-            // Update user nickname color and dropdown icon color
-            if (userNicknameSpan) {
-                if (isScrolled) {
-                    userNicknameSpan.classList.remove('text-white');
-                    if (isDarkMode) {
-                        userNicknameSpan.style.color = '#c0c0c0';
-                    } else {
-                        userNicknameSpan.classList.add('text-gray-700');
-                        userNicknameSpan.style.color = '';
-                    }
-                } else {
-                    userNicknameSpan.classList.remove('text-gray-700');
-                    userNicknameSpan.classList.add('text-white');
-                    userNicknameSpan.style.color = '';
-                }
-            }
-            if (dropdownArrowIcon) {
-                if (isScrolled) {
-                    dropdownArrowIcon.classList.remove('text-white');
-                    if (isDarkMode) {
-                        dropdownArrowIcon.style.color = '#c0c0c0';
-                    } else {
-                        dropdownArrowIcon.classList.add('text-gray-700');
-                        dropdownArrowIcon.style.color = '';
-                    }
-                } else {
-                    dropdownArrowIcon.classList.remove('text-gray-700');
-                    dropdownArrowIcon.classList.add('text-white');
-                    dropdownArrowIcon.style.color = '';
-                }
-            }
+        /**
+         * Handles tab clicks for popular works section.
+         * @param {Event} event - The click event.
+         */
+        function handleTabClick(event) {
+            tabButtons.forEach(button => {
+                button.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
+                button.classList.add('text-gray-600', 'hover:text-teal-600');
+            });
+            event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
+            event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
 
-            // Update login/signup button style if it's visible
-            if (loginSignupBtn && !loginSignupBtn.classList.contains('hidden')) {
-                if (isScrolled) {
-                    loginSignupBtn.classList.remove('text-white', 'border-white', 'hover:bg-white', 'hover:text-teal-600');
-                    if (isDarkMode) {
-                        loginSignupBtn.style.color = '#2dd4bf';
-                        loginSignupBtn.style.borderColor = '#2dd4bf';
-                        loginSignupBtn.classList.add('hover:bg-teal-50');
-                    } else {
-                        loginSignupBtn.classList.add('text-teal-600', 'border-teal-600', 'hover:bg-teal-50');
-                    }
-                } else {
-                    loginSignupBtn.classList.remove('text-teal-600', 'border-teal-600', 'hover:bg-teal-50');
-                    loginSignupBtn.classList.add('text-white', 'border-white', 'hover:bg-white', 'hover:text-teal-600');
-                }
+            const selectedTab = event.target.dataset.tab;
+            if (selectedTab === '실시간') {
+                fetchAndRenderPopularWorks();
+            } else {
+                // For other tabs, you might fetch different data or display a message
+                popularAnimeContainer.innerHTML = `<p class="text-gray-500 text-center w-full">"${selectedTab}" 탭은 아직 구현되지 않았습니다.</p>`;
+                console.log(`Tab "${selectedTab}" clicked. Functionality not implemented.`);
             }
         }
 
@@ -762,42 +758,51 @@
          */
         async function updateAuthSection(user) {
             if (user) {
-                loginSignupBtn.classList.add('hidden');
-                authSection.classList.remove('hidden');
-                userInfoDisplay.classList.remove('hidden');
-                userInfoDisplay.classList.add('flex');
+                // User is logged in
+                loginSignupBtn.classList.add('hidden'); // 로그인/회원가입 버튼 숨김
+                authSection.classList.remove('hidden'); // Ensure auth-section is visible
+                userInfoDisplay.classList.remove('hidden'); // Show user info display
+                userInfoDisplay.classList.add('flex'); // 레이아웃을 위해 flex로 설정
 
+                // 닉네임을 가져오는 동안 "로딩 중..." 메시지 표시
                 userNicknameSpan.textContent = '로딩 중...';
 
+                // Firestore에서 사용자 닉네임 가져오기
                 const userProfileRef = doc(db, `artifacts/${appId}/users/${user.uid}/userProfiles`, user.uid);
                 try {
                     const docSnap = await getDoc(userProfileRef);
                     if (docSnap.exists()) {
                         const userData = docSnap.data();
+                        // 닉네임이 존재하고 비어있지 않으면 닉네임 표시
                         if (userData.nickname && userData.nickname.trim() !== '') {
                             userNicknameSpan.textContent = userData.nickname;
                         } else {
+                            // 닉네임이 없거나 비어있으면 이메일 표시 (또는 "사용자")
                             userNicknameSpan.textContent = user.email || '사용자';
                             console.warn("User profile found but nickname is empty or missing, displaying email:", user.uid);
                         }
                     } else {
+                        // 사용자 프로필 문서가 없으면 이메일 표시 (또는 "사용자")
                         userNicknameSpan.textContent = user.email || '사용자';
                         console.warn("User profile document not found for:", user.uid);
                     }
                 } catch (error) {
                     console.error("Error fetching user profile, displaying email:", error);
+                    // 오류 발생 시 이메일 표시 (또는 "오류")
                     userNicknameSpan.textContent = user.email || '오류';
                 }
             } else {
-                loginSignupBtn.classList.remove('hidden');
-                userInfoDisplay.classList.add('hidden');
+                // User is logged out
+                loginSignupBtn.classList.remove('hidden'); // 로그인/회원가입 버튼 표시
+                userInfoDisplay.classList.add('hidden'); // 사용자 정보 표시 숨김
                 userInfoDisplay.classList.remove('flex');
-                userNicknameSpan.textContent = '';
-                userDropdownMenu.classList.add('hidden');
+                userNicknameSpan.textContent = ''; // 닉네임 지우기
+                userDropdownMenu.classList.add('hidden'); // 드롭다운 메뉴 숨김
                 if (dropdownArrowIcon) {
-                    dropdownArrowIcon.classList.remove('rotate-180');
+                    dropdownArrowIcon.classList.remove('rotate-180'); // 화살표 아이콘 회전 초기화
                 }
             }
+            // 가시성 업데이트 후 스크롤 기반 스타일 다시 적용
             handleScroll();
         }
 
@@ -811,6 +816,7 @@
             } else {
                 document.body.classList.remove('dark-mode');
             }
+            // Re-apply scroll-based header styles after dark mode change
             handleScroll();
         }
 
@@ -822,7 +828,7 @@
 
         // 로그인/회원가입 버튼 클릭 핸들러
         loginSignupBtn.addEventListener('click', () => {
-            window.location.href = 'login.html';
+            window.location.href = 'login.html'; // 로그인 페이지로 리디렉션
         });
 
         // 드롭다운 토글 버튼 클릭 핸들러
@@ -839,6 +845,7 @@
             try {
                 await signOut(auth);
                 console.log("User signed out successfully.");
+                // onAuthStateChanged 리스너에 의해 updateAuthSection이 호출될 것임
             } catch (error) {
                 console.error("Error signing out:", error);
             }
@@ -856,26 +863,18 @@
 
 
         // 이벤트 리스너
-        window.addEventListener('load', async () => {
-            // Authenticate with Firebase on load
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                console.log("Firebase authenticated.");
-            } catch (error) {
-                console.error("Firebase authentication failed:", error);
-            }
-
+        window.addEventListener('load', () => {
             // Check for dark mode preference on page load
             const savedDarkMode = localStorage.getItem('darkMode');
             if (savedDarkMode !== null) {
                 applyDarkModeToPage(savedDarkMode === 'true');
             }
 
-            fetchAndRenderAllWorks();
+            renderBanner(); // 배너 초기 렌더링
+            resetAutoSlide(); // 자동 슬라이드 시작
+            fetchAndRenderPopularWorks(); // 인기 작품 섹션 렌더링 (Firestore에서 조회수 기반으로 가져옴)
+            fetchAndRenderLatestWorks(); // 최신 작품 섹션 렌더링 (Firestore에서 가져옴)
+            // 초기 위치에 따라 헤더 스타일을 설정하기 위한 handleScroll 초기 호출
             handleScroll();
         });
 
@@ -888,38 +887,9 @@
         heroSection.addEventListener('touchend', handleTouchEnd);
 
         tabButtons.forEach(button => {
-            button.addEventListener('click', (event) => {
-                tabButtons.forEach(btn => {
-                    btn.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
-                    btn.classList.add('text-gray-600', 'hover:text-teal-600');
-                });
-                event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
-                event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
-
-                let firestoreSortField = 'views';
-                switch (event.target.dataset.tab) {
-                    case '실시간':
-                    case '이번 주':
-                        firestoreSortField = 'views';
-                        break;
-                    case '분기':
-                    case '역대':
-                        firestoreSortField = 'likes';
-                        break;
-                    default:
-                        firestoreSortField = 'views';
-                }
-                const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
-                const popularWorksQuery = query(worksCollectionRef, orderBy(firestoreSortField, 'desc'), limit(10));
-                onSnapshot(popularWorksQuery, (snapshot) => {
-                    const popularWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderWorkCards(popularAnimeContainer, popularWorks, 'popular');
-                }, (error) => {
-                    console.error(`Error fetching popular works by ${firestoreSortField}:`, error);
-                    popularAnimeContainer.innerHTML = '<p class="text-red-500">인기 작품을 불러오는 데 실패했습니다.</p>';
-                });
-            });
+            button.addEventListener('click', handleTabClick);
         });
+
     </script>
 </body>
 </html>
