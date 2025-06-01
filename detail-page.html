@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRAFIQ - 작품 상세보기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Pretendard Web Font Definitions */
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-SemiBold.woff') format('woff');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Bold.woff') format('woff');
+            font-weight: 700;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-ExtraBold.woff') format('woff');
+            font-weight: 800;
+            font-style: normal;
+        }
+
+        /* Base font application */
+        body {
+            font-family: 'Pretendard', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f8fafc; /* Light blue-gray background */
+            color: #333;
+        }
+
+        /* Custom style for dropdown arrow rotation */
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        .transition-transform {
+            transition-property: transform;
+            transition-duration: 300ms;
+            transition-timing-function: ease-in-out;
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #121212; /* Very dark gray/near black */
+            color: #e0e0e0; /* Light gray text */
+        }
+        body.dark-mode header {
+            background-color: #1e1e1e; /* Darker header */
+            box-shadow: none; /* Remove shadow */
+            border-bottom: none; /* Remove border */
+        }
+        body.dark-mode header a,
+        body.dark-mode header button,
+        body.dark-mode header span {
+            color: #e0e0e0; /* Light text for header */
+        }
+        body.dark-mode header a.text-teal-500 { /* CRAFIQ logo */
+            color: #2dd4bf; /* Teal-400 in dark mode */
+        }
+        body.dark-mode header button.hover\:bg-teal-50:hover {
+            background-color: #2a2a2a; /* Darker hover */
+            color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode header button.border-teal-600 {
+            border-color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode header .hover\:text-teal-600:hover {
+            color: #2dd4bf; /* Teal-400 */
+        }
+        /* Sections/Cards in dark mode */
+        body.dark-mode .bg-white { /* Apply to sections with border */
+            background-color: #1e1e1e; /* Darker card background */
+            border-color: #3a3a3a; /* Darker border */
+            box-shadow: none; /* Ensure no shadow */
+        }
+        body.dark-mode .text-gray-900 {
+            color: #e0e0e0; /* Light headings */
+        }
+        body.dark-mode .text-gray-700 {
+            color: #c0c0c0; /* Lighter gray text */
+        }
+        body.dark-mode .text-gray-500 {
+            color: #888888; /* Even lighter gray text */
+        }
+        body.dark-mode input,
+        body.dark-mode select,
+        body.dark-mode textarea {
+            background-color: #2a2a2a;
+            border-color: #3a3a3a;
+            color: #e0e0e0;
+        }
+        body.dark-mode input::placeholder,
+        body.dark-mode textarea::placeholder {
+            color: #888888;
+        }
+        body.dark-mode select option {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+        }
+        body.dark-mode .bg-gray-200 { /* For tags input button and tag item background */
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+        }
+        body.dark-mode .hover\:bg-gray-300:hover {
+            background-color: #4a4a4a;
+        }
+        body.dark-mode .tag-item .remove-tag-btn {
+            color: #c0c0c0; /* Darker remove tag button icon */
+            filter: brightness(1.5); /* Make it slightly brighter for visibility */
+        }
+        body.dark-mode footer {
+            background-color: #121212; /* Dark footer */
+            color: #c0c0c0;
+        }
+        body.dark-mode footer .text-teal-400 {
+            color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode footer .text-gray-600 {
+            color: #888888; /* Gray-400 */
+        }
+
+        /* Like button animation */
+        .like-button.liked svg {
+            fill: #ef4444; /* Red-500 */
+            animation: pulse-fill 0.3s ease-out;
+        }
+        @keyframes pulse-fill {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        /* Comment section specific styles */
+        .comment-item {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+        .comment-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        body.dark-mode .comment-item {
+            border-bottom-color: #3a3a3a;
+        }
+
+        /* Hero Section Specific Styles */
+        #work-hero-section {
+            position: relative;
+            width: 100%;
+            height: 400px; /* Adjust height as needed */
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: flex-end; /* Align content to the bottom */
+            padding-bottom: 2rem; /* Padding for content from bottom */
+            color: white;
+            overflow: hidden; /* Ensure content doesn't overflow */
+        }
+        #work-hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%);
+            z-index: 1;
+        }
+        #work-hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px; /* Match container width */
+            margin: 0 auto;
+            padding: 0 1rem;
+            width: 100%;
+        }
+        #work-hero-content .tag {
+            background-color: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        #work-hero-content .hero-title {
+            font-size: 3rem; /* text-5xl */
+            font-weight: 800; /* font-extrabold */
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+        }
+        #work-hero-content .hero-info {
+            font-size: 1rem; /* text-base */
+            opacity: 0.9;
+        }
+        #work-hero-content .action-buttons button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px; /* rounded-full */
+            font-weight: 700; /* font-bold */
+            transition: all 0.2s ease-in-out;
+        }
+        #work-hero-content .action-buttons button.primary {
+            background-color: #10b981; /* emerald-500 */
+            color: white;
+        }
+        #work-hero-content .action-buttons button.primary:hover {
+            background-color: #059669; /* emerald-600 */
+        }
+        #work-hero-content .action-buttons button.secondary {
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+        #work-hero-content .action-buttons button.secondary:hover {
+            background-color: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.6);
+        }
+        #work-hero-content .read-more-toggle {
+            color: #a0aec0; /* gray-400 */
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        body.dark-mode #work-hero-section::before {
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%);
+        }
+
+        /* Tabs Section */
+        #tabs-section {
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
+            margin-top: -2rem; /* Overlap with hero section slightly */
+            position: relative;
+            z-index: 10;
+        }
+        body.dark-mode #tabs-section {
+            background-color: #1e1e1e;
+            border-bottom-color: #3a3a3a;
+        }
+        #tabs-section .tab-button {
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            color: #6b7280; /* gray-500 */
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease-in-out;
+        }
+        #tabs-section .tab-button.active {
+            color: #10b981; /* emerald-500 */
+            border-bottom-color: #10b981;
+        }
+        #tabs-section .tab-button:hover:not(.active) {
+            color: #14b8a6; /* teal-500 */
+        }
+        body.dark-mode #tabs-section .tab-button {
+            color: #a0a0a0;
+        }
+        body.dark-mode #tabs-section .tab-button.active {
+            color: #2dd4bf; /* teal-400 */
+            border-bottom-color: #2dd4bf;
+        }
+        body.dark-mode #tabs-section .tab-button:hover:not(.active) {
+            color: #4fd1c5; /* teal-300 */
+        }
+
+        /* Tab Content Area */
+        #tab-content-container {
+            padding: 2rem 0;
+        }
+        #tab-content-container .tab-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        body.dark-mode #tab-content-container .tab-content {
+            background-color: #1e1e1e;
+            box-shadow: none;
+        }
+
+        /* Episode List Specific Styles */
+        .episode-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e2e8f0; /* gray-200 */
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .episode-item:hover {
+            background-color: #f7fafc; /* gray-50 */
+        }
+        .episode-item:last-child {
+            border-bottom: none;
+        }
+        body.dark-mode .episode-item {
+            border-bottom-color: #3a3a3a;
+        }
+        body.dark-mode .episode-item:hover {
+            background-color: #2a2a2a;
+        }
+        .episode-thumbnail {
+            flex-shrink: 0;
+            width: 96px; /* w-24 */
+            height: 54px; /* 16:9 aspect ratio */
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 1rem;
+        }
+        .episode-info {
+            flex-grow: 1;
+        }
+        .episode-title {
+            font-weight: 600;
+            color: #1a202c; /* gray-900 */
+            font-size: 1.125rem; /* text-lg */
+            margin-bottom: 0.25rem;
+        }
+        body.dark-mode .episode-title {
+            color: #e0e0e0;
+        }
+        .episode-meta {
+            font-size: 0.875rem; /* text-sm */
+            color: #718096; /* gray-600 */
+        }
+        body.dark-mode .episode-meta {
+            color: #a0a0a0;
+        }
+        .episode-description {
+            font-size: 0.9rem;
+            color: #4a5568; /* gray-700 */
+            margin-top: 0.5rem;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        body.dark-mode .episode-description {
+            color: #c0c0c0;
+        }
+        .episode-play-icon {
+            flex-shrink: 0;
+            margin-left: 1rem;
+            color: #4a5568; /* gray-700 */
+        }
+        body.dark-mode .episode-play-icon {
+            color: #c0c0c0;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-800">
+
+    <header id="main-header" class="fixed top-0 left-0 w-full z-50 py-3 transition-all duration-500 ease-in-out bg-white shadow-sm border-b border-gray-200">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-extrabold transition-colors duration-500 text-teal-500">
+                CRAFIQ
+            </a>
+
+            <nav class="hidden md:flex space-x-6">
+                <a href="about.html" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
+                    소개
+                </a>
+                <a href="#" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
+                    인기작품
+                </a>
+                <a href="author.html" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
+                    작가 페이지
+                </a>
+                <a href="#" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
+                    커뮤니티
+                </a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <button class="transition-colors duration-500 text-gray-600 hover:text-teal-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                </button>
+                <div id="auth-section" class="flex items-center space-x-4">
+                    <button id="login-signup-btn" class="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-500 text-teal-600 border border-teal-600 hover:bg-teal-50">
+                        로그인/회원가입
+                    </button>
+                    <div id="user-info-display" class="relative hidden items-center space-x-1">
+                        <span id="user-nickname" class="text-sm font-semibold text-gray-700"></span>
+                        <button id="dropdown-toggle-btn" class="cursor-pointer p-1 rounded-full hover:bg-gray-100 transition-colors">
+                            <svg id="dropdown-arrow-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-700 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div id="user-dropdown-menu" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden z-20">
+                            <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 프로필</a>
+                            <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">설정</a>
+                            <button id="logout-btn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                로그아웃
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        <section id="work-hero-section" class="relative pt-16" style="background-image: url('https://placehold.co/1920x400/2a2a4e/ffffff?text=Work+Hero+Image');">
+            <div id="work-hero-content" class="relative z-20 py-10">
+                <div class="flex items-center text-sm mb-2">
+                    <span id="hero-rating" class="text-yellow-400 mr-2">★ 0.0</span>
+                    <span id="hero-genre-type" class="tag">장르 · 유형</span>
+                    <span id="hero-age-rating" class="tag">전체 이용가</span>
+                </div>
+                <h1 id="hero-title" class="hero-title">작품 제목 로딩 중...</h1>
+                <p id="hero-author" class="hero-info mb-4">작가: 로딩 중...</p>
+                
+                <div class="action-buttons flex items-center space-x-4 mb-6">
+                    <button id="play-first-episode-btn" class="primary flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        1화 재생하기
+                    </button>
+                    <button id="like-button" class="secondary flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-200 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                        </svg>
+                        <span id="work-likes">0</span>
+                    </button>
+                    <button class="secondary hidden md:flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        에피소드 구매
+                    </button>
+                </div>
+
+                <div class="text-sm leading-relaxed mb-4">
+                    <p id="hero-introduction-short" class="line-clamp-3">작품 소개 로딩 중...</p>
+                    <p id="hero-introduction-full" class="hidden">작품 소개 로딩 중...</p>
+                    <button id="read-more-toggle" class="read-more-toggle mt-2">더 보기</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="tabs-section" class="w-full">
+            <div class="container mx-auto px-4 flex border-b border-gray-200">
+                <button class="tab-button active" data-tab="episodes">에피소드</button>
+                <button class="tab-button" data-tab="reviews">사용자 평</button>
+                <button class="tab-button" data-tab="similar">비슷한 작품</button>
+            </div>
+        </section>
+
+        <section id="tab-content-container" class="container mx-auto px-4">
+            <div id="episodes-tab-content" class="tab-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">에피소드</h3>
+                    <button class="text-sm text-gray-600 hover:text-teal-600">1화부터 ↑↓</button>
+                </div>
+                <div id="episode-list">
+                    <p class="text-gray-500 text-center">에피소드를 불러오는 중...</p>
+                </div>
+            </div>
+
+            <div id="reviews-tab-content" class="tab-content hidden">
+                <h3 class="text-xl font-bold text-gray-900 mb-6">사용자 평</h3>
+                <div id="comment-input-area" class="mb-6">
+                    <textarea id="comment-textarea" rows="3" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="댓글을 작성해 주세요..."></textarea>
+                    <button id="submit-comment-btn" class="mt-3 px-6 py-2 bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        댓글 작성
+                    </button>
+                </div>
+                <div id="comments-list">
+                    <p class="text-gray-500 text-center">아직 댓글이 없습니다.</p>
+                </div>
+            </div>
+
+            <div id="similar-tab-content" class="tab-content hidden">
+                <h3 class="text-xl font-bold text-gray-900 mb-6">비슷한 작품</h3>
+                <p class="text-gray-500 text-center">비슷한 작품을 불러오는 중...</p>
+                </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-10 px-4 mt-12">
+        <div class="container mx-auto text-center">
+            <div class="mb-4">
+                <a href="#" class="text-teal-400 hover:text-teal-300 mx-3 text-sm">이용약관</a>
+                <span class="text-gray-600 text-sm">|</span>
+                <a href="#" class="text-teal-400 hover:text-teal-300 mx-3 text-sm">개인정보처리방침</a>
+                <span class="text-gray-600 text-sm">|</span>
+                <a href="#" class="text-teal-400 hover:text-teal-300 mx-3 text-sm">문의하기</a>
+            </div>
+            <p class="text-xs">&copy; 2025 Crafiq. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, increment, setDoc, deleteDoc, addDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Explicitly import onSnapshot
+
+        // Firebase configuration
+        const firebaseConfig = JSON.parse(`{"apiKey": "AIzaSyBJFAV4-QMggAW2K1YtpsXIZ5PQ8KJzo9k", "authDomain": "crafiq-a.firebaseapp.com", "projectId": "crafiq-a", "storageBucket": "crafiq-a.firebasestorage.app", "messagingSenderId": "176082460783", "appId": "1:176082460783:web:cd0b594cc803932eaa2d9a", "measurementId": "G-QB84Z9EMZW"}`);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Global variables
+        let currentWorkData = null;
+        let currentUserId = null;
+        let currentUserNickname = '익명'; // Default nickname
+        let hasUserLiked = false; // To track if the current user has liked this work
+
+        // Get DOM elements
+        const authSection = document.getElementById('auth-section');
+        const loginSignupBtn = document.getElementById('login-signup-btn');
+        const userInfoDisplay = document.getElementById('user-info-display');
+        const userNicknameSpan = document.getElementById('user-nickname');
+        const dropdownToggleBtn = document.getElementById('dropdown-toggle-btn');
+        const userDropdownMenu = document.getElementById('user-dropdown-menu');
+        const logoutBtn = document.getElementById('logout-btn');
+        const mainHeader = document.getElementById('main-header');
+
+        // Hero Section Elements
+        const workHeroSection = document.getElementById('work-hero-section');
+        const heroRating = document.getElementById('hero-rating');
+        const heroGenreType = document.getElementById('hero-genre-type');
+        const heroAgeRating = document.getElementById('hero-age-rating');
+        const heroTitle = document.getElementById('hero-title');
+        const heroAuthor = document.getElementById('hero-author');
+        const playFirstEpisodeBtn = document.getElementById('play-first-episode-btn');
+        const likeButton = document.getElementById('like-button');
+        const likeButtonIcon = likeButton.querySelector('svg');
+        const workLikesElement = document.getElementById('work-likes');
+        const heroIntroductionShort = document.getElementById('hero-introduction-short');
+        const heroIntroductionFull = document.getElementById('hero-introduction-full');
+        const readMoreToggle = document.getElementById('read-more-toggle');
+
+        // Tabs Section Elements
+        const tabButtons = document.querySelectorAll('#tabs-section .tab-button');
+        const episodesTabContent = document.getElementById('episodes-tab-content');
+        const reviewsTabContent = document.getElementById('reviews-tab-content');
+        const similarTabContent = document.getElementById('similar-tab-content');
+        const episodeList = document.getElementById('episode-list');
+
+        // Comments Section Elements (moved to reviews tab)
+        const commentTextarea = document.getElementById('comment-textarea');
+        const submitCommentBtn = document.getElementById('submit-comment-btn');
+        const commentsList = document.getElementById('comments-list');
+
+        const workId = new URLSearchParams(window.location.search).get('workId');
+
+        /**
+         * Updates the header's style (shadow and border) based on dark mode.
+         */
+        function updateHeaderStyle() {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            mainHeader.classList.remove('shadow-sm');
+            mainHeader.style.borderBottom = 'none'; /* Ensure no border */
+
+            if (isDarkMode) {
+                mainHeader.style.backgroundColor = '#1e1e1e';
+            } else {
+                mainHeader.style.backgroundColor = '#ffffff';
+            }
+        }
+
+        /**
+         * Applies or removes dark mode based on the toggle state.
+         * Stores the preference in localStorage.
+         */
+        function applyDarkModeToPage(isDarkMode) {
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+            updateHeaderStyle();
+        }
+
+        /**
+         * Updates the header's authentication section based on user login status.
+         * @param {Object|null} user - The Firebase User object or null if logged out.
+         */
+        async function updateAuthSection(user) {
+            currentUserId = user ? user.uid : null; // Update global userId
+            if (user) {
+                loginSignupBtn.classList.add('hidden');
+                authSection.classList.remove('hidden');
+                userInfoDisplay.classList.remove('hidden');
+                userInfoDisplay.classList.add('flex');
+
+                userNicknameSpan.textContent = '로딩 중...';
+
+                const userProfileRef = doc(db, `artifacts/${appId}/users/${user.uid}/userProfiles`, user.uid);
+                try {
+                    const docSnap = await getDoc(userProfileRef);
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data();
+                        if (userData.nickname && userData.nickname.trim() !== '') {
+                            userNicknameSpan.textContent = userData.nickname;
+                            currentUserNickname = userData.nickname; // Set global nickname
+                        } else {
+                            userNicknameSpan.textContent = user.email || '사용자';
+                            currentUserNickname = user.email || '사용자';
+                            console.warn("User profile found but nickname is empty or missing, displaying email:", user.uid);
+                        }
+                    } else {
+                        userNicknameSpan.textContent = user.email || '사용자';
+                        currentUserNickname = user.email || '사용자';
+                        console.warn("User profile document not found for:", user.uid);
+                    }
+                } catch (error) {
+                    console.error("Error fetching user profile, displaying email:", error);
+                    userNicknameSpan.textContent = user.email || '오류';
+                    currentUserNickname = user.email || '오류';
+                }
+                submitCommentBtn.disabled = false; // Enable comment button if logged in
+            } else {
+                loginSignupBtn.classList.remove('hidden');
+                userInfoDisplay.classList.add('hidden');
+                userInfoDisplay.classList.remove('flex');
+                userNicknameSpan.textContent = '';
+                userDropdownMenu.classList.add('hidden');
+                // No dropdownArrowIcon here, as it's not present in the new design.
+                currentUserNickname = '익명'; // Reset nickname to anonymous
+                submitCommentBtn.disabled = true; // Disable comment button if logged out
+            }
+            // After auth state is known, check like status
+            if (currentWorkData && currentUserId) {
+                checkUserLikeStatus(currentWorkData.id, currentUserId);
+            } else {
+                // If not logged in or no work data, ensure like button is not "liked"
+                likeButtonIcon.classList.remove('liked');
+                likeButtonIcon.setAttribute('fill', 'none');
+            }
+        }
+
+        /**
+         * Fetches and displays work data from Firestore.
+         */
+        async function fetchWorkData() {
+            if (!workId) {
+                heroTitle.textContent = '오류: 작품 ID가 없습니다.';
+                heroIntroductionShort.textContent = '잘못된 접근입니다.';
+                playFirstEpisodeBtn.disabled = true;
+                likeButton.disabled = true;
+                return;
+            }
+
+            const workDocRef = doc(db, `artifacts/${appId}/public/data/works`, workId);
+
+            // Use onSnapshot for real-time updates of work details
+            onSnapshot(workDocRef, async (docSnap) => {
+                if (docSnap.exists()) {
+                    currentWorkData = { id: docSnap.id, ...docSnap.data() };
+                    console.log("Work data received:", currentWorkData);
+
+                    // Update Hero Section
+                    workHeroSection.style.backgroundImage = `url('${currentWorkData.thumbnailUrl || 'https://placehold.co/1920x400/2a2a4e/ffffff?text=Work+Hero+Image'}')`;
+                    heroRating.textContent = `★ ${currentWorkData.rating ? currentWorkData.rating.toFixed(1) : '0.0'}`; // Assuming a rating field
+                    heroGenreType.textContent = `${currentWorkData.genre || '장르'} · ${currentWorkData.type || '유형'}`;
+                    heroAgeRating.textContent = currentWorkData.ageRating || '전체 이용가';
+                    heroTitle.textContent = currentWorkData.title || '제목 없음';
+                    heroAuthor.textContent = `작가: ${currentWorkData.authorNickname || '알 수 없음'}`;
+                    workLikesElement.textContent = currentWorkData.likes || 0;
+
+                    // Set introduction text and "Read More" toggle
+                    const introductionText = currentWorkData.introduction || '소개 없음';
+                    heroIntroductionShort.textContent = introductionText;
+                    heroIntroductionFull.textContent = introductionText;
+                    if (introductionText.length > 150) { // Arbitrary length to show toggle
+                        readMoreToggle.classList.remove('hidden');
+                        heroIntroductionShort.classList.remove('hidden');
+                        heroIntroductionFull.classList.add('hidden');
+                    } else {
+                        readMoreToggle.classList.add('hidden');
+                        heroIntroductionShort.classList.add('hidden');
+                        heroIntroductionFull.classList.remove('hidden');
+                    }
+
+                    // Set "Play First Episode" button link
+                    playFirstEpisodeBtn.onclick = () => {
+                        window.location.href = `read.html?workId=${workId}&pageIndex=0`;
+                    };
+                    playFirstEpisodeBtn.disabled = false; // Enable button once data is loaded
+
+                    // Increment views only on initial load, not on subsequent updates from onSnapshot
+                    const sessionKey = `viewed_${workId}`;
+                    if (!sessionStorage.getItem(sessionKey)) {
+                        try {
+                            await updateDoc(workDocRef, {
+                                views: increment(1)
+                            });
+                            sessionStorage.setItem(sessionKey, 'true');
+                            console.log("Views incremented for work:", workId);
+                        } catch (error) {
+                            console.error("Error incrementing views:", error);
+                        }
+                    }
+
+                    // Check user's like status after work data is loaded and user is authenticated
+                    if (currentUserId) {
+                        checkUserLikeStatus(currentWorkData.id, currentUserId);
+                    } else {
+                        likeButton.disabled = false; // Enable like button even if not logged in (to prompt login)
+                    }
+
+                    // Render Episodes
+                    renderEpisodes();
+                    // Fetch and Render Comments (for reviews tab)
+                    fetchAndRenderComments();
+
+                } else {
+                    workHeroSection.style.backgroundImage = `url('https://placehold.co/1920x400/FF0000/FFFFFF?text=Work+Not+Found')`;
+                    heroTitle.textContent = '작품을 찾을 수 없습니다.';
+                    heroAuthor.textContent = '';
+                    heroIntroductionShort.textContent = '해당 작품이 존재하지 않거나 삭제되었습니다.';
+                    heroIntroductionFull.textContent = '해당 작품이 존재하지 않거나 삭제되었습니다.';
+                    heroRating.textContent = '★ 0.0';
+                    heroGenreType.textContent = '';
+                    heroAgeRating.textContent = '';
+                    workLikesElement.textContent = '0';
+                    playFirstEpisodeBtn.disabled = true;
+                    likeButton.disabled = true;
+                    episodeList.innerHTML = '<p class="text-gray-500 text-center">에피소드를 불러올 수 없습니다.</p>';
+                    commentsList.innerHTML = '<p class="text-gray-500 text-center">댓글을 불러올 수 없습니다.</p>';
+                    console.error("No such work document!");
+                }
+            }, (error) => {
+                console.error("Error fetching work data:", error);
+                workHeroSection.style.backgroundImage = `url('https://placehold.co/1920x400/FF0000/FFFFFF?text=Error')`;
+                heroTitle.textContent = '오류 발생';
+                heroIntroductionShort.textContent = '작품을 불러오는 중 오류가 발생했습니다.';
+                heroIntroductionFull.textContent = '작품을 불러오는 중 오류가 발생했습니다.';
+                heroRating.textContent = '★ 0.0';
+                heroGenreType.textContent = '';
+                heroAgeRating.textContent = '';
+                workLikesElement.textContent = '0';
+                playFirstEpisodeBtn.disabled = true;
+                likeButton.disabled = true;
+                episodeList.innerHTML = '<p class="text-red-500 text-center">에피소드를 불러오는 중 오류가 발생했습니다.</p>';
+                commentsList.innerHTML = '<p class="text-red-500 text-center">댓글을 불러오는 중 오류가 발생했습니다.</p>';
+            });
+        }
+
+        /**
+         * Renders the list of episodes/chapters.
+         */
+        function renderEpisodes() {
+            episodeList.innerHTML = ''; // Clear existing episodes
+            if (!currentWorkData || !currentWorkData.content || currentWorkData.content.length === 0) {
+                episodeList.innerHTML = '<p class="text-gray-500 text-center">등록된 에피소드/페이지가 없습니다.</p>';
+                return;
+            }
+
+            currentWorkData.content.forEach((pageContent, index) => {
+                const episodeDiv = document.createElement('div');
+                episodeDiv.className = 'episode-item';
+                episodeDiv.onclick = () => {
+                    window.location.href = `read.html?workId=${workId}&pageIndex=${index}`;
+                };
+
+                // Extract a text snippet for description
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = pageContent;
+                const descriptionSnippet = tempDiv.textContent.trim().substring(0, 100) + (tempDiv.textContent.trim().length > 100 ? '...' : '');
+
+                // Determine thumbnail (placeholder for now, could be first image in content later)
+                const thumbnailUrl = 'https://placehold.co/96x54/CCCCCC/333333?text=EP'; // Generic placeholder
+
+                episodeDiv.innerHTML = `
+                    <img src="${thumbnailUrl}" alt="Episode Thumbnail" class="episode-thumbnail" onerror="this.onerror=null;this.src='https://placehold.co/96x54/CCCCCC/333333?text=EP';"/>
+                    <div class="episode-info">
+                        <div class="episode-title">${index + 1}화 ${currentWorkData.type === 'novel' ? '' : '제목'}</div>
+                        <div class="episode-meta">23분 · ${new Date(currentWorkData.timestamp.toDate()).toLocaleDateString('ko-KR')}</div>
+                        <p class="episode-description">${descriptionSnippet || '에피소드 내용 요약'}</p>
+                    </div>
+                    <div class="episode-play-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                    </div>
+                `;
+                episodeList.appendChild(episodeDiv);
+            });
+        }
+
+
+        /**
+         * Checks if the current user has liked the work and updates the UI.
+         * @param {string} workId - The ID of the work.
+         * @param {string} userId - The ID of the current user.
+         */
+        async function checkUserLikeStatus(workId, userId) {
+            const likeDocRef = doc(db, `artifacts/${appId}/public/data/works/${workId}/likes`, userId);
+            try {
+                const docSnap = await getDoc(likeDocRef);
+                hasUserLiked = docSnap.exists();
+                updateLikeButtonUI();
+                likeButton.disabled = false; // Enable like button
+            } catch (error) {
+                console.error("Error checking like status:", error);
+                hasUserLiked = false; // Assume not liked on error
+                updateLikeButtonUI();
+                likeButton.disabled = true; // Disable like button on error
+            }
+        }
+
+        /**
+         * Updates the like button UI based on `hasUserLiked` state.
+         */
+        function updateLikeButtonUI() {
+            if (hasUserLiked) {
+                likeButtonIcon.classList.add('liked');
+                likeButtonIcon.setAttribute('fill', 'currentColor'); // Fill the heart
+            } else {
+                likeButtonIcon.classList.remove('liked');
+                likeButtonIcon.setAttribute('fill', 'none'); // Outline the heart
+            }
+        }
+
+        /**
+         * Handles the like/unlike action.
+         */
+        async function handleLikeUnlike() {
+            if (!currentUserId) {
+                showCustomAlert('작품에 좋아요를 누르려면 로그인해야 합니다.');
+                window.location.href = 'login.html';
+                return;
+            }
+            if (!currentWorkData) {
+                console.warn("No work data available to like/unlike.");
+                return;
+            }
+
+            const workDocRef = doc(db, `artifacts/${appId}/public/data/works`, currentWorkData.id);
+            const likeDocRef = doc(db, `artifacts/${appId}/public/data/works/${currentWorkData.id}/likes`, currentUserId);
+
+            try {
+                if (hasUserLiked) {
+                    // Unlike the work
+                    await deleteDoc(likeDocRef);
+                    await updateDoc(workDocRef, {
+                        likes: increment(-1)
+                    });
+                    hasUserLiked = false;
+                    showCustomAlert('좋아요를 취소했습니다.');
+                } else {
+                    // Like the work
+                    await setDoc(likeDocRef, { userId: currentUserId }); // Can add likedAt: serverTimestamp() here
+                    await updateDoc(workDocRef, {
+                        likes: increment(1)
+                    });
+                    hasUserLiked = true;
+                    showCustomAlert('작품에 좋아요를 눌렀습니다!');
+                }
+                updateLikeButtonUI(); // Update UI immediately
+            } catch (error) {
+                console.error("Error liking/unliking work:", error);
+                showCustomAlert(`좋아요 처리 중 오류가 발생했습니다: ${error.message}`);
+            }
+        }
+
+        /**
+         * Fetches and displays comments for the current work.
+         */
+        function fetchAndRenderComments() {
+            if (!workId) {
+                commentsList.innerHTML = '<p class="text-red-500 text-center">댓글을 불러올 수 없습니다: 작품 ID가 없습니다.</p>';
+                return;
+            }
+
+            const commentsCollectionRef = collection(db, `artifacts/${appId}/public/data/works/${workId}/comments`);
+            const q = query(commentsCollectionRef, orderBy('timestamp', 'desc')); // Order by latest comments first
+
+            onSnapshot(q, (snapshot) => {
+                commentsList.innerHTML = ''; // Clear existing comments
+                if (snapshot.empty) {
+                    commentsList.innerHTML = '<p class="text-gray-500 text-center">아직 댓글이 없습니다.</p>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const comment = doc.data();
+                    const commentDiv = document.createElement('div');
+                    commentDiv.className = 'comment-item';
+                    const date = comment.timestamp ? comment.timestamp.toDate().toLocaleString() : '날짜 없음';
+
+                    commentDiv.innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <span class="font-semibold text-gray-900 mr-2">${comment.authorNickname || '익명'}</span>
+                            <span class="text-gray-500 text-sm">${date}</span>
+                        </div>
+                        <p class="text-gray-700">${comment.content}</p>
+                    `;
+                    commentsList.appendChild(commentDiv);
+                });
+            }, (error) => {
+                console.error("Error fetching comments:", error);
+                commentsList.innerHTML = '<p class="text-red-500 text-center">댓글을 불러오는 중 오류가 발생했습니다.</p>';
+            });
+        }
+
+        /**
+         * Handles submitting a new comment.
+         */
+        async function handleSubmitComment() {
+            if (!currentUserId) {
+                showCustomAlert('댓글을 작성하려면 로그인해야 합니다.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const commentContent = commentTextarea.value.trim();
+            if (!commentContent) {
+                showCustomAlert('댓글 내용을 입력해주세요.');
+                return;
+            }
+
+            submitCommentBtn.disabled = true; // Disable button to prevent multiple submissions
+
+            try {
+                const commentsCollectionRef = collection(db, `artifacts/${appId}/public/data/works/${workId}/comments`);
+                await addDoc(commentsCollectionRef, {
+                    userId: currentUserId,
+                    authorNickname: currentUserNickname,
+                    content: commentContent,
+                    timestamp: serverTimestamp()
+                });
+                commentTextarea.value = ''; // Clear textarea
+                showCustomAlert('댓글이 성공적으로 작성되었습니다!');
+            } catch (error) {
+                console.error("Error adding comment:", error);
+                showCustomAlert(`댓글 작성 중 오류가 발생했습니다: ${error.message}`);
+            } finally {
+                submitCommentBtn.disabled = false; // Re-enable button
+            }
+        }
+
+        /**
+         * Displays a custom alert message.
+         * @param {string} message - The message to display.
+         */
+        function showCustomAlert(message) {
+            const alertModal = document.createElement('div');
+            alertModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            alertModal.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+                    <p class="text-lg font-semibold text-gray-800 mb-4">${message}</p>
+                    <button class="px-6 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors" onclick="this.closest('.fixed').remove()">확인</button>
+                </div>
+            `;
+            document.body.appendChild(alertModal);
+        }
+
+        /**
+         * Handles tab switching.
+         * @param {Event} event - The click event.
+         */
+        function handleTabClick(event) {
+            const clickedTab = event.target;
+            const targetTabId = clickedTab.dataset.tab;
+
+            // Deactivate all tabs and hide all content
+            tabButtons.forEach(button => button.classList.remove('active'));
+            episodesTabContent.classList.add('hidden');
+            reviewsTabContent.classList.add('hidden');
+            similarTabContent.classList.add('hidden');
+
+            // Activate clicked tab and show its content
+            clickedTab.classList.add('active');
+            document.getElementById(`${targetTabId}-tab-content`).classList.remove('hidden');
+        }
+
+        /**
+         * Toggles the full introduction text visibility.
+         */
+        function toggleReadMore() {
+            if (heroIntroductionShort.classList.contains('hidden')) {
+                heroIntroductionShort.classList.remove('hidden');
+                heroIntroductionFull.classList.add('hidden');
+                readMoreToggle.textContent = '더 보기';
+            } else {
+                heroIntroductionShort.classList.add('hidden');
+                heroIntroductionFull.classList.remove('hidden');
+                readMoreToggle.textContent = '숨기기';
+            }
+        }
+
+
+        // Event Listeners
+        window.addEventListener('load', async () => {
+            // Authenticate with Firebase on load
+            try {
+                if (initialAuthToken) {
+                    console.log("Attempting sign-in with custom token...");
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Signed in with custom token successfully.");
+                } else {
+                    console.log("No custom token found. User will be unauthenticated unless they log in.");
+                }
+            } catch (error) {
+                console.error("Firebase authentication failed during initial sign-in attempt:", error);
+                if (error.code === 'auth/custom-token-mismatch' || error.code === 'auth/invalid-custom-token') {
+                    console.warn("Custom token mismatch/invalid. User will remain unauthenticated.");
+                } else {
+                    showCustomAlert("Firebase 인증에 실패했습니다. 페이지 기능을 사용하려면 다시 시도해주세요.");
+                }
+                updateAuthSection(null);
+            }
+
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode !== null) {
+                applyDarkModeToPage(savedDarkMode === 'true');
+            } else {
+                updateHeaderStyle();
+            }
+
+            fetchWorkData(); // Fetch work data and render details/episodes/comments
+        });
+
+        // Firebase Auth State Listener
+        onAuthStateChanged(auth, (user) => {
+            updateAuthSection(user);
+        });
+
+        // Login/Signup Button
+        loginSignupBtn.addEventListener('click', () => {
+            window.location.href = 'login.html';
+        });
+
+        // Dropdown Toggle
+        dropdownToggleBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            userDropdownMenu.classList.toggle('hidden');
+            // No dropdownArrowIcon here in this design, so removed the class toggle
+        });
+
+        // Logout Button
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                console.log("User signed out successfully.");
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!userDropdownMenu.contains(event.target) && !dropdownToggleBtn.contains(event.target)) {
+                userDropdownMenu.classList.add('hidden');
+            }
+        });
+
+        // Like button (in hero section)
+        likeButton.addEventListener('click', handleLikeUnlike);
+
+        // Submit comment button (in reviews tab)
+        submitCommentBtn.addEventListener('click', handleSubmitComment);
+        // Disable comment button initially if not logged in
+        submitCommentBtn.disabled = true;
+
+        // Tab switching event listeners
+        tabButtons.forEach(button => {
+            button.addEventListener('click', handleTabClick);
+        });
+
+        // Read More toggle
+        readMoreToggle.addEventListener('click', toggleReadMore);
+
+    </script>
+</body>
+</html>
