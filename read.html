@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRAFIQ - 작품 읽기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Pretendard Web Font Definitions */
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-SemiBold.woff') format('woff');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Bold.woff') format('woff');
+            font-weight: 700;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-ExtraBold.woff') format('woff');
+            font-weight: 800;
+            font-style: normal;
+        }
+
+        /* Base font application */
+        body {
+            font-family: 'Pretendard', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f0f4f8; /* Light blue-gray background for the overall page */
+            color: #333;
+            overflow-y: scroll; /* Ensure scrollbar is always there for consistent layout */
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #121212; /* Very dark gray/near black */
+            color: #e0e0e0; /* Light gray text */
+        }
+        body.dark-mode #reader-header,
+        body.dark-mode #document-footer {
+            background-color: #1e1e1e;
+            border-color: #3a3a3a;
+            box-shadow: none;
+        }
+        body.dark-mode #reader-header .text-gray-700,
+        body.dark-mode #document-footer .text-gray-700 {
+            color: #c0c0c0; /* Light gray for icons/text */
+        }
+        body.dark-mode #reader-header .text-teal-500,
+        body.dark-mode #document-footer .text-teal-500 {
+            color: #2dd4bf; /* Teal-400 for logo/links */
+        }
+        body.dark-mode #reader-header .work-title-center {
+            color: #e0e0e0;
+        }
+        body.dark-mode #reader-header .icon-button:hover,
+        body.dark-mode #document-footer .icon-button:hover {
+            background-color: #2a2a2a;
+        }
+        body.dark-mode #document-page-container {
+            background-color: #1e1e1e;
+            box-shadow: none;
+            border-color: #3a3a3a;
+        }
+        body.dark-mode #work-content-display {
+            color: #e0e0e0;
+        }
+        body.dark-mode #work-content-display h1,
+        body.dark-mode #work-content-display h2,
+        body.dark-mode #work-content-display h3,
+        body.dark-mode #work-content-display h4,
+        body.dark-mode #work-content-display h5,
+        body.dark-mode #work-content-display h6 {
+            color: #e0e0e0;
+        }
+        body.dark-mode #work-content-display p,
+        body.dark-mode #work-content-display li {
+            color: #c0c0c0;
+        }
+        body.dark-mode #work-content-display a {
+            color: #63b3ed; /* Lighter blue for links in dark mode */
+        }
+        body.dark-mode .like-button.liked svg {
+            fill: #f87171; /* Lighter red for liked icon in dark mode */
+        }
+
+        /* Reader Header */
+        #reader-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 50;
+            background-color: #e0f2fe; /* Light blue background */
+            border-bottom: 1px solid #d1e9f7;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 0.75rem 1rem; /* py-3 px-4 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out;
+        }
+        #reader-header .text-gray-700 { /* Default text color for header elements */
+            color: #4a5568; /* Tailwind gray-700 */
+        }
+        #reader-header .text-teal-500 { /* CRAFIQ logo */
+            color: #14b8a6; /* Tailwind teal-500 */
+        }
+        #reader-header .work-title-center {
+            flex-grow: 1;
+            text-align: center;
+            font-weight: 600; /* Semi-bold */
+            font-size: 1rem; /* text-base */
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 1rem; /* Add padding to prevent overlap with buttons */
+        }
+        #reader-header .icon-button {
+            padding: 0.5rem;
+            border-radius: 9999px; /* rounded-full */
+            transition: background-color 0.2s ease-in-out;
+        }
+        #reader-header .icon-button:hover {
+            background-color: #edf2f7; /* gray-100 */
+        }
+        /* Specific styling for the + and - font buttons */
+        #font-size-controls button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px; /* Fixed width for small buttons */
+            height: 28px; /* Fixed height for small buttons */
+            font-size: 1.25rem; /* Larger font for +/- symbols */
+            line-height: 1;
+            border-radius: 4px; /* Slightly rounded corners */
+            background-color: #f3f4f6; /* gray-100 */
+            color: #4a5568; /* gray-700 */
+            transition: background-color 0.2s ease-in-out;
+        }
+        #font-size-controls button:hover {
+            background-color: #e5e7eb; /* gray-200 */
+        }
+
+
+        /* Main content area */
+        main {
+            padding-top: 5rem; /* Space for fixed header */
+            padding-bottom: 5rem; /* Space for fixed bottom controls */
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center content horizontally */
+            justify-content: flex-start;
+            overflow-y: auto; /* Allow main content area to scroll */
+        }
+
+        #document-page-container {
+            width: 100%;
+            max-width: 800px; /* Max width for reading comfort */
+            min-height: calc(100vh - 10rem); /* Minimum height to fill space between header/footer */
+            background-color: #ffffff; /* White background for the "page" */
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* More prominent shadow */
+            margin: 2rem auto; /* Vertical margin to separate from header/footer area */
+            padding: 2.5rem 3rem; /* Generous padding for content */
+            line-height: 1.8;
+            font-size: 1.1rem; /* Default font size */
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        /* Style for content within the display area (Quill's output) */
+        #work-content-display h1, #work-content-display h2, #work-content-display h3, #work-content-display h4, #work-content-display h5, #work-content-display h6 {
+            font-family: 'Pretendard', sans-serif;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            font-weight: bold;
+            color: #333; /* Ensure headings are dark in light mode */
+        }
+        #work-content-display h1 { font-size: 2.25rem; }
+        #work-content-display h2 { font-size: 1.875rem; }
+        #work-content-display h3 { font-size: 1.5rem; }
+        #work-content-display h4 { font-size: 1.25rem; }
+        #work-content-display h5 { font-size: 1.125rem; }
+        #work-content-display h6 { font-size: 1rem; }
+        #work-content-display p {
+            margin-bottom: 1em;
+            color: #333; /* Ensure paragraphs are dark in light mode */
+        }
+        #work-content-display strong { font-weight: bold; }
+        #work-content-display em { font-style: italic; }
+        #work-content-display u { text-decoration: underline; }
+        #work-content-display strike { text-decoration: line-through; }
+        #work-content-display a {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+        #work-content-display ul, #work-content-display ol {
+            margin-left: 1.5em;
+            margin-bottom: 1em;
+            color: #333; /* Ensure lists are dark in light mode */
+        }
+        #work-content-display li {
+            margin-bottom: 0.5em;
+        }
+        #work-content-display img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 1em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        body.dark-mode #work-content-display img {
+            box-shadow: none;
+        }
+        /* Style for the initial work details on the first page */
+        #work-content-display .initial-work-details h1 {
+            font-size: 2.5rem; /* Larger title */
+            margin-bottom: 0.5rem;
+        }
+        #work-content-display .initial-work-details p {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+        body.dark-mode #work-content-display .initial-work-details p {
+            color: #a0a0a0;
+        }
+        #work-content-display .initial-work-details .tag-item {
+            background-color: #e0f7fa; /* Lighter teal for tags */
+            color: #00796b; /* Darker teal text */
+            font-size: 0.8rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+        }
+        body.dark-mode #work-content-display .initial-work-details .tag-item {
+            background-color: #004d40;
+            color: #80cbc4;
+        }
+        #work-content-display .initial-work-details hr {
+            border-top: 1px solid #eee;
+            margin: 2rem 0;
+        }
+        body.dark-mode #work-content-display .initial-work-details hr {
+            border-color: #3a3a3a;
+        }
+
+
+        /* Document Footer */
+        #document-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 50;
+            background-color: #e0f2fe; /* Light blue background */
+            border-top: 1px solid #d1e9f7;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+            padding: 0.75rem 1rem; /* py-3 px-4 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #4a5568;
+            transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out;
+        }
+        #document-footer .icon-button {
+            padding: 0.5rem;
+            border-radius: 9999px;
+            transition: background-color 0.2s ease-in-out;
+        }
+        #document-footer .icon-button:hover {
+            background-color: #edf2f7;
+        }
+        .like-button.liked svg {
+            fill: #ef4444; /* Red-500 */
+            animation: pulse-fill 0.3s ease-out;
+        }
+        @keyframes pulse-fill {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-800">
+
+    <header id="reader-header">
+        <div class="flex items-center space-x-4">
+            <a href="index.html" class="text-xl font-extrabold text-teal-500">
+                CRAFIQ Reader
+            </a>
+            <button class="icon-button text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.3-4.3"></path>
+                </svg>
+            </button>
+            <button id="prev-page-header-btn" class="icon-button text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <span id="page-counter-header" class="text-sm font-semibold text-gray-700">1 / 1</span>
+            <button id="next-page-header-btn" class="icon-button text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+            <div id="font-size-controls-header" class="flex items-center space-x-1 ml-2">
+                <button id="font-decrease-button" class="text-gray-700">-</button>
+                <span class="text-gray-700 font-semibold text-base">Aa</span>
+                <button id="font-increase-button" class="text-gray-700">+</button>
+            </div>
+        </div>
+
+        <div id="work-title-header" class="work-title-center">작품 제목 로딩 중...</div>
+
+        <div class="flex items-center space-x-2">
+            <div id="user-info-display-header" class="relative flex items-center space-x-1">
+                <span id="user-nickname-header" class="text-sm font-semibold text-gray-700 hidden md:block"></span>
+                <button id="auth-button-header" class="icon-button text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </button>
+                <div id="user-dropdown-menu-header" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden z-20">
+                    <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 프로필</a>
+                    <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">설정</a>
+                    <button id="logout-btn-header" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        로그아웃
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4">
+        <div id="document-page-container">
+            <div id="work-content-display">
+                <p class="text-gray-500 text-center">작품 내용을 불러오는 중...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer id="document-footer">
+        <div class="flex items-center space-x-2">
+            <span id="footer-page-info" class="text-gray-700 font-semibold">0 / 0</span>
+        </div>
+        <div class="flex flex-col items-center flex-grow mx-4">
+            <span id="footer-work-title" class="text-gray-700 font-semibold text-center truncate w-full">작품 제목 로딩 중...</span>
+            <span id="footer-published-date" class="text-gray-500 text-xs mt-1"></span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <button id="like-button" class="icon-button text-gray-700 flex items-center space-x-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                </svg>
+                <span id="work-likes">0</span>
+            </button>
+            <button class="icon-button text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                    <polyline points="16 6 12 2 8 6"></polyline>
+                    <line x1="12" y1="2" x2="12" y2="15"></line>
+                </svg>
+            </button>
+            <button class="icon-button text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+            </button>
+            <button class="icon-button text-gray-700 hidden md:block"> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07L9.44 10.6"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+            </button>
+            <button class="icon-button text-gray-700 hidden md:block"> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+                </svg>
+            </button>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, increment, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = JSON.parse(`{"apiKey": "AIzaSyBJFAV4-QMggAW2K1YtpsXIZ5PQ8KJzo9k", "authDomain": "crafiq-a.firebaseapp.com", "projectId": "crafiq-a", "storageBucket": "crafiq-a.firebasestorage.app", "messagingSenderId": "176082460783", "appId": "1:176082460783:web:cd0b594cc803932eaa2d9a", "measurementId": "G-QB84Z9EMZW"}`);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Global variables
+        let currentWorkData = null;
+        let currentPageIndex = 0;
+        let currentUserId = null;
+        let hasUserLiked = false; // To track if the current user has liked this work
+        let currentFontSize = parseFloat(localStorage.getItem('readerFontSize')) || 1.1; // Default font size in rem
+
+        // Get DOM elements (Header)
+        const readerHeader = document.getElementById('reader-header');
+        const backButton = document.getElementById('back-button');
+        const workTitleHeader = document.getElementById('work-title-header');
+        const pageCounterHeader = document.getElementById('page-counter-header');
+        const prevPageHeaderBtn = document.getElementById('prev-page-header-btn');
+        const nextPageHeaderBtn = document.getElementById('next-page-header-btn');
+        const fontDecreaseButton = document.getElementById('font-decrease-button');
+        const fontIncreaseButton = document.getElementById('font-increase-button');
+        const authButtonHeader = document.getElementById('auth-button-header');
+        const userNicknameHeader = document.getElementById('user-nickname-header');
+        const userDropdownMenuHeader = document.getElementById('user-dropdown-menu-header');
+        const logoutBtnHeader = document.getElementById('logout-btn-header');
+
+        // Get DOM elements (Main Content)
+        const documentPageContainer = document.getElementById('document-page-container');
+        const workContentDisplay = document.getElementById('work-content-display');
+
+        // Get DOM elements (Footer)
+        const documentFooter = document.getElementById('document-footer');
+        const footerPageInfo = document.getElementById('footer-page-info');
+        const footerWorkTitle = document.getElementById('footer-work-title');
+        const footerPublishedDate = document.getElementById('footer-published-date');
+        const likeButton = document.getElementById('like-button');
+        const likeButtonIcon = likeButton.querySelector('svg');
+        const workLikesElement = document.getElementById('work-likes');
+
+        const workId = new URLSearchParams(window.location.search).get('workId');
+
+        /**
+         * Applies or removes dark mode based on the toggle state.
+         * Stores the preference in localStorage.
+         */
+        function applyDarkModeToPage(isDarkMode) {
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        }
+
+        /**
+         * Updates the header's authentication section based on user login status.
+         * @param {Object|null} user - The Firebase User object or null if logged out.
+         */
+        async function updateAuthSection(user) {
+            currentUserId = user ? user.uid : null; // Update global userId
+            if (user) {
+                // User is logged in
+                authButtonHeader.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>`; // User icon
+                userNicknameHeader.classList.remove('hidden');
+
+                const userProfileRef = doc(db, `artifacts/${appId}/users/${user.uid}/userProfiles`, user.uid);
+                try {
+                    const docSnap = await getDoc(userProfileRef);
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data();
+                        if (userData.nickname && userData.nickname.trim() !== '') {
+                            userNicknameHeader.textContent = userData.nickname;
+                        } else {
+                            userNicknameHeader.textContent = user.email || '사용자';
+                            console.warn("User profile found but nickname is empty or missing, displaying email:", user.uid);
+                        }
+                    } else {
+                        userNicknameHeader.textContent = user.email || '사용자';
+                        console.warn("User profile document not found for:", user.uid);
+                    }
+                } catch (error) {
+                    console.error("Error fetching user profile, displaying email:", error);
+                    userNicknameHeader.textContent = user.email || '오류';
+                }
+            } else {
+                // User is logged out
+                authButtonHeader.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>`; // Login/user icon (can be changed to a distinct login icon if preferred)
+                userNicknameHeader.classList.add('hidden');
+                userDropdownMenuHeader.classList.add('hidden'); // Hide dropdown if logged out
+            }
+            // After auth state is known, check like status
+            if (currentWorkData && currentUserId) {
+                checkUserLikeStatus(currentWorkData.id, currentUserId);
+            } else {
+                // If not logged in or no work data, ensure like button is not "liked"
+                likeButtonIcon.classList.remove('liked');
+                likeButtonIcon.setAttribute('fill', 'none');
+            }
+        }
+
+        /**
+         * Renders the current page of the work.
+         */
+        function renderWorkPage() {
+            if (!currentWorkData || !currentWorkData.content || currentWorkData.content.length === 0) {
+                workContentDisplay.innerHTML = '<p class="text-gray-500 text-center">작품 내용을 불러올 수 없습니다.</p>';
+                pageCounterHeader.textContent = '0 / 0';
+                footerPageInfo.textContent = '0 / 0';
+                prevPageHeaderBtn.disabled = true;
+                nextPageHeaderBtn.disabled = true;
+                return;
+            }
+
+            const pageContent = currentWorkData.content[currentPageIndex];
+
+            // For the first page, display title, author, introduction, tags before content
+            if (currentPageIndex === 0) {
+                let initialDetailsHtml = `
+                    <div class="initial-work-details text-center mb-8">
+                        <h1 class="text-gray-900">${currentWorkData.title || '제목 없음'}</h1>
+                        <p class="text-gray-700">작가: ${currentWorkData.authorNickname || '알 수 없음'}</p>
+                `;
+                if (currentWorkData.introduction) {
+                    initialDetailsHtml += `<p class="mt-4">${currentWorkData.introduction}</p>`;
+                }
+                if (currentWorkData.tags && Array.isArray(currentWorkData.tags) && currentWorkData.tags.length > 0) {
+                    initialDetailsHtml += `<div class="flex flex-wrap gap-2 justify-center mt-4">`;
+                    currentWorkData.tags.forEach(tag => {
+                        initialDetailsHtml += `<span class="tag-item">${tag}</span>`;
+                    });
+                    initialDetailsHtml += `</div>`;
+                }
+                initialDetailsHtml += `</div><hr>`; // Separator
+                workContentDisplay.innerHTML = initialDetailsHtml + pageContent;
+            } else {
+                workContentDisplay.innerHTML = pageContent;
+            }
+
+            // Update header and footer page counters
+            pageCounterHeader.textContent = `${currentPageIndex + 1} / ${currentWorkData.content.length}`;
+            footerPageInfo.textContent = `${currentPageIndex + 1} / ${currentWorkData.content.length}`;
+
+            // Update header navigation button states
+            prevPageHeaderBtn.disabled = currentPageIndex === 0;
+            nextPageHeaderBtn.disabled = currentPageIndex === currentWorkData.content.length - 1;
+
+            // Apply current font size
+            workContentDisplay.style.fontSize = `${currentFontSize}rem`;
+        }
+
+        /**
+         * Navigates to the previous page.
+         */
+        function goToPrevPage() {
+            if (currentPageIndex > 0) {
+                currentPageIndex--;
+                renderWorkPage();
+                window.scrollTo(0, 0); // Scroll to top of the page
+            }
+        }
+
+        /**
+         * Navigates to the next page.
+         */
+        function goToNextPage() {
+            if (currentPageIndex < currentWorkData.content.length - 1) {
+                currentPageIndex++;
+                renderWorkPage();
+                window.scrollTo(0, 0); // Scroll to top of the page
+            }
+        }
+
+        /**
+         * Adjusts the font size of the work content.
+         * @param {number} delta - The amount to change the font size by (e.g., 0.1 for increase, -0.1 for decrease).
+         */
+        function adjustFontSize(delta) {
+            currentFontSize = Math.max(0.8, Math.min(2.0, currentFontSize + delta)); // Limit min/max font size
+            workContentDisplay.style.fontSize = `${currentFontSize}rem`;
+            localStorage.setItem('readerFontSize', currentFontSize); // Save preference
+        }
+
+        /**
+         * Fetches and displays work data from Firestore.
+         */
+        async function fetchWorkData() {
+            if (!workId) {
+                workTitleHeader.textContent = '오류: 작품 ID가 없습니다.';
+                footerWorkTitle.textContent = '오류: 작품 ID가 없습니다.';
+                workContentDisplay.innerHTML = '<p class="text-red-500 text-center">잘못된 접근입니다.</p>';
+                return;
+            }
+
+            const workDocRef = doc(db, `artifacts/${appId}/public/data/works`, workId);
+
+            // Use onSnapshot for real-time updates
+            onSnapshot(workDocRef, async (docSnap) => {
+                if (docSnap.exists()) {
+                    currentWorkData = { id: docSnap.id, ...docSnap.data() };
+                    console.log("Work data received:", currentWorkData);
+
+                    workTitleHeader.textContent = currentWorkData.title || '제목 없음';
+                    footerWorkTitle.textContent = currentWorkData.title || '제목 없음';
+                    workLikesElement.textContent = currentWorkData.likes || 0;
+
+                    // Format and display published date
+                    if (currentWorkData.timestamp && currentWorkData.timestamp.toDate) {
+                        const date = currentWorkData.timestamp.toDate();
+                        footerPublishedDate.textContent = `Published on ${date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}`;
+                    } else {
+                        footerPublishedDate.textContent = '';
+                    }
+
+                    renderWorkPage(); // Render the current page content
+
+                    // Increment views only on initial load, not on subsequent updates from onSnapshot
+                    const sessionKey = `viewed_${workId}`;
+                    if (!sessionStorage.getItem(sessionKey)) {
+                        try {
+                            await updateDoc(workDocRef, {
+                                views: increment(1)
+                            });
+                            sessionStorage.setItem(sessionKey, 'true');
+                            console.log("Views incremented for work:", workId);
+                        } catch (error) {
+                            console.error("Error incrementing views:", error);
+                        }
+                    }
+
+                    // Check user's like status after work data is loaded and user is authenticated
+                    if (currentUserId) {
+                        checkUserLikeStatus(currentWorkData.id, currentUserId);
+                    }
+
+                } else {
+                    workTitleHeader.textContent = '작품을 찾을 수 없습니다.';
+                    footerWorkTitle.textContent = '작품을 찾을 수 없습니다.';
+                    footerPublishedDate.textContent = '';
+                    workContentDisplay.innerHTML = '<p class="text-red-500 text-center">해당 작품이 존재하지 않거나 삭제되었습니다.</p>';
+                    workLikesElement.textContent = '0';
+                    pageCounterHeader.textContent = '0 / 0';
+                    footerPageInfo.textContent = '0 / 0';
+                    prevPageHeaderBtn.disabled = true;
+                    nextPageHeaderBtn.disabled = true;
+                    likeButton.disabled = true; // Disable like button if work not found
+                    console.error("No such work document!");
+                }
+            }, (error) => {
+                console.error("Error fetching work data:", error);
+                workTitleHeader.textContent = '오류 발생';
+                footerWorkTitle.textContent = '오류 발생';
+                footerPublishedDate.textContent = '';
+                workContentDisplay.innerHTML = '<p class="text-red-500 text-center">작품을 불러오는 중 오류가 발생했습니다.</p>';
+                pageCounterHeader.textContent = '0 / 0';
+                footerPageInfo.textContent = '0 / 0';
+                prevPageHeaderBtn.disabled = true;
+                nextPageHeaderBtn.disabled = true;
+                likeButton.disabled = true; // Disable like button on error
+            });
+        }
+
+        /**
+         * Checks if the current user has liked the work and updates the UI.
+         * @param {string} workId - The ID of the work.
+         * @param {string} userId - The ID of the current user.
+         */
+        async function checkUserLikeStatus(workId, userId) {
+            const likeDocRef = doc(db, `artifacts/${appId}/public/data/works/${workId}/likes`, userId);
+            try {
+                const docSnap = await getDoc(likeDocRef);
+                hasUserLiked = docSnap.exists();
+                updateLikeButtonUI();
+            } catch (error) {
+                console.error("Error checking like status:", error);
+                hasUserLiked = false; // Assume not liked on error
+                updateLikeButtonUI();
+            }
+        }
+
+        /**
+         * Updates the like button UI based on `hasUserLiked` state.
+         */
+        function updateLikeButtonUI() {
+            if (hasUserLiked) {
+                likeButtonIcon.classList.add('liked');
+                likeButtonIcon.setAttribute('fill', 'currentColor'); // Fill the heart
+            } else {
+                likeButtonIcon.classList.remove('liked');
+                likeButtonIcon.setAttribute('fill', 'none'); // Outline the heart
+            }
+        }
+
+        /**
+         * Handles the like/unlike action.
+         */
+        async function handleLikeUnlike() {
+            if (!currentUserId) {
+                showCustomAlert('작품에 좋아요를 누르려면 로그인해야 합니다.');
+                window.location.href = 'login.html';
+                return;
+            }
+            if (!currentWorkData) {
+                console.warn("No work data available to like/unlike.");
+                return;
+            }
+
+            const workDocRef = doc(db, `artifacts/${appId}/public/data/works`, currentWorkData.id);
+            const likeDocRef = doc(db, `artifacts/${appId}/public/data/works/${currentWorkData.id}/likes`, currentUserId);
+
+            try {
+                if (hasUserLiked) {
+                    // Unlike the work
+                    await deleteDoc(likeDocRef);
+                    await updateDoc(workDocRef, {
+                        likes: increment(-1)
+                    });
+                    hasUserLiked = false;
+                    showCustomAlert('좋아요를 취소했습니다.');
+                } else {
+                    // Like the work
+                    await setDoc(likeDocRef, { userId: currentUserId }); // Can add likedAt: serverTimestamp() here
+                    await updateDoc(workDocRef, {
+                        likes: increment(1)
+                    });
+                    hasUserLiked = true;
+                    showCustomAlert('작품에 좋아요를 눌렀습니다!');
+                }
+                updateLikeButtonUI(); // Update UI immediately
+            } catch (error) {
+                console.error("Error liking/unliking work:", error);
+                showCustomAlert(`좋아요 처리 중 오류가 발생했습니다: ${error.message}`);
+            }
+        }
+
+        /**
+         * Displays a custom alert message.
+         * @param {string} message - The message to display.
+         */
+        function showCustomAlert(message) {
+            const alertModal = document.createElement('div');
+            alertModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            alertModal.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+                    <p class="text-lg font-semibold text-gray-800 mb-4">${message}</p>
+                    <button class="px-6 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors" onclick="this.closest('.fixed').remove()">확인</button>
+                </div>
+            `;
+            document.body.appendChild(alertModal);
+        }
+
+        // Event Listeners
+        window.addEventListener('load', async () => {
+            // Authenticate with Firebase on load
+            try {
+                if (initialAuthToken) {
+                    console.log("Attempting sign-in with custom token...");
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Signed in with custom token successfully.");
+                } else {
+                    console.log("No custom token found. User will be unauthenticated unless they log in.");
+                }
+            } catch (error) {
+                console.error("Firebase authentication failed during initial sign-in attempt:", error);
+                if (error.code === 'auth/custom-token-mismatch' || error.code === 'auth/invalid-custom-token') {
+                    console.warn("Custom token mismatch/invalid. User will remain unauthenticated.");
+                } else {
+                    showCustomAlert("Firebase 인증에 실패했습니다. 페이지 기능을 사용하려면 다시 시도해주세요.");
+                }
+                updateAuthSection(null);
+            }
+
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode !== null) {
+                applyDarkModeToPage(savedDarkMode === 'true');
+            }
+
+            fetchWorkData(); // Fetch work data after Firebase is initialized
+        });
+
+        // Firebase Auth State Listener
+        onAuthStateChanged(auth, (user) => {
+            updateAuthSection(user);
+        });
+
+        // Auth button in header (for login/dropdown)
+        authButtonHeader.addEventListener('click', (event) => {
+            if (auth.currentUser) {
+                event.stopPropagation(); // Prevent document click from immediately closing
+                userDropdownMenuHeader.classList.toggle('hidden');
+            } else {
+                window.location.href = 'login.html'; // Redirect to login
+            }
+        });
+
+        // Logout button in header dropdown
+        logoutBtnHeader.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                console.log("User signed out successfully.");
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!userDropdownMenuHeader.contains(event.target) && !authButtonHeader.contains(event.target)) {
+                userDropdownMenuHeader.classList.add('hidden');
+            }
+        });
+
+        // Page navigation buttons in header
+        prevPageHeaderBtn.addEventListener('click', goToPrevPage);
+        nextPageHeaderBtn.addEventListener('click', goToNextPage);
+
+        // Font size controls
+        fontDecreaseButton.addEventListener('click', () => adjustFontSize(-0.1));
+        fontIncreaseButton.addEventListener('click', () => adjustFontSize(0.1));
+
+        // Back button
+        backButton.addEventListener('click', () => {
+            window.history.back(); // Go back to the previous page
+        });
+
+        // Like button in footer
+        likeButton.addEventListener('click', handleLikeUnlike);
+
+    </script>
+</body>
+</html>
