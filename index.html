@@ -144,7 +144,7 @@
         /* Work card styles */
         .work-card {
             flex-shrink: 0;
-            width: 200px; /* Fixed width for consistent display */
+            /* Removed fixed width here to allow Tailwind's responsive classes to work */
             cursor: pointer;
             display: flex;
             flex-direction: column;
@@ -559,7 +559,8 @@
 
             works.forEach((item, index) => {
                 const div = document.createElement('div');
-                div.className = 'work-card flex-shrink-0 w-48 md:w-56 lg:w-64 cursor-pointer'; // Adjusted width for better fit
+                // Use Tailwind's responsive width classes directly
+                div.className = 'work-card flex-shrink-0 w-48 md:w-56 lg:w-64 cursor-pointer';
                 div.innerHTML = `
                     <div class="relative">
                         <img src="${item.thumbnailUrl || 'https://placehold.co/200x112/CCCCCC/333333?text=No+Image'}" alt="${item.title}" class="w-full h-auto object-cover rounded-md" onerror="this.onerror=null;this.src='https://placehold.co/200x112/CCCCCC/333333?text=Image+Error';"/>
@@ -825,7 +826,7 @@
 
         /**
          * Applies or removes dark mode based on the toggle state.
-         * This function is called on page load and when the dark mode toggle is changed.
+         * This function isF called on page load and when the dark mode toggle is changed.
          */
         function applyDarkModeToPage(isDarkMode) {
             if (isDarkMode) {
@@ -932,7 +933,7 @@
                 tabButtons.forEach(btn => {
                     btn.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
                     btn.classList.add('text-gray-600', 'hover:text-teal-600');
-                });
+                    });
                 event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
                 event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
 
