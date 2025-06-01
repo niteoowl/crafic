@@ -141,20 +141,15 @@
             opacity: 0.8;
         }
 
-        /* Work card styles - adjusted for horizontal scroll layout */
+        /* Work card styles */
         .work-card {
-            flex-shrink: 0; /* Prevent shrinking in flex container */
-            width: 200px; /* Fixed width for consistent display in carousel */
+            flex-shrink: 0;
+            width: 200px; /* Fixed width for consistent display */
             cursor: pointer;
+            display: flex;
+            flex-direction: column;
             border-radius: 0.5rem; /* rounded-md */
             overflow: hidden; /* Ensures image corners are rounded */
-            background-color: #fff; /* Default background for cards */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Subtle shadow */
-            padding: 0.75rem; /* p-3 for padding inside card */
-        }
-        body.dark-mode .work-card {
-            background-color: #1e1e1e; /* Darker card background */
-            box-shadow: none; /* Remove shadow in dark mode */
         }
         .work-card img {
             width: 100%;
@@ -162,7 +157,7 @@
             object-fit: cover;
             border-radius: 0.375rem; /* rounded-md */
         }
-        .work-card .rank { /* This class is applied to the rank number itself */
+        .work-card .rank {
             font-size: 2.25rem; /* text-4xl */
             font-weight: 800; /* font-extrabold */
             color: #333; /* Default dark color */
@@ -317,28 +312,22 @@
         <section class="container mx-auto px-4 py-8 mt-8">
             <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-900">크래픽 인기 작품</h2>
             <div class="flex space-x-4 mb-6 border-b border-gray-200">
-                <button id="tab-실시간" class="pb-2 text-lg font-semibold text-teal-600 border-b-2 border-teal-600 transition-colors duration-200" data-tab="실시간">
-                    실시간
+                <button id="tab-views" class="pb-2 text-lg font-semibold text-teal-600 border-b-2 border-teal-600 transition-colors duration-200" data-tab="views">
+                    조회수 순
                 </button>
-                <button id="tab-이번 주" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="이번 주">
-                    이번 주
-                </button>
-                <button id="tab-분기" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="분기">
-                    분기
-                </button>
-                <button id="tab-역대" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="역대">
-                    역대
+                <button id="tab-likes" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="likes">
+                    좋아요 순
                 </button>
             </div>
 
-            <div id="popular-anime-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
+            <div id="popular-works-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
                 <p class="text-gray-500">인기 작품을 로딩 중입니다...</p>
             </div>
         </section>
 
         <section class="container mx-auto px-4 py-8">
             <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-900">최신 작품</h2>
-            <div id="exclusive-works-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
+            <div id="latest-works-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
                 <p class="text-gray-500">최신 작품을 로딩 중입니다...</p>
             </div>
         </section>
@@ -360,7 +349,7 @@
     <script type="module">
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase configuration (replace with your actual config or load from environment)
@@ -388,11 +377,9 @@
         const prevBannerBtn = document.getElementById('prev-banner-btn');
         const nextBannerBtn = document.getElementById('next-banner-btn');
         const paginationDotsContainer = document.getElementById('pagination-dots');
-        // Updated IDs for popular and latest works containers
-        const popularWorksContainer = document.getElementById('popular-anime-container'); // Changed ID
-        const latestWorksContainer = document.getElementById('exclusive-works-container'); // Changed ID
-        // Updated tab button selectors to match new IDs
-        const tabButtons = document.querySelectorAll('.flex.space-x-4.mb-6.border-b.border-gray-200 button[data-tab]');
+        const popularWorksContainer = document.getElementById('popular-works-container'); // Renamed from popularAnimeContainer
+        const latestWorksContainer = document.getElementById('latest-works-container'); // Renamed from exclusiveWorksContainer
+        const tabButtons = document.querySelectorAll('#popular-works-section button[data-tab]'); // Select tabs within popular section
 
         // Auth-related DOM elements
         const authSection = document.getElementById('auth-section');
@@ -570,32 +557,19 @@
             }
 
             works.forEach((item, index) => {
-                // This is the inner content of the card (image, title, description)
-                const cardContentHtml = `
-                    <div class="relative mb-2">
+                const div = document.createElement('div');
+                div.className = 'work-card flex-shrink-0 w-48 md:w-56 lg:w-64 cursor-pointer'; // Adjusted width for better fit
+                div.innerHTML = `
+                    <div class="relative">
                         <img src="${item.thumbnailUrl || 'https://placehold.co/200x112/CCCCCC/333333?text=No+Image'}" alt="${item.title}" class="w-full h-auto object-cover rounded-md" onerror="this.onerror=null;this.src='https://placehold.co/200x112/CCCCCC/333333?text=Image+Error';"/>
                     </div>
-                    <div>
-                        <h3 class="text-base md:text-lg font-bold text-gray-900 dark:text-e0e0e0 mb-1">${item.title}</h3>
+                    <div class="pt-2">
+                        ${sectionType === 'popular' ? `<div class="text-4xl font-extrabold text-black dark:text-e0e0e0 mb-1">${index + 1}</div>` : ''}
+                        <h3 class="text-base md:text-lg font-bold text-gray-900 dark:text-e0e0e0 truncate mb-1">${item.title}</h3>
                         <p class="text-sm text-gray-600 dark:text-c0c0c0 line-clamp-2">${item.introduction || '설명 없음'}</p>
                     </div>
                 `;
-
-                const workItemWrapper = document.createElement('div'); // This will be the wrapper for each work item, including rank if popular
-
-                if (sectionType === 'popular') {
-                    // For popular works, we need the rank number next to the card
-                    workItemWrapper.className = 'flex flex-row items-start space-x-2'; // Use flex-row to align rank and card
-                    workItemWrapper.innerHTML = `
-                        <div class="rank text-4xl font-extrabold text-gray-900 dark:text-e0e0e0 pt-1">${index + 1}</div>
-                        <div class="work-card"> ${cardContentHtml}
-                        </div>
-                    `;
-                } else { // latest works (no rank number, just the card)
-                    workItemWrapper.className = 'work-card'; // This div is the work-card itself
-                    workItemWrapper.innerHTML = cardContentHtml;
-                }
-                container.appendChild(workItemWrapper);
+                container.appendChild(div);
             });
         }
 
@@ -609,7 +583,6 @@
             const allWorksQuery = query(worksCollectionRef, orderBy('timestamp', 'desc')); // Order by timestamp for consistent hero selection
             onSnapshot(allWorksQuery, (snapshot) => {
                 allWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                console.log("Fetched all works:", allWorks);
 
                 // Update hero banner
                 if (allWorks.length > 0) {
@@ -633,12 +606,11 @@
 
 
             // Listen for popular works (initially by views)
-            let currentPopularSortField = 'views'; // Default sort for popular section
+            let currentPopularSortField = 'views';
             const renderPopularBySort = (sortField) => {
                 const popularWorksQuery = query(worksCollectionRef, orderBy(sortField, 'desc'), limit(10));
                 onSnapshot(popularWorksQuery, (snapshot) => {
                     const popularWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    console.log(`Fetched popular works by ${sortField}:`, popularWorks);
                     renderWorkCards(popularWorksContainer, popularWorks, 'popular');
                 }, (error) => {
                     console.error(`Error fetching popular works by ${sortField}:`, error);
@@ -652,39 +624,15 @@
             // Add event listeners for popular works tabs
             tabButtons.forEach(button => {
                 button.addEventListener('click', (event) => {
-                    // Remove active state from all tabs
                     tabButtons.forEach(btn => {
                         btn.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
                         btn.classList.add('text-gray-600', 'hover:text-teal-600');
                     });
-                    // Add active state to clicked tab
                     event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
                     event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
 
-                    // Determine sort field based on the data-tab attribute
-                    let firestoreSortField = 'views'; // Default to views
-                    switch (event.target.dataset.tab) {
-                        case '실시간':
-                        case '이번 주':
-                            firestoreSortField = 'views'; // Map to views
-                            break;
-                        case '분기':
-                        case '역대':
-                            firestoreSortField = 'likes'; // Map to likes
-                            break;
-                        default:
-                            firestoreSortField = 'views'; // Fallback
-                    }
-                    // Re-fetch and render popular works based on the selected tab
-                    const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
-                    const popularWorksQuery = query(worksCollectionRef, orderBy(firestoreSortField, 'desc'), limit(10));
-                    onSnapshot(popularWorksQuery, (snapshot) => {
-                        const popularWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        renderWorkCards(popularWorksContainer, popularWorks, 'popular');
-                    }, (error) => {
-                        console.error(`Error fetching popular works by ${firestoreSortField}:`, error);
-                        popularWorksContainer.innerHTML = '<p class="text-red-500">인기 작품을 불러오는 데 실패했습니다.</p>';
-                    });
+                    currentPopularSortField = event.target.dataset.tab;
+                    renderPopularBySort(currentPopularSortField);
                 });
             });
         }
@@ -873,7 +821,7 @@
 
         /**
          * Applies or removes dark mode based on the toggle state.
-         * This function isF called on page load and when the dark mode toggle is changed.
+         * This function is called on page load and when the dark mode toggle is changed.
          */
         function applyDarkModeToPage(isDarkMode) {
             if (isDarkMode) {
@@ -886,49 +834,70 @@
         }
 
 
+        // Firebase 인증 상태 리스너
+        onAuthStateChanged(auth, (user) => {
+            updateAuthSection(user);
+        });
+
+        // 로그인/회원가입 버튼 클릭 핸들러
+        loginSignupBtn.addEventListener('click', () => {
+            window.location.href = 'login.html'; // 로그인 페이지로 리디렉션
+        });
+
+        // 드롭다운 토글 버튼 클릭 핸들러
+        dropdownToggleBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            userDropdownMenu.classList.toggle('hidden');
+            if (dropdownArrowIcon) {
+                dropdownArrowIcon.classList.toggle('rotate-180');
+            }
+        });
+
+        // 로그아웃 버튼 클릭 핸들러 (드롭다운 내부)
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                console.log("User signed out successfully.");
+                // onAuthStateChanged 리스너에 의해 updateAuthSection이 호출될 것임
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+        // 드롭다운 외부 클릭 시 닫기
+        document.addEventListener('click', (event) => {
+            if (!userDropdownMenu.contains(event.target) && !dropdownToggleBtn.contains(event.target)) {
+                userDropdownMenu.classList.add('hidden');
+                if (dropdownArrowIcon) {
+                    dropdownArrowIcon.classList.remove('rotate-180');
+                }
+            }
+        });
+
+
         // 이벤트 리스너
         window.addEventListener('load', async () => {
-            // Firebase 인증 시도
+            // Authenticate with Firebase on load
             try {
                 if (initialAuthToken) {
-                    console.log("Attempting sign-in with custom token...");
                     await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Signed in with custom token successfully.");
                 } else {
-                    console.log("No custom token found. User will be unauthenticated unless they log in.");
+                    await signInAnonymously(auth);
                 }
+                console.log("Firebase authenticated.");
             } catch (error) {
-                console.error("Firebase authentication failed during initial sign-in attempt:", error);
-                if (error.code === 'auth/custom-token-mismatch' || error.code === 'auth/invalid-custom-token') {
-                    console.warn("Custom token mismatch/invalid. User will remain unauthenticated.");
-                } else {
-                    alert("Firebase 인증에 실패했습니다. 페이지 기능을 사용하려면 다시 시도해주세요.");
-                }
-                updateAuthSection(null);
+                console.error("Firebase authentication failed:", error);
+                // Optionally, show an alert or message to the user
             }
 
-            // 다크 모드 설정 불러오기
+            // Check for dark mode preference on page load
             const savedDarkMode = localStorage.getItem('darkMode');
             if (savedDarkMode !== null) {
                 applyDarkModeToPage(savedDarkMode === 'true');
             }
 
-            handleScroll(); // 초기 헤더 스타일 설정
-            // fetchAndRenderAllWorks는 onAuthStateChanged에서 호출되므로 여기서 직접 호출할 필요 없습니다.
-
-            // Firebase 인증 상태 리스너 - window.onload 내부로 이동
-            onAuthStateChanged(auth, async (user) => {
-                await updateAuthSection(user); // UI 업데이트
-                if (user) {
-                    console.log("Authentication state changed: User is logged in.", user.uid);
-                } else {
-                    console.log("Authentication state changed: User is logged out.");
-                    userNicknameSpan.textContent = '';
-                    userDropdownMenu.classList.add('hidden');
-                }
-                // 인증 상태와 관계없이 작품을 가져옵니다.
-                fetchAndRenderAllWorks();
-            });
+            fetchAndRenderAllWorks(); // Fetch and render all works from Firestore
+            handleScroll(); // Initial header style setup
         });
 
         window.addEventListener('scroll', handleScroll);
@@ -939,47 +908,29 @@
         heroSection.addEventListener('touchmove', handleTouchMove);
         heroSection.addEventListener('touchend', handleTouchEnd);
 
-        // Event listeners for popular works tabs (updated selectors)
-        const popularTabsContainer = document.querySelector('.flex.space-x-4.mb-6.border-b.border-gray-200');
-        if (popularTabsContainer) {
-            popularTabsContainer.querySelectorAll('button[data-tab]').forEach(button => {
-                button.addEventListener('click', (event) => {
-                    // Remove active state from all tabs in this container
-                    popularTabsContainer.querySelectorAll('button[data-tab]').forEach(btn => {
-                        btn.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
-                        btn.classList.add('text-gray-600', 'hover:text-teal-600');
-                    });
-                    // Add active state to clicked tab
-                    event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
-                    event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
+                    btn.classList.add('text-gray-600', 'hover:text-teal-600');
+                });
+                event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
+                event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
 
-                    // Determine sort field based on the data-tab attribute
-                    let firestoreSortField = 'views'; // Default to views
-                    switch (event.target.dataset.tab) {
-                        case '실시간':
-                        case '이번 주':
-                            firestoreSortField = 'views'; // Map to views
-                            break;
-                        case '분기':
-                        case '역대':
-                            firestoreSortField = 'likes'; // Map to likes
-                            break;
-                        default:
-                            firestoreSortField = 'views'; // Fallback
-                    }
-                    // Re-fetch and render popular works based on the selected tab
-                    const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
-                    const popularWorksQuery = query(worksCollectionRef, orderBy(firestoreSortField, 'desc'), limit(10));
-                    onSnapshot(popularWorksQuery, (snapshot) => {
-                        const popularWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        renderWorkCards(popularWorksContainer, popularWorks, 'popular');
-                    }, (error) => {
-                        console.error(`Error fetching popular works by ${firestoreSortField}:`, error);
-                        popularWorksContainer.innerHTML = '<p class="text-red-500">인기 작품을 불러오는 데 실패했습니다.</p>';
-                    });
+                const sortField = event.target.dataset.tab; // 'views' or 'likes'
+                // Re-fetch and render popular works based on the selected tab
+                const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
+                const popularWorksQuery = query(worksCollectionRef, orderBy(sortField, 'desc'), limit(10));
+                onSnapshot(popularWorksQuery, (snapshot) => {
+                    const popularWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderWorkCards(popularWorksContainer, popularWorks, 'popular');
+                }, (error) => {
+                    console.error(`Error fetching popular works by ${sortField}:`, error);
+                    popularWorksContainer.innerHTML = '<p class="text-red-500">인기 작품을 불러오는 데 실패했습니다.</p>';
                 });
             });
-        }
+        });
+
     </script>
 </body>
 </html>
