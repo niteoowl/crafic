@@ -64,7 +64,7 @@
         body.dark-mode header.bg-white { /* Header when scrolled in dark mode */
             background-color: #1e1e1e; /* Darker header */
             box-shadow: none; /* Remove shadow */
-            border-bottom: 1px solid #3a3a3a; /* Darker border */
+            /* border-bottom: 1px solid #3a3a3a; Removed border */
         }
         body.dark-mode header a.text-teal-500 { /* CRAFIQ logo when scrolled */
             color: #2dd4bf; /* Teal-400 in dark mode */
@@ -486,12 +486,12 @@
                 if (isDarkMode) {
                     header.style.backgroundColor = '#1e1e1e'; /* Darker header for dark mode */
                     header.classList.remove('shadow-sm'); /* Remove shadow */
-                    header.style.borderBottom = '1px solid #3a3a3a'; /* Darker border */
+                    header.style.borderBottom = 'none'; /* No border */
                 } else {
                     header.classList.add('bg-white');
                     header.classList.remove('shadow-sm'); /* Remove shadow */
                     header.style.backgroundColor = ''; // Reset to default white
-                    header.style.borderBottom = '1px solid #d1d5db'; /* Light gray border */
+                    header.style.borderBottom = 'none'; /* No border */
                 }
             } else {
                 header.classList.remove('bg-white');
