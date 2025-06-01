@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRAFIQ - 설정</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Pretendard Web Font Definitions */
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-SemiBold.woff') format('woff');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Bold.woff') format('woff');
+            font-weight: 700;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-ExtraBold.woff') format('woff');
+            font-weight: 800;
+            font-style: normal;
+        }
+
+        /* Base font application */
+        body {
+            font-family: 'Pretendard', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Ensure full viewport height */
+            background-color: #ffffff; /* Changed to white */
+            color: #333;
+        }
+
+        /* Custom style for dropdown arrow rotation */
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        .transition-transform {
+            transition-property: transform;
+            transition-duration: 300ms;
+            transition-timing-function: ease-in-out;
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #121212; /* Very dark gray/near black */
+            color: #e0e0e0; /* Light gray text */
+        }
+        body.dark-mode header {
+            background-color: #1e1e1e; /* Darker header */
+            box-shadow: none; /* Remove shadow in dark mode */
+            border-bottom: none; /* Remove border in dark mode */
+        }
+        body.dark-mode header a,
+        body.dark-mode header button,
+        body.dark-mode header span {
+            color: #e0e0e0; /* Light text for header */
+        }
+        body.dark-mode header a.text-teal-500 { /* CRAFIQ logo */
+            color: #2dd4bf; /* Teal-400 in dark mode */
+        }
+        body.dark-mode header button.hover\:bg-teal-50:hover {
+            background-color: #2a2a2a; /* Darker hover */
+            color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode header button.border-teal-600 {
+            border-color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode header .hover\:text-teal-600:hover {
+            color: #2dd4bf; /* Teal-400 */
+        }
+        /* .bg-white was for sections, now sections have no bg-white class */
+        /* .text-gray-900 for headings */
+        body.dark-mode .text-gray-900 {
+            color: #e0e0e0; /* Light headings */
+        }
+        body.dark-mode .text-gray-700 {
+            color: #c0c0c0; /* Lighter gray text */
+        }
+        body.dark-mode .text-gray-500 {
+            color: #888888; /* Even lighter gray text */
+        }
+        /* List item containers */
+        .setting-item-container {
+            background-color: #ffffff; /* Default white background for list items */
+        }
+        .setting-item-container:hover {
+            background-color: #f3f4f6; /* Tailwind gray-100 on hover */
+        }
+        body.dark-mode .setting-item-container {
+            background-color: #1e1e1e; /* Darker background for list items in dark mode */
+        }
+        body.dark-mode .setting-item-container:hover {
+            background-color: #2a2a2a; /* Darker hover for list items in dark mode */
+        }
+        body.dark-mode .setting-item-container.border-gray-200 {
+            border-color: #3a3a3a; /* Darker border for list items in dark mode */
+        }
+
+        body.dark-mode footer {
+            background-color: #121212; /* Dark footer */
+            color: #c0c0c0;
+        }
+        body.dark-mode footer .text-teal-400 {
+            color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode footer .text-gray-600 {
+            color: #888888; /* Gray-400 */
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-800">
+
+    <header id="main-header" class="fixed top-0 left-0 w-full z-50 py-3 transition-all duration-500 ease-in-out bg-white">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-extrabold transition-colors duration-500 text-teal-500">
+                CRAFIQ
+            </a>
+
+            <nav class="hidden md:flex space-x-6">
+                <a href="about.html" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
+                    소개
+                </a>
+                <a href="#" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
+                    인기작품
+                </a>
+                <a href="author.html" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
+                    작가 페이지
+                </a>
+                <a href="#" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
+                    커뮤니티
+                </a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <button class="transition-colors duration-500 text-gray-600 hover:text-teal-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                </button>
+                <div id="auth-section" class="flex items-center space-x-4">
+                    <button id="login-signup-btn" class="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-500 text-teal-600 border border-teal-600 hover:bg-teal-50">
+                        로그인/회원가입
+                    </button>
+                    <div id="user-info-display" class="relative hidden items-center space-x-1">
+                        <span id="user-nickname" class="text-sm font-semibold text-gray-700"></span>
+                        <button id="dropdown-toggle-btn" class="cursor-pointer p-1 rounded-full hover:bg-gray-100 transition-colors">
+                            <svg id="dropdown-arrow-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-700 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div id="user-dropdown-menu" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden z-20">
+                            <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 프로필</a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">설정</a>
+                            <button id="logout-btn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                로그아웃
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8 pt-24">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-8 text-center">설정</h1>
+
+        <section class="p-8 max-w-2xl mx-auto">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">디스플레이 설정</h2>
+            <ul class="space-y-0"> <li>
+                    <div class="setting-item-container flex items-center justify-between py-3 px-4 border-b border-gray-200 last:border-b-0 hover:bg-gray-100 transition-colors duration-200">
+                        <span class="text-lg font-medium text-gray-700">다크 모드</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="dark-mode-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                        </label>
+                    </div>
+                </li>
+                <li>
+                    <div class="setting-item-container flex items-center justify-between py-3 px-4 border-b border-gray-200 last:border-b-0 hover:bg-gray-100 transition-colors duration-200">
+                        <span class="text-lg font-medium text-gray-700">폰트 크기</span>
+                        <select id="font-size-select" class="block w-auto px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm bg-white">
+                            <option value="small">작게</option>
+                            <option value="medium" selected>보통</option>
+                            <option value="large">크게</option>
+                        </select>
+                    </div>
+                </li>
+            </ul>
+        </section>
+
+        <section class="p-8 max-w-2xl mx-auto mt-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">앱 설정</h2>
+            <ul class="space-y-0"> <li>
+                    <div class="setting-item-container flex items-center justify-between py-3 px-4 border-b border-gray-200 last:border-b-0 hover:bg-gray-100 transition-colors duration-200">
+                        <span class="text-lg font-medium text-gray-700">언어</span>
+                        <select id="language-select" class="block w-auto px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm bg-white">
+                            <option value="ko" selected>한국어</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                </li>
+                <li>
+                    <div class="setting-item-container flex items-center justify-between py-3 px-4 border-b border-gray-200 last:border-b-0 hover:bg-gray-100 transition-colors duration-200">
+                        <span class="text-lg font-medium text-gray-700">이미지 자동 로드</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="auto-image-load-toggle" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                        </label>
+                    </div>
+                </li>
+                <li>
+                    <div class="setting-item-container flex items-center justify-between py-3 px-4 border-b border-gray-200 last:border-b-0 hover:bg-gray-100 transition-colors duration-200">
+                        <span class="text-lg font-medium text-gray-700">캐시 관리</span>
+                        <button id="clear-cache-btn" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm">
+                            캐시 지우기
+                        </button>
+                    </div>
+                </li>
+            </ul>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-10 px-4 mt-12">
+        <div class="container mx-auto text-center">
+            <div class="mb-4">
+                <a href="#" class="text-teal-400 hover:text-teal-300 mx-3 text-sm">이용약관</a>
+                <span class="text-gray-600 text-sm">|</span>
+                <a href="#" class="text-teal-400 hover:text-teal-300 mx-3 text-sm">개인정보처리방침</a>
+                <span class="text-gray-600 text-sm">|</span>
+                <a href="#" class="text-teal-400 hover:text-teal-300 mx-3 text-sm">문의하기</a>
+            </div>
+            <p class="text-xs">&copy; 2025 Crafiq. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration (replace with your actual config or load from environment)
+        const firebaseConfig = JSON.parse(`{"apiKey": "AIzaSyBJFAV4-QMggAW2K1YtpsXIZ5PQ8KJzo9k", "authDomain": "crafiq-a.firebaseapp.com", "projectId": "crafiq-a", "storageBucket": "crafiq-a.firebasestorage.app", "messagingSenderId": "176082460783", "appId": "1:176082460783:web:cd0b594cc803932eaa2d9a", "measurementId": "G-QB84Z9EMZW"}`);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use __app_id if available
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Get DOM elements
+        const authSection = document.getElementById('auth-section');
+        const loginSignupBtn = document.getElementById('login-signup-btn');
+        const userInfoDisplay = document.getElementById('user-info-display');
+        const userNicknameSpan = document.getElementById('user-nickname');
+        const dropdownToggleBtn = document.getElementById('dropdown-toggle-btn');
+        const dropdownArrowIcon = document.getElementById('dropdown-arrow-icon');
+        const userDropdownMenu = document.getElementById('user-dropdown-menu');
+        const logoutBtn = document.getElementById('logout-btn');
+        const mainHeader = document.getElementById('main-header'); // Get the header element
+
+        // New settings-specific DOM elements
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const fontSizeSelect = document.getElementById('font-size-select');
+        const languageSelect = document.getElementById('language-select');
+        const autoImageLoadToggle = document.getElementById('auto-image-load-toggle');
+        const clearCacheBtn = document.getElementById('clear-cache-btn');
+
+        /**
+         * Applies or removes dark mode based on the toggle state.
+         * Stores the preference in localStorage.
+         */
+        function applyDarkMode(isDarkMode) {
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+            localStorage.setItem('darkMode', isDarkMode);
+            updateHeaderStyle(); // Call to update header border immediately
+        }
+
+        /**
+         * Applies the selected font size to the body.
+         * Stores the preference in localStorage.
+         */
+        function applyFontSize(size) {
+            document.body.style.fontSize = ''; // Reset to default
+            if (size === 'small') {
+                document.body.style.fontSize = '0.875rem'; /* Tailwind's text-sm */
+            } else if (size === 'large') {
+                document.body.style.fontSize = '1.125rem'; /* Tailwind's text-lg */
+            }
+            localStorage.setItem('fontSize', size);
+        }
+
+        /**
+         * Handles clearing browser cache (simulated for demonstration).
+         */
+        function handleClearCache() {
+            // In a real application, this would involve more complex cache clearing logic.
+            // For a simple web page, it might clear localStorage, sessionStorage, etc.
+            if (confirm('모든 캐시 데이터를 지우시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                alert('캐시 데이터가 지워졌습니다.');
+                // Optionally, reload the page or navigate to a fresh state
+                // window.location.reload();
+            }
+        }
+
+        /**
+         * Loads saved preferences from localStorage and applies them.
+         */
+        function loadPreferences() {
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode !== null) {
+                const isDarkMode = savedDarkMode === 'true';
+                darkModeToggle.checked = isDarkMode;
+                applyDarkMode(isDarkMode); // This will also call updateHeaderStyle
+            } else {
+                updateHeaderStyle(); // Apply default header style if no dark mode preference
+            }
+
+            const savedFontSize = localStorage.getItem('fontSize');
+            if (savedFontSize) {
+                fontSizeSelect.value = savedFontSize;
+                applyFontSize(savedFontSize);
+            }
+
+            // Language and auto-image-load toggles can also be saved/loaded similarly
+            // For simplicity, they are not persisted in this example.
+        }
+
+        /**
+         * Updates the header's style (shadow and border) based on dark mode.
+         * This function is specifically for the settings page header.
+         */
+        function updateHeaderStyle() {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            // Remove any existing border styles first
+            mainHeader.classList.remove('shadow-sm');
+            mainHeader.style.borderBottom = 'none'; /* Ensure no border */
+
+            if (isDarkMode) {
+                mainHeader.style.backgroundColor = '#1e1e1e'; /* Darker header */
+            } else {
+                mainHeader.style.backgroundColor = '#ffffff'; /* Light header */
+            }
+        }
+
+
+        /**
+         * Updates the header's authentication section based on user login status.
+         * @param {Object|null} user - The Firebase User object or null if logged out.
+         */
+        async function updateAuthSection(user) {
+            if (user) {
+                // User is logged in
+                loginSignupBtn.classList.add('hidden'); // 로그인/회원가입 버튼 숨김
+                authSection.classList.remove('hidden'); // Ensure auth-section is visible
+                userInfoDisplay.classList.remove('hidden'); // Show user info display
+                userInfoDisplay.classList.add('flex'); // 레이아웃을 위해 flex로 설정
+
+                // 닉네임을 가져오는 동안 "로딩 중..." 메시지 표시
+                userNicknameSpan.textContent = '로딩 중...';
+
+                // Firestore에서 사용자 닉네임 가져오기
+                const userProfileRef = doc(db, `artifacts/${appId}/users/${user.uid}/userProfiles`, user.uid);
+                try {
+                    const docSnap = await getDoc(userProfileRef);
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data();
+                        // 닉네임이 존재하고 비어있지 않으면 닉네임 표시
+                        if (userData.nickname && userData.nickname.trim() !== '') {
+                            userNicknameSpan.textContent = userData.nickname;
+                        } else {
+                            // 닉네임이 없거나 비어있으면 이메일 표시 (또는 "사용자")
+                            userNicknameSpan.textContent = user.email || '사용자';
+                            console.warn("User profile found but nickname is empty or missing, displaying email:", user.uid);
+                        }
+                    } else {
+                        // 사용자 프로필 문서가 없으면 이메일 표시 (또는 "사용자")
+                        userNicknameSpan.textContent = user.email || '사용자';
+                        console.warn("User profile document not found for:", user.uid);
+                    }
+                } catch (error) {
+                    console.error("Error fetching user profile, displaying email:", error);
+                    // 오류 발생 시 이메일 표시 (또는 "오류")
+                    userNicknameSpan.textContent = user.email || '오류';
+                }
+            } else {
+                // User is logged out
+                loginSignupBtn.classList.remove('hidden'); // 로그인/회원가입 버튼 표시
+                userInfoDisplay.classList.add('hidden'); // 사용자 정보 표시 숨김
+                userInfoDisplay.classList.remove('flex');
+                userNicknameSpan.textContent = ''; // 닉네임 지우기
+                userDropdownMenu.classList.add('hidden'); // 드롭다운 메뉴 숨김
+                if (dropdownArrowIcon) {
+                    dropdownArrowIcon.classList.remove('rotate-180'); // 화살표 아이콘 회전 초기화
+                }
+            }
+        }
+
+        // --- Event Listeners ---
+        window.addEventListener('load', () => {
+            loadPreferences(); // Load preferences on page load, which also calls updateHeaderStyle
+        });
+
+        // Firebase Auth State Listener
+        onAuthStateChanged(auth, (user) => {
+            updateAuthSection(user);
+        });
+
+        // Login/Signup Button
+        loginSignupBtn.addEventListener('click', () => {
+            window.location.href = 'login.html'; // Redirect to login page (assumed)
+        });
+
+        // Dropdown Toggle
+        dropdownToggleBtn.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent click event from bubbling to document
+            userDropdownMenu.classList.toggle('hidden');
+            if (dropdownArrowIcon) {
+                dropdownArrowIcon.classList.toggle('rotate-180'); // Toggle arrow icon rotation
+            }
+        });
+
+        // Logout Button
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                console.log("User signed out successfully.");
+                // onAuthStateChanged listener will handle updateAuthSection
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!userDropdownMenu.contains(event.target) && !dropdownToggleBtn.contains(event.target)) {
+                userDropdownMenu.classList.add('hidden');
+                if (dropdownArrowIcon) {
+                    dropdownArrowIcon.classList.remove('rotate-180'); // Reset arrow icon rotation
+                }
+            }
+        });
+
+        // Settings-specific event listeners
+        darkModeToggle.addEventListener('change', (event) => {
+            applyDarkMode(event.target.checked);
+        });
+
+        fontSizeSelect.addEventListener('change', (event) => {
+            applyFontSize(event.target.value);
+        });
+
+        clearCacheBtn.addEventListener('click', handleClearCache);
+
+        // Initial check for dark mode preference from localStorage
+        const initialDarkMode = localStorage.getItem('darkMode');
+        if (initialDarkMode === 'true') {
+            document.body.classList.add('dark-mode');
+            darkModeToggle.checked = true;
+        } else {
+            darkModeToggle.checked = false;
+        }
+
+        // Initial font size application
+        const initialFontSize = localStorage.getItem('fontSize');
+        if (initialFontSize) {
+            fontSizeSelect.value = initialFontSize;
+            applyFontSize(initialFontSize);
+        }
+    </script>
+</body>
+</html>
