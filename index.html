@@ -141,15 +141,18 @@
             opacity: 0.8;
         }
 
-        /* Work card styles */
+        /* Work card styles - adjusted for grid layout */
         .work-card {
-            flex-shrink: 0;
-            /* Removed fixed width here to allow Tailwind's responsive classes to work */
             cursor: pointer;
-            display: flex;
-            flex-direction: column;
             border-radius: 0.5rem; /* rounded-md */
             overflow: hidden; /* Ensures image corners are rounded */
+            background-color: #fff; /* Default background for cards */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Subtle shadow */
+            padding: 0.75rem; /* p-3 for padding inside card */
+        }
+        body.dark-mode .work-card {
+            background-color: #1e1e1e; /* Darker card background */
+            box-shadow: none; /* Remove shadow in dark mode */
         }
         .work-card img {
             width: 100%;
@@ -157,7 +160,7 @@
             object-fit: cover;
             border-radius: 0.375rem; /* rounded-md */
         }
-        .work-card .rank {
+        .work-card .rank { /* This class is applied to the rank number itself */
             font-size: 2.25rem; /* text-4xl */
             font-weight: 800; /* font-extrabold */
             color: #333; /* Default dark color */
@@ -320,14 +323,14 @@
                 </button>
             </div>
 
-            <div id="popular-works-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
+            <div id="popular-works-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-4">
                 <p class="text-gray-500">인기 작품을 로딩 중입니다...</p>
             </div>
         </section>
 
         <section class="container mx-auto px-4 py-8">
             <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-900">최신 작품</h2>
-            <div id="latest-works-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
+            <div id="latest-works-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-4">
                 <p class="text-gray-500">최신 작품을 로딩 중입니다...</p>
             </div>
         </section>
@@ -558,20 +561,32 @@
             }
 
             works.forEach((item, index) => {
-                const div = document.createElement('div');
-                // Use Tailwind's responsive width classes directly
-                div.className = 'work-card flex-shrink-0 w-48 md:w-56 lg:w-64 cursor-pointer';
-                div.innerHTML = `
-                    <div class="relative">
+                const cardContentHtml = `
+                    <div class="relative mb-2">
                         <img src="${item.thumbnailUrl || 'https://placehold.co/200x112/CCCCCC/333333?text=No+Image'}" alt="${item.title}" class="w-full h-auto object-cover rounded-md" onerror="this.onerror=null;this.src='https://placehold.co/200x112/CCCCCC/333333?text=Image+Error';"/>
                     </div>
-                    <div class="pt-2">
-                        ${sectionType === 'popular' ? `<div class="text-4xl font-extrabold text-black dark:text-e0e0e0 mb-1">${index + 1}</div>` : ''}
-                        <h3 class="text-base md:text-lg font-bold text-gray-900 dark:text-e0e0e0 truncate mb-1">${item.title}</h3>
+                    <div>
+                        <h3 class="text-base md:text-lg font-bold text-gray-900 dark:text-e0e0e0 mb-1">${item.title}</h3>
                         <p class="text-sm text-gray-600 dark:text-c0c0c0 line-clamp-2">${item.introduction || '설명 없음'}</p>
                     </div>
                 `;
-                container.appendChild(div);
+
+                const gridItemDiv = document.createElement('div'); // This will be the grid cell item
+
+                if (sectionType === 'popular') {
+                    // For popular works, we need the rank next to the card content
+                    gridItemDiv.className = 'flex flex-row items-start space-x-2'; // Use flex-row to align rank and card
+                    gridItemDiv.innerHTML = `
+                        <div class="rank text-4xl font-extrabold text-gray-900 dark:text-e0e0e0 pt-1">${index + 1}</div>
+                        <div class="work-card flex-grow"> ${cardContentHtml}
+                        </div>
+                    `;
+                } else { // latest works (no rank number)
+                    // For latest works, just the card content directly
+                    gridItemDiv.className = 'work-card'; // This div is the work-card itself
+                    gridItemDiv.innerHTML = cardContentHtml;
+                }
+                container.appendChild(gridItemDiv);
             });
         }
 
