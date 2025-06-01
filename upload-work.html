@@ -302,6 +302,103 @@
             font-size: 0.7rem; /* Smaller font for snippet */
             color: inherit; /* Ensure text color adapts to dark mode */
         }
+
+        /* Tabs for Upload/Manage */
+        #main-tabs-container {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+        body.dark-mode #main-tabs-container {
+            border-bottom-color: #3a3a3a;
+        }
+        .main-tab-button {
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            color: #6b7280;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            flex-grow: 1; /* Distribute space evenly */
+            text-align: center;
+        }
+        .main-tab-button.active {
+            color: #10b981;
+            border-bottom-color: #10b981;
+        }
+        .main-tab-button:hover:not(.active) {
+            color: #14b8a6;
+        }
+        body.dark-mode .main-tab-button {
+            color: #a0a0a0;
+        }
+        body.dark-mode .main-tab-button.active {
+            color: #2dd4bf;
+            border-bottom-color: #2dd4bf;
+        }
+        body.dark-mode .main-tab-button:hover:not(.active) {
+            color: #4fd1c5;
+        }
+
+        /* My Works List Styling */
+        .my-work-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            background-color: #fcfcfc;
+            transition: all 0.2s ease-in-out;
+        }
+        body.dark-mode .my-work-item {
+            background-color: #2a2a2a;
+            border-color: #3a3a3a;
+        }
+        .my-work-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transform: translateY(-2px);
+        }
+        body.dark-mode .my-work-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .my-work-thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        .my-work-info {
+            flex-grow: 1;
+        }
+        .my-work-title {
+            font-weight: 700;
+            font-size: 1.125rem; /* text-lg */
+            color: #1a202c;
+            margin-bottom: 0.25rem;
+        }
+        body.dark-mode .my-work-title {
+            color: #e0e0e0;
+        }
+        .my-work-meta {
+            font-size: 0.875rem; /* text-sm */
+            color: #6b7280;
+        }
+        body.dark-mode .my-work-meta {
+            color: #a0a0a0;
+        }
+        .my-work-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+        .my-work-actions .btn-primary {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-white text-gray-800">
@@ -359,161 +456,176 @@
     </header>
 
     <main class="flex-grow container mx-auto px-4 py-8 pt-24">
-        <h1 class="text-4xl font-extrabold text-gray-900 mb-2 text-center">작품 업로드</h1>
-        <p class="text-center text-gray-600 mb-10">당신의 창작물을 CRAFIQ에 공유해 보세요!</p>
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-2 text-center">작품 관리</h1>
+        <p class="text-center text-gray-600 mb-10">작품을 업로드하거나 기존 작품을 관리하세요.</p>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="md:col-span-2">
-                <section class="bg-white p-8 rounded-lg border border-gray-300">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">기본 정보</h2>
-                    <p class="text-gray-600 mb-6">작품의 기본 정보를 입력해 주세요</p>
+        <div id="main-tabs-container">
+            <button class="main-tab-button active" data-tab="upload">작품 업로드</button>
+            <button class="main-tab-button" data-tab="manage">내 작품 관리</button>
+        </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="work-title" class="block text-sm font-medium text-gray-700 mb-2">작품 제목 <span class="text-red-500">*</span></label>
-                            <input type="text" id="work-title" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="작품 제목을 입력하세요">
-                        </div>
-                        <div>
-                            <label for="work-type" class="block text-sm font-medium text-gray-700 mb-2">작품 유형 <span class="text-red-500">*</span></label>
-                            <select id="work-type" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
-                                <option value="novel">소설</option>
-                                <option value="webtoon">웹툰</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="work-genre" class="block text-sm font-medium text-gray-700 mb-2">장르 <span class="text-red-500">*</span></label>
-                            <select id="work-genre" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
-                                <option value="">장르를 선택하세요</option>
-                                <option value="fantasy">판타지</option>
-                                <option value="romance">로맨스</option>
-                                <option value="action">액션</option>
-                                <option value="drama">드라마</option>
-                                <option value="thriller">스릴러</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="age-rating" class="block text-sm font-medium text-gray-700 mb-2">연령 등급</label>
-                            <select id="age-rating" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
-                                <option value="">연령 등급을 선택하세요</option>
-                                <option value="all">전체 이용가</option>
-                                <option value="12">12세 이용가</option>
-                                <option value="15">15세 이용가</option>
-                                <option value="18">18세 이용가</option>
-                            </select>
-                        </div>
-                    </div>
+        <div id="upload-tab-content" class="main-tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-2">
+                    <section class="bg-white p-8 rounded-lg border border-gray-300">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">기본 정보</h2>
+                        <p class="text-gray-600 mb-6">작품의 기본 정보를 입력해 주세요</p>
 
-                    <div class="mt-6">
-                        <label for="work-introduction" class="block text-sm font-medium text-gray-700 mb-2">작품 소개 <span class="text-red-500">*</span></label>
-                        <textarea id="work-introduction" rows="5" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="작품에 대한 간단한 소개를 작성해 주세요"></textarea>
-                    </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="work-title" class="block text-sm font-medium text-gray-700 mb-2">작품 제목 <span class="text-red-500">*</span></label>
+                                <input type="text" id="work-title" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="작품 제목을 입력하세요">
+                            </div>
+                            <div>
+                                <label for="work-type" class="block text-sm font-medium text-gray-700 mb-2">작품 유형 <span class="text-red-500">*</span></label>
+                                <select id="work-type" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
+                                    <option value="novel">소설</option>
+                                    <option value="webtoon">웹툰</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="work-genre" class="block text-sm font-medium text-gray-700 mb-2">장르 <span class="text-red-500">*</span></label>
+                                <select id="work-genre" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
+                                    <option value="">장르를 선택하세요</option>
+                                    <option value="fantasy">판타지</option>
+                                    <option value="romance">로맨스</option>
+                                    <option value="action">액션</option>
+                                    <option value="drama">드라마</option>
+                                    <option value="thriller">스릴러</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="age-rating" class="block text-sm font-medium text-gray-700 mb-2">연령 등급</label>
+                                <select id="age-rating" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
+                                    <option value="">연령 등급을 선택하세요</option>
+                                    <option value="all">전체 이용가</option>
+                                    <option value="12">12세 이용가</option>
+                                    <option value="15">15세 이용가</option>
+                                    <option value="18">18세 이용가</option>
+                                </select>
+                            </div>
+                        </div>
 
-                    <div class="mt-6">
-                        <label for="work-tags" class="block text-sm font-medium text-gray-700 mb-2">태그</label>
-                        <div class="flex items-center space-x-2">
-                            <input type="text" id="tag-input" class="flex-grow p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="태그를 입력하세요">
-                            <button id="add-tag-btn" class="p-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <div class="mt-6">
+                            <label for="work-introduction" class="block text-sm font-medium text-gray-700 mb-2">작품 소개 <span class="text-red-500">*</span></label>
+                            <textarea id="work-introduction" rows="5" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="작품에 대한 간단한 소개를 작성해 주세요"></textarea>
+                        </div>
+
+                        <div class="mt-6">
+                            <label for="work-tags" class="block text-sm font-medium text-gray-700 mb-2">태그</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="text" id="tag-input" class="flex-grow p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="태그를 입력하세요">
+                                <button id="add-tag-btn" class="p-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="tags-container" class="flex flex-wrap gap-2 mt-3">
+                                </div>
+                        </div>
+                    </section>
+
+                    <section id="content-creation-section" class="bg-white p-8 rounded-lg border border-gray-300 mt-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6"><span id="content-type-title">소설</span> 내용 작성 (<span id="novel-page-count-display"></span>페이지)</h2>
+                        <p class="text-gray-600 mb-6" id="content-type-description">책처럼 페이지별로 소설을 작성해 보세요</p>
+
+                        <div id="editor-container"></div>
+
+                        <div class="editor-controls-wrapper">
+                            <button id="prev-page-btn" class="btn-gray btn-primary flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                </svg>
+                                이전 페이지
+                            </button>
+                            <span id="page-counter" class="page-counter">1 / 1 페이지</span>
+                            <button id="add-page-btn" class="btn-teal btn-primary flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
+                                페이지 추가
+                            </button>
+                            <button id="delete-page-btn" class="btn-red btn-primary flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 6 6 18"></path>
+                                    <path d="M6 6 18 18"></path>
+                                </svg>
+                                삭제
+                            </button>
+                            <button id="next-page-btn" class="btn-gray btn-primary flex items-center">
+                                다음 페이지
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
                             </button>
                         </div>
-                        <div id="tags-container" class="flex flex-wrap gap-2 mt-3">
-                            </div>
-                    </div>
-                </section>
 
-                <section id="content-creation-section" class="bg-white p-8 rounded-lg border border-gray-300 mt-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6"><span id="content-type-title">소설</span> 내용 작성 (<span id="novel-page-count-display"></span>페이지)</h2>
-                    <p class="text-gray-600 mb-6" id="content-type-description">책처럼 페이지별로 소설을 작성해 보세요</p>
-
-                    <div id="editor-container"></div>
-
-                    <div class="editor-controls-wrapper">
-                        <button id="prev-page-btn" class="btn-gray btn-primary flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="15 18 9 12 15 6"></polyline>
-                            </svg>
-                            이전 페이지
-                        </button>
-                        <span id="page-counter" class="page-counter">1 / 1 페이지</span>
-                        <button id="add-page-btn" class="btn-teal btn-primary flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                            페이지 추가
-                        </button>
-                        <button id="delete-page-btn" class="btn-red btn-primary flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 6 6 18"></path>
-                                <path d="M6 6 18 18"></path>
-                            </svg>
-                            삭제
-                        </button>
-                        <button id="next-page-btn" class="btn-gray btn-primary flex items-center">
-                            다음 페이지
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="9 18 15 12 9 6"></polyline>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div class="flex justify-center space-x-4 mt-6">
-                        <button id="save-page-btn" class="btn-blue btn-primary flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                                <polyline points="7 3 7 8 15 8"></polyline>
-                            </svg>
-                            페이지 저장
-                        </button>
-                    </div>
-
-                    <div id="page-thumbnails-container" class="page-thumbnails-container">
+                        <div class="flex justify-center space-x-4 mt-6">
+                            <button id="save-page-btn" class="btn-blue btn-primary flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                    <polyline points="7 3 7 8 15 8"></polyline>
+                                </svg>
+                                페이지 저장
+                            </button>
                         </div>
-                </section>
+
+                        <div id="page-thumbnails-container" class="page-thumbnails-container">
+                            </div>
+                    </section>
+                </div>
+
+                <div class="md:col-span-1">
+                    <section class="bg-white p-8 rounded-lg border border-gray-300 mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">썸네일</h2>
+                        <p class="text-gray-600 mb-6">작품을 대표할 이미지 URL을 입력해 주세요</p>
+                        <div>
+                            <label for="thumbnail-url" class="block text-sm font-medium text-gray-700 mb-2">썸네일 URL</label>
+                            <input type="url" id="thumbnail-url" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="https://example.com/image.jpg">
+                            <p class="text-xs text-gray-500 mt-2">외부 이미지 호스팅 서비스 (imgur, postimages 등)에 이미지를 업로드하고 URL을 입력하세요.</p>
+                        </div>
+                    </section>
+
+                    <section class="bg-white p-8 rounded-lg border border-gray-300">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">발행 설정</h2>
+                        <div>
+                            <label for="public-setting" class="block text-sm font-medium text-gray-700 mb-2">공개 설정</label>
+                            <select id="public-setting" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
+                                <option value="public">전체 공개</option>
+                                <option value="private">비공개</option>
+                                <option value="draft">임시 저장</option>
+                            </select>
+                        </div>
+                    </section>
+                </div>
             </div>
 
-            <div class="md:col-span-1">
-                <section class="bg-white p-8 rounded-lg border border-gray-300 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">썸네일</h2>
-                    <p class="text-gray-600 mb-6">작품을 대표할 이미지 URL을 입력해 주세요</p>
-                    <div>
-                        <label for="thumbnail-url" class="block text-sm font-medium text-gray-700 mb-2">썸네일 URL</label>
-                        <input type="url" id="thumbnail-url" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="https://example.com/image.jpg">
-                        <p class="text-xs text-gray-500 mt-2">외부 이미지 호스팅 서비스 (imgur, postimages 등)에 이미지를 업로드하고 URL을 입력하세요.</p>
-                    </div>
-                </section>
-
-                <section class="bg-white p-8 rounded-lg border border-gray-300">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">발행 설정</h2>
-                    <div>
-                        <label for="public-setting" class="block text-sm font-medium text-gray-700 mb-2">공개 설정</label>
-                        <select id="public-setting" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
-                            <option value="public">전체 공개</option>
-                            <option value="private">비공개</option>
-                            <option value="draft">임시 저장</option>
-                        </select>
-                    </div>
-                </section>
+            <div class="flex justify-center mt-10">
+                <button id="upload-work-btn" class="px-8 py-4 bg-teal-600 text-white font-bold rounded-md text-lg hover:bg-teal-700 transition-colors duration-300 flex items-center justify-center">
+                    <svg id="upload-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span id="upload-button-text">작품 업로드</span>
+                    <svg id="loading-spinner" class="animate-spin h-6 w-6 text-white ml-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
             </div>
         </div>
 
-        <div class="flex justify-center mt-10">
-            <button id="upload-work-btn" class="px-8 py-4 bg-teal-600 text-white font-bold rounded-md text-lg hover:bg-teal-700 transition-colors duration-300 flex items-center justify-center">
-                <svg id="upload-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="17 8 12 3 7 8"></polyline>
-                    <line x1="12" y1="3" x2="12" y2="15"></line>
-                </svg>
-                <span id="upload-button-text">작품 업로드</span>
-                <svg id="loading-spinner" class="animate-spin h-6 w-6 text-white ml-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-            </button>
+        <div id="manage-tab-content" class="main-tab-content hidden">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">내 작품 목록</h2>
+            <div id="my-works-list" class="space-y-4">
+                <p class="text-gray-500 text-center">작품을 불러오는 중...</p>
+            </div>
+            <p id="no-works-message" class="text-gray-500 text-center mt-4 hidden">아직 업로드한 작품이 없습니다.</p>
         </div>
     </main>
 
@@ -536,7 +648,7 @@
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, addDoc, collection, serverTimestamp, query, where, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase configuration (replace with your actual config or load from environment)
         const firebaseConfig = JSON.parse(`{"apiKey": "AIzaSyBJFAV4-QMggAW2K1YtpsXIZ5PQ8KJzo9k", "authDomain": "crafiq-a.firebaseapp.com", "projectId": "crafiq-a", "storageBucket": "crafiq-a.firebasestorage.app", "messagingSenderId": "176082460783", "appId": "1:176082460783:web:cd0b594cc803932eaa2d9a", "measurementId": "G-QB84Z9EMZW"}`);
@@ -559,7 +671,12 @@
         const logoutBtn = document.getElementById('logout-btn');
         const mainHeader = document.getElementById('main-header'); // Get the header element
 
-        // Form elements
+        // Main Tabs elements
+        const mainTabButtons = document.querySelectorAll('.main-tab-button');
+        const uploadTabContent = document.getElementById('upload-tab-content');
+        const manageTabContent = document.getElementById('manage-tab-content');
+
+        // Form elements (Upload Tab)
         const workTitleInput = document.getElementById('work-title');
         const workIntroductionTextarea = document.getElementById('work-introduction');
         const tagInput = document.getElementById('tag-input');
@@ -570,6 +687,11 @@
         const uploadIcon = document.getElementById('upload-icon');
         const loadingSpinner = document.getElementById('loading-spinner');
         const workTypeSelect = document.getElementById('work-type'); // Added for type checking
+        const workGenreSelect = document.getElementById('work-genre');
+        const ageRatingSelect = document.getElementById('age-rating');
+        const thumbnailUrlInput = document.getElementById('thumbnail-url');
+        const publicSettingSelect = document.getElementById('public-setting');
+
 
         // Content creation section elements (unified for novel/webtoon)
         const contentCreationSection = document.getElementById('content-creation-section');
@@ -584,6 +706,10 @@
         const deletePageBtn = document.getElementById('delete-page-btn');
         const savePageBtn = document.getElementById('save-page-btn');
         const pageThumbnailsContainer = document.getElementById('page-thumbnails-container'); // New thumbnail container
+
+        // My Works List elements (Manage Tab)
+        const myWorksListContainer = document.getElementById('my-works-list');
+        const noWorksMessage = document.getElementById('no-works-message');
 
 
         let novelPages = ['<p>이것은 첫 번째 페이지의 내용입니다. 소설을 책처럼 넘기면서 작성해 보세요!</p>']; // Array to hold HTML content for each page
@@ -652,6 +778,10 @@
                     console.error("Error fetching user profile, displaying email:", error);
                     userNicknameSpan.textContent = user.email || '오류';
                 }
+                // If user is logged in, fetch their works for the manage tab
+                if (mainTabButtons[1].classList.contains('active')) { // Only fetch if manage tab is active
+                    fetchAndRenderMyWorks();
+                }
             } else {
                 loginSignupBtn.classList.remove('hidden');
                 userInfoDisplay.classList.add('hidden');
@@ -661,6 +791,9 @@
                 if (dropdownArrowIcon) {
                     dropdownArrowIcon.classList.remove('rotate-180');
                 }
+                // Clear my works list if logged out
+                myWorksListContainer.innerHTML = '<p class="text-gray-500 text-center">로그인 후 작품을 관리할 수 있습니다.</p>';
+                noWorksMessage.classList.add('hidden');
             }
         }
 
@@ -769,10 +902,8 @@
          */
         function saveCurrentPageContent() {
             novelPages[currentPageIndex] = quill.root.innerHTML; // Get HTML content from Quill
-            renderCurrentPage(); // Update display with saved content
-            showCustomAlert('페이지 내용이 저장되었습니다!');
-            // In a real app, you would save this to Firestore for the current novelId/workId
-            // Example: if (currentWorkId) { updateDoc(doc(db, `artifacts/${appId}/public/data/works`, currentWorkId), { content: novelPages }); }
+            // renderCurrentPage(); // Don't re-render here to avoid infinite loop with text-change
+            // showCustomAlert('페이지 내용이 저장되었습니다!'); // This alert can be annoying on every change
         }
 
         /**
@@ -895,6 +1026,90 @@
             });
         }
 
+        /**
+         * Fetches and renders the list of works uploaded by the current user.
+         */
+        async function fetchAndRenderMyWorks() {
+            myWorksListContainer.innerHTML = '<p class="text-gray-500 text-center">작품을 불러오는 중...</p>';
+            noWorksMessage.classList.add('hidden');
+
+            if (!auth.currentUser) {
+                myWorksListContainer.innerHTML = '<p class="text-gray-500 text-center">로그인 후 작품을 관리할 수 있습니다.</p>';
+                return;
+            }
+
+            const userId = auth.currentUser.uid;
+            const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
+            const q = query(worksCollectionRef, where('authorId', '==', userId));
+
+            try {
+                const querySnapshot = await getDocs(q);
+                myWorksListContainer.innerHTML = ''; // Clear loading message
+
+                if (querySnapshot.empty) {
+                    noWorksMessage.classList.remove('hidden');
+                    return;
+                }
+
+                querySnapshot.forEach(docSnapshot => {
+                    const work = docSnapshot.data();
+                    const workId = docSnapshot.id;
+                    const workItem = document.createElement('div');
+                    workItem.className = 'my-work-item';
+                    workItem.innerHTML = `
+                        <img src="${work.thumbnailUrl || 'https://placehold.co/80x80/CCCCCC/333333?text=No+Thumb'}" alt="${work.title}" class="my-work-thumbnail" onerror="this.onerror=null;this.src='https://placehold.co/80x80/CCCCCC/333333?text=No+Thumb';"/>
+                        <div class="my-work-info">
+                            <h3 class="my-work-title">${work.title}</h3>
+                            <p class="my-work-meta">${work.type === 'novel' ? '소설' : '웹툰'} | ${work.genre || '장르 없음'} | ${work.publicSetting === 'public' ? '공개' : '비공개'}</p>
+                        </div>
+                        <div class="my-work-actions">
+                            <button data-work-id="${workId}" class="edit-work-btn btn-blue btn-primary">수정</button>
+                            <button data-work-id="${workId}" data-work-title="${work.title}" class="delete-work-btn btn-red btn-primary">삭제</button>
+                        </div>
+                    `;
+                    myWorksListContainer.appendChild(workItem);
+                });
+
+                // Attach event listeners to newly created buttons
+                myWorksListContainer.querySelectorAll('.edit-work-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const idToEdit = event.target.dataset.workId;
+                        window.location.href = `hello-world-tabs.html?workId=${idToEdit}`; // Redirect to upload page for editing
+                    });
+                });
+
+                myWorksListContainer.querySelectorAll('.delete-work-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const idToDelete = event.target.dataset.workId;
+                        const titleToDelete = event.target.dataset.workTitle;
+                        deleteWork(idToDelete, titleToDelete);
+                    });
+                });
+
+            } catch (error) {
+                console.error("Error fetching my works:", error);
+                myWorksListContainer.innerHTML = '<p class="text-red-500 text-center">내 작품을 불러오는 중 오류가 발생했습니다.</p>';
+            }
+        }
+
+        /**
+         * Deletes a work from Firestore.
+         * @param {string} workId - The ID of the work to delete.
+         * @param {string} workTitle - The title of the work for confirmation message.
+         */
+        async function deleteWork(workId, workTitle) {
+            showCustomConfirm(`정말로 "${workTitle}" 작품을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`, async () => {
+                try {
+                    await deleteDoc(doc(db, `artifacts/${appId}/public/data/works`, workId));
+                    showCustomAlert(`"${workTitle}" 작품이 성공적으로 삭제되었습니다.`);
+                    fetchAndRenderMyWorks(); // Re-render the list after deletion
+                } catch (error) {
+                    console.error("Error deleting work:", error);
+                    showCustomAlert(`작품 삭제 중 오류가 발생했습니다: ${error.message}`);
+                }
+            });
+        }
+
 
         // Event Listeners
         window.addEventListener('load', async () => {
@@ -942,9 +1157,9 @@
                 placeholder: '현재 페이지의 내용을 작성해 주세요.',
             });
 
-            // Listen for changes in Quill editor (no live preview, but for internal state)
+            // Listen for changes in Quill editor to auto-save to local array
             quill.on('text-change', () => {
-                // No live preview needed here, just ensure the content is internally updated if needed.
+                saveCurrentPageContent();
             });
 
             // Load existing work if workId is present in URL
@@ -957,11 +1172,11 @@
                         const workData = workDocSnap.data();
                         workTitleInput.value = workData.title || '';
                         workTypeSelect.value = workData.type || 'novel';
-                        document.getElementById('work-genre').value = workData.genre || '';
-                        document.getElementById('age-rating').value = workData.ageRating || '';
+                        workGenreSelect.value = workData.genre || '';
+                        ageRatingSelect.value = workData.ageRating || '';
                         workIntroductionTextarea.value = workData.introduction || '';
-                        document.getElementById('thumbnail-url').value = workData.thumbnailUrl || '';
-                        document.getElementById('public-setting').value = workData.publicSetting || 'public';
+                        thumbnailUrlInput.value = workData.thumbnailUrl || '';
+                        publicSettingSelect.value = workData.publicSetting || 'public';
 
                         // Clear existing tags and add loaded tags
                         tagsContainer.innerHTML = '';
@@ -976,7 +1191,7 @@
                             novelPages = ['<p>여기에 내용을 작성해 보세요.</p>']; // Default if no content
                         }
                         currentPageIndex = 0;
-                        console.log("Work loaded successfully:", workData);
+                        console.log("Work loaded successfully for editing:", workData);
                     } else {
                         console.log("No such work found for ID:", currentWorkId);
                         novelPages = ['<p>여기에 내용을 작성해 보세요.</p>']; // Default for new work
@@ -1090,11 +1305,11 @@
 
                 const workTitle = workTitleInput.value;
                 const workType = workTypeSelect.value;
-                const workGenre = document.getElementById('work-genre').value;
-                const ageRating = document.getElementById('age-rating').value;
+                const workGenre = workGenreSelect.value;
+                const ageRating = ageRatingSelect.value;
                 const workIntroduction = workIntroductionTextarea.value;
-                const thumbnailUrl = document.getElementById('thumbnail-url').value;
-                const publicSetting = document.getElementById('public-setting').value;
+                const thumbnailUrl = thumbnailUrlInput.value;
+                const publicSetting = publicSettingSelect.value;
                 const currentTags = Array.from(tagsContainer.querySelectorAll('.tag-item span')).map(span => span.textContent);
 
                 let contentToUpload = novelPages; // This will be novelPages for both novel and webtoon
@@ -1144,7 +1359,8 @@
                     showCustomAlert('작품이 성공적으로 업로드되었습니다!');
                 }
                 
-                window.location.href = 'index.html'; // Redirect to home page after successful upload/update
+                // Redirect to the manage tab after successful upload/update
+                window.location.href = 'hello-world-tabs.html?tab=manage';
 
             } catch (error) {
                 console.error("작품 업로드/업데이트 중 오류 발생:", error);
@@ -1157,6 +1373,61 @@
                 uploadWorkBtn.disabled = false;
             }
         });
+
+        // Main Tab Switching Logic
+        mainTabButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                const targetTab = event.target.dataset.tab;
+
+                mainTabButtons.forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+
+                uploadTabContent.classList.add('hidden');
+                manageTabContent.classList.add('hidden');
+
+                if (targetTab === 'upload') {
+                    uploadTabContent.classList.remove('hidden');
+                    // Reset form when switching to upload tab, unless editing
+                    if (!currentWorkId) {
+                        resetUploadForm();
+                    }
+                } else if (targetTab === 'manage') {
+                    manageTabContent.classList.remove('hidden');
+                    if (auth.currentUser) {
+                        fetchAndRenderMyWorks(); // Fetch works only when user is logged in
+                    } else {
+                        myWorksListContainer.innerHTML = '<p class="text-gray-500 text-center">로그인 후 작품을 관리할 수 있습니다.</p>';
+                        noWorksMessage.classList.add('hidden');
+                    }
+                }
+            });
+        });
+
+        // Function to reset the upload form
+        function resetUploadForm() {
+            workTitleInput.value = '';
+            workTypeSelect.value = 'novel';
+            workGenreSelect.value = '';
+            ageRatingSelect.value = '';
+            workIntroductionTextarea.value = '';
+            thumbnailUrlInput.value = '';
+            publicSettingSelect.value = 'public';
+            tagsContainer.innerHTML = '';
+            novelPages = ['<p>이것은 첫 번째 페이지의 내용입니다. 소설을 책처럼 넘기면서 작성해 보세요!</p>'];
+            currentPageIndex = 0;
+            renderCurrentPage();
+            currentWorkId = null; // Clear current work ID
+            uploadButtonText.textContent = '작품 업로드'; // Reset button text
+        }
+
+        // Check URL for tab parameter on load
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialTab = urlParams.get('tab');
+        if (initialTab === 'manage') {
+            document.querySelector('.main-tab-button[data-tab="manage"]').click();
+        } else {
+            document.querySelector('.main-tab-button[data-tab="upload"]').click();
+        }
 
     </script>
 </body>
