@@ -141,8 +141,10 @@
             opacity: 0.8;
         }
 
-        /* Work card styles - adjusted for grid layout */
+        /* Work card styles - adjusted for horizontal scroll layout */
         .work-card {
+            flex-shrink: 0; /* Prevent shrinking in flex container */
+            width: 200px; /* Fixed width for consistent display in carousel */
             cursor: pointer;
             border-radius: 0.5rem; /* rounded-md */
             overflow: hidden; /* Ensures image corners are rounded */
@@ -315,22 +317,28 @@
         <section class="container mx-auto px-4 py-8 mt-8">
             <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-900">크래픽 인기 작품</h2>
             <div class="flex space-x-4 mb-6 border-b border-gray-200">
-                <button id="tab-views" class="pb-2 text-lg font-semibold text-teal-600 border-b-2 border-teal-600 transition-colors duration-200" data-tab="views">
-                    조회수 순
+                <button id="tab-실시간" class="pb-2 text-lg font-semibold text-teal-600 border-b-2 border-teal-600 transition-colors duration-200" data-tab="실시간">
+                    실시간
                 </button>
-                <button id="tab-likes" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="likes">
-                    좋아요 순
+                <button id="tab-이번 주" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="이번 주">
+                    이번 주
+                </button>
+                <button id="tab-분기" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="분기">
+                    분기
+                </button>
+                <button id="tab-역대" class="pb-2 text-lg font-semibold text-gray-600 hover:text-teal-600 transition-colors duration-200" data-tab="역대">
+                    역대
                 </button>
             </div>
 
-            <div id="popular-works-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-4">
+            <div id="popular-anime-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
                 <p class="text-gray-500">인기 작품을 로딩 중입니다...</p>
             </div>
         </section>
 
         <section class="container mx-auto px-4 py-8">
             <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-900">최신 작품</h2>
-            <div id="latest-works-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-4">
+            <div id="exclusive-works-container" class="flex overflow-x-scroll scrollbar-hide space-x-4 pb-4">
                 <p class="text-gray-500">최신 작품을 로딩 중입니다...</p>
             </div>
         </section>
@@ -380,26 +388,17 @@
         const prevBannerBtn = document.getElementById('prev-banner-btn');
         const nextBannerBtn = document.getElementById('next-banner-btn');
         const paginationDotsContainer = document.getElementById('pagination-dots');
-        const popularWorksContainer = document.getElementById('popular-works-container'); // Renamed from popularAnimeContainer
-        const latestWorksContainer = document.getElementById('latest-works-container'); // Renamed from exclusiveWorksContainer
-        const tabButtons = document.querySelectorAll('#popular-works-section button[data-tab]'); // Select tabs within popular section
-
-        // Auth-related DOM elements
-        const authSection = document.getElementById('auth-section');
-        const loginSignupBtn = document.getElementById('login-signup-btn');
-        const userInfoDisplay = document.getElementById('user-info-display');
-        const userNicknameSpan = document.getElementById('user-nickname');
-        const dropdownToggleBtn = document.getElementById('dropdown-toggle-btn');
-        const dropdownArrowIcon = document.getElementById('dropdown-arrow-icon');
-        const userDropdownMenu = document.getElementById('user-dropdown-menu');
-        const logoutBtn = document.getElementById('logout-btn');
+        // Updated IDs for popular and latest works containers
+        const popularWorksContainer = document.getElementById('popular-anime-container'); // Changed ID
+        const latestWorksContainer = document.getElementById('exclusive-works-container'); // Changed ID
+        // Updated tab button selectors to match new IDs
+        const tabButtons = document.querySelectorAll('.flex.space-x-4.mb-6.border-b.border-gray-200 button[data-tab]');
 
         let allWorks = []; // To store all fetched works
         let currentBannerIndex = 0; // Index for the hero banner carousel
         let autoSlideInterval;
         let touchStartX = 0;
         let touchEndX = 0;
-        // Removed isAuthReady flag as fetchAndRenderAllWorks will always run for public data
 
         /**
          * Renders the hero section with a specific work or a default message.
@@ -561,6 +560,7 @@
             }
 
             works.forEach((item, index) => {
+                // This is the inner content of the card (image, title, description)
                 const cardContentHtml = `
                     <div class="relative mb-2">
                         <img src="${item.thumbnailUrl || 'https://placehold.co/200x112/CCCCCC/333333?text=No+Image'}" alt="${item.title}" class="w-full h-auto object-cover rounded-md" onerror="this.onerror=null;this.src='https://placehold.co/200x112/CCCCCC/333333?text=Image+Error';"/>
@@ -571,22 +571,21 @@
                     </div>
                 `;
 
-                const gridItemDiv = document.createElement('div'); // This will be the grid cell item
+                const workItemWrapper = document.createElement('div'); // This will be the wrapper for each work item, including rank if popular
 
                 if (sectionType === 'popular') {
-                    // For popular works, we need the rank next to the card content
-                    gridItemDiv.className = 'flex flex-row items-start space-x-2'; // Use flex-row to align rank and card
-                    gridItemDiv.innerHTML = `
+                    // For popular works, we need the rank number next to the card
+                    workItemWrapper.className = 'flex flex-row items-start space-x-2'; // Use flex-row to align rank and card
+                    workItemWrapper.innerHTML = `
                         <div class="rank text-4xl font-extrabold text-gray-900 dark:text-e0e0e0 pt-1">${index + 1}</div>
-                        <div class="work-card flex-grow"> ${cardContentHtml}
+                        <div class="work-card"> ${cardContentHtml}
                         </div>
                     `;
-                } else { // latest works (no rank number)
-                    // For latest works, just the card content directly
-                    gridItemDiv.className = 'work-card'; // This div is the work-card itself
-                    gridItemDiv.innerHTML = cardContentHtml;
+                } else { // latest works (no rank number, just the card)
+                    workItemWrapper.className = 'work-card'; // This div is the work-card itself
+                    workItemWrapper.innerHTML = cardContentHtml;
                 }
-                container.appendChild(gridItemDiv);
+                container.appendChild(workItemWrapper);
             });
         }
 
@@ -624,7 +623,7 @@
 
 
             // Listen for popular works (initially by views)
-            let currentPopularSortField = 'views';
+            let currentPopularSortField = 'views'; // Default sort for popular section
             const renderPopularBySort = (sortField) => {
                 const popularWorksQuery = query(worksCollectionRef, orderBy(sortField, 'desc'), limit(10));
                 onSnapshot(popularWorksQuery, (snapshot) => {
@@ -643,16 +642,31 @@
             // Add event listeners for popular works tabs
             tabButtons.forEach(button => {
                 button.addEventListener('click', (event) => {
+                    // Remove active state from all tabs
                     tabButtons.forEach(btn => {
                         btn.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
                         btn.classList.add('text-gray-600', 'hover:text-teal-600');
                     });
+                    // Add active state to clicked tab
                     event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
                     event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
 
-                    const sortField = event.target.dataset.tab; // 'views' or 'likes'
+                    // Determine sort field based on the data-tab attribute
+                    let firestoreSortField = 'views'; // Default to views
+                    switch (event.target.dataset.tab) {
+                        case '실시간':
+                        case '이번 주':
+                            firestoreSortField = 'views'; // Map to views
+                            break;
+                        case '분기':
+                        case '역대':
+                            firestoreSortField = 'likes'; // Map to likes
+                            break;
+                        default:
+                            firestoreSortField = 'views'; // Fallback
+                    }
                     // Re-fetch and render popular works based on the selected tab
-                    renderPopularBySort(sortField);
+                    renderPopularBySort(firestoreSortField);
                 });
             });
         }
@@ -943,29 +957,47 @@
         heroSection.addEventListener('touchmove', handleTouchMove);
         heroSection.addEventListener('touchend', handleTouchEnd);
 
-        tabButtons.forEach(button => {
-            button.addEventListener('click', (event) => {
-                tabButtons.forEach(btn => {
-                    btn.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
-                    btn.classList.add('text-gray-600', 'hover:text-teal-600');
+        // Event listeners for popular works tabs (updated selectors)
+        const popularTabsContainer = document.querySelector('.flex.space-x-4.mb-6.border-b.border-gray-200');
+        if (popularTabsContainer) {
+            popularTabsContainer.querySelectorAll('button[data-tab]').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    // Remove active state from all tabs in this container
+                    popularTabsContainer.querySelectorAll('button[data-tab]').forEach(btn => {
+                        btn.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600');
+                        btn.classList.add('text-gray-600', 'hover:text-teal-600');
                     });
-                event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
-                event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
+                    // Add active state to clicked tab
+                    event.target.classList.add('text-teal-600', 'border-b-2', 'border-teal-600');
+                    event.target.classList.remove('text-gray-600', 'hover:text-teal-600');
 
-                const sortField = event.target.dataset.tab; // 'views' or 'likes'
-                const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
-                const popularWorksQuery = query(worksCollectionRef, orderBy(sortField, 'desc'), limit(10));
-                onSnapshot(popularWorksQuery, (snapshot) => {
-                    const popularWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    console.log(`Fetched popular works by ${sortField}:`, popularWorks);
-                    renderWorkCards(popularWorksContainer, popularWorks, 'popular');
-                }, (error) => {
-                    console.error(`Error fetching popular works by ${sortField}:`, error);
-                    popularWorksContainer.innerHTML = '<p class="text-red-500">인기 작품을 불러오는 데 실패했습니다.</p>';
+                    // Determine sort field based on the data-tab attribute
+                    let firestoreSortField = 'views'; // Default to views
+                    switch (event.target.dataset.tab) {
+                        case '실시간':
+                        case '이번 주':
+                            firestoreSortField = 'views'; // Map to views
+                            break;
+                        case '분기':
+                        case '역대':
+                            firestoreSortField = 'likes'; // Map to likes
+                            break;
+                        default:
+                            firestoreSortField = 'views'; // Fallback
+                    }
+                    // Re-fetch and render popular works based on the selected tab
+                    const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
+                    const popularWorksQuery = query(worksCollectionRef, orderBy(firestoreSortField, 'desc'), limit(10));
+                    onSnapshot(popularWorksQuery, (snapshot) => {
+                        const popularWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        renderWorkCards(popularWorksContainer, popularWorks, 'popular');
+                    }, (error) => {
+                        console.error(`Error fetching popular works by ${firestoreSortField}:`, error);
+                        popularWorksContainer.innerHTML = '<p class="text-red-500">인기 작품을 불러오는 데 실패했습니다.</p>';
+                    });
                 });
             });
-        });
-
+        }
     </script>
 </body>
 </html>
