@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRAFIQ - 작품 업로드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        /* Pretendard Web Font Definitions */
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-SemiBold.woff') format('woff');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Bold.woff') format('woff');
+            font-weight: 700;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Pretendard';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-ExtraBold.woff') format('woff');
+            font-weight: 800;
+            font-style: normal;
+        }
+
+        /* Base font application */
+        body {
+            font-family: 'Pretendard', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Ensure full viewport height */
+            background-color: #ffffff; /* Changed to white */
+            color: #333;
+        }
+
+        /* Custom style for dropdown arrow rotation */
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        .transition-transform {
+            transition-property: transform;
+            transition-duration: 300ms;
+            transition-timing-function: ease-in-out;
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #121212; /* Very dark gray/near black */
+            color: #e0e0e0; /* Light gray text */
+        }
+        body.dark-mode header {
+            background-color: #1e1e1e; /* Darker header */
+            box-shadow: none; /* Remove shadow */
+            border-bottom: none; /* Remove border */
+        }
+        body.dark-mode header a,
+        body.dark-mode header button,
+        body.dark-mode header span {
+            color: #e0e0e0; /* Light text for header */
+        }
+        body.dark-mode header a.text-teal-500 { /* CRAFIQ logo */
+            color: #2dd4bf; /* Teal-400 in dark mode */
+        }
+        body.dark-mode header button.hover\:bg-teal-50:hover {
+            background-color: #2a2a2a; /* Darker hover */
+            color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode header button.border-teal-600 {
+            border-color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode header .hover\:text-teal-600:hover {
+            color: #2dd4bf; /* Teal-400 */
+        }
+        /* Sections/Cards in dark mode */
+        body.dark-mode .bg-white.border { /* Apply to sections with border */
+            background-color: #1e1e1e; /* Darker card background */
+            border-color: #3a3a3a; /* Darker border */
+            box-shadow: none; /* Ensure no shadow */
+        }
+        body.dark-mode .text-gray-900 {
+            color: #e0e0e0; /* Light headings */
+        }
+        body.dark-mode .text-gray-700 {
+            color: #c0c0c0; /* Lighter gray text */
+        }
+        body.dark-mode .text-gray-500 {
+            color: #888888; /* Even lighter gray text */
+        }
+        body.dark-mode input,
+        body.dark-mode select,
+        body.dark-mode textarea {
+            background-color: #2a2a2a;
+            border-color: #3a3a3a;
+            color: #e0e0e0;
+        }
+        body.dark-mode input::placeholder,
+        body.dark-mode textarea::placeholder {
+            color: #888888;
+        }
+        body.dark-mode select option {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+        }
+        body.dark-mode .bg-gray-200 { /* For tags input button and tag item background */
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+        }
+        body.dark-mode .hover\:bg-gray-300:hover {
+            background-color: #4a4a4a;
+        }
+        body.dark-mode .tag-item .remove-tag-btn {
+            color: #c0c0c0; /* Darker remove tag button icon */
+            filter: brightness(1.5); /* Make it slightly brighter for visibility */
+        }
+        body.dark-mode footer {
+            background-color: #121212; /* Dark footer */
+            color: #c0c0c0;
+        }
+        body.dark-mode footer .text-teal-400 {
+            color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode footer .text-gray-600 {
+            color: #888888; /* Gray-400 */
+        }
+
+        /* Quill editor container styles */
+        #editor-container {
+            width: 100%;
+            height: 400px; /* Increased height for more comfortable writing */
+            margin-top: 1.5rem; /* Adjusted margin */
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            display: flex; /* Flex container for toolbar and editor */
+            flex-direction: column;
+            overflow: hidden; /* To contain Quill's internal overflow */
+        }
+        body.dark-mode #editor-container {
+            border-color: #3a3a3a;
+        }
+
+        #editor-container .ql-toolbar {
+            background-color: #fcfcfc; /* Toolbar background */
+            border-bottom: 1px solid #e0e0e0;
+            border-top-left-radius: 8px; /* Match container border radius */
+            border-top-right-radius: 8px;
+        }
+        body.dark-mode #editor-container .ql-toolbar {
+            background-color: #2a2a2a;
+            border-color: #3a3a3a;
+        }
+
+        #editor-container .ql-container {
+            flex-grow: 1; /* Editor takes remaining space */
+            background-color: #fcfcfc; /* Editor background */
+            border: none; /* Remove default Quill border */
+            border-bottom-left-radius: 8px; /* Match container border radius */
+            border-bottom-right-radius: 8px;
+            font-family: 'Pretendard', sans-serif; /* Apply custom font to editor */
+            font-size: 1rem; /* Default font size for editor */
+            line-height: 1.8; /* Line height for editor */
+        }
+        body.dark-mode #editor-container .ql-container {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+        }
+
+        #editor-container .ql-editor {
+            padding: 1.5rem; /* Padding inside editor */
+            height: 100%; /* Fill container */
+            overflow-y: auto; /* Enable scrolling for editor content */
+        }
+        body.dark-mode #editor-container .ql-editor {
+            color: #e0e0e0;
+        }
+
+        .page-counter {
+            font-size: 0.9rem;
+            color: #6b7280;
+            text-align: center;
+            flex-grow: 1; /* Center the counter */
+        }
+        body.dark-mode .page-counter {
+            color: #a0a0a0;
+        }
+
+        /* Button styles for consistency */
+        .btn-primary {
+            @apply px-4 py-2 rounded-md font-semibold transition-colors duration-200;
+        }
+        .btn-teal {
+            @apply bg-teal-600 text-white hover:bg-teal-700;
+        }
+        .btn-gray {
+            @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+        }
+        .btn-red {
+            @apply bg-red-500 text-white hover:bg-red-600;
+        }
+        .btn-blue {
+            @apply bg-blue-600 text-white hover:bg-blue-700;
+        }
+
+        /* Page preview thumbnails */
+        .page-thumbnails-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-bottom: 1rem; /* Add some padding at the bottom */
+            overflow-x: auto; /* Allow horizontal scrolling if many pages */
+        }
+        .page-thumbnail {
+            width: 100px; /* Fixed width for thumbnails */
+            height: 120px; /* Fixed height for thumbnails */
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #6b7280;
+            background-color: #fcfcfc;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        body.dark-mode .page-thumbnail {
+            background-color: #2a2a2a;
+            border-color: #3a3a3a;
+            color: #a0a0a0;
+        }
+        .page-thumbnail:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .page-thumbnail.active {
+            border-color: #2dd4bf; /* Teal border for active page */
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.4); /* Teal glow */
+            font-weight: bold;
+            color: #2dd4bf; /* Teal text for active page */
+        }
+        body.dark-mode .page-thumbnail.active {
+            border-color: #2dd4bf;
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.4);
+            color: #2dd4bf;
+        }
+        .page-thumbnail-number {
+            margin-top: 0.5rem;
+            font-weight: bold;
+        }
+        /* New style for the book controls wrapper */
+        .editor-controls-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem; /* Space between buttons */
+            padding: 1rem 0; /* Vertical padding */
+            margin-top: 1.5rem; /* Space from the editor */
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+        .editor-controls-wrapper .btn-primary {
+            min-width: 120px; /* Ensure buttons have a minimum width */
+            justify-content: center; /* Center content within buttons */
+        }
+
+        /* Styles for thumbnail content (image or text) */
+        .page-thumbnail .page-thumbnail-content-wrapper {
+            width: 100%;
+            height: calc(100% - 24px); /* Adjust height to make space for page number */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .page-thumbnail .page-thumbnail-content-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures image covers the area without distortion */
+            border-radius: 4px; /* Inherit from parent or specify */
+        }
+        .page-thumbnail .page-thumbnail-text-content {
+            padding: 0.5rem;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* Show 2 lines of text */
+            -webkit-box-orient: vertical;
+            white-space: normal;
+            line-height: 1.2;
+            font-size: 0.7rem; /* Smaller font for snippet */
+            color: inherit; /* Ensure text color adapts to dark mode */
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-white text-gray-800">
+
+    <header id="main-header" class="fixed top-0 left-0 w-full z-50 py-3 transition-all duration-500 ease-in-out bg-white">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-extrabold transition-colors duration-500 text-teal-500">
+                CRAFIQ
+            </a>
+
+            <nav class="hidden md:flex space-x-6">
+                <a href="about.html" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
+                    소개
+                </a>
+                <a href="#" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
+                    인기작품
+                </a>
+                <a href="author.html" class="text-sm font-semibold transition-colors duration-500 text-teal-600 hover:text-teal-600">
+                    작가 페이지
+                </a>
+                <a href="#" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
+                    커뮤니티
+                </a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <button class="transition-colors duration-500 text-gray-600 hover:text-teal-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                </button>
+                <div id="auth-section" class="flex items-center space-x-4">
+                    <button id="login-signup-btn" class="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-500 text-teal-600 border border-teal-600 hover:bg-teal-50">
+                        로그인/회원가입
+                    </button>
+                    <div id="user-info-display" class="relative hidden items-center space-x-1">
+                        <span id="user-nickname" class="text-sm font-semibold text-gray-700"></span>
+                        <button id="dropdown-toggle-btn" class="cursor-pointer p-1 rounded-full hover:bg-gray-100 transition-colors">
+                            <svg id="dropdown-arrow-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-700 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div id="user-dropdown-menu" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden z-20">
+                            <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 프로필</a>
+                            <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">설정</a>
+                            <button id="logout-btn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                로그아웃
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8 pt-24">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-2 text-center">작품 업로드</h1>
+        <p class="text-center text-gray-600 mb-10">당신의 창작물을 CRAFIQ에 공유해 보세요!</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="md:col-span-2">
+                <section class="bg-white p-8 rounded-lg border border-gray-300">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">기본 정보</h2>
+                    <p class="text-gray-600 mb-6">작품의 기본 정보를 입력해 주세요</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="work-title" class="block text-sm font-medium text-gray-700 mb-2">작품 제목 <span class="text-red-500">*</span></label>
+                            <input type="text" id="work-title" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="작품 제목을 입력하세요">
+                        </div>
+                        <div>
+                            <label for="work-type" class="block text-sm font-medium text-gray-700 mb-2">작품 유형 <span class="text-red-500">*</span></label>
+                            <select id="work-type" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
+                                <option value="novel">소설</option>
+                                <option value="webtoon">웹툰</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="work-genre" class="block text-sm font-medium text-gray-700 mb-2">장르 <span class="text-red-500">*</span></label>
+                            <select id="work-genre" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
+                                <option value="">장르를 선택하세요</option>
+                                <option value="fantasy">판타지</option>
+                                <option value="romance">로맨스</option>
+                                <option value="action">액션</option>
+                                <option value="drama">드라마</option>
+                                <option value="thriller">스릴러</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="age-rating" class="block text-sm font-medium text-gray-700 mb-2">연령 등급</label>
+                            <select id="age-rating" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
+                                <option value="">연령 등급을 선택하세요</option>
+                                <option value="all">전체 이용가</option>
+                                <option value="12">12세 이용가</option>
+                                <option value="15">15세 이용가</option>
+                                <option value="18">18세 이용가</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <label for="work-introduction" class="block text-sm font-medium text-gray-700 mb-2">작품 소개 <span class="text-red-500">*</span></label>
+                        <textarea id="work-introduction" rows="5" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="작품에 대한 간단한 소개를 작성해 주세요"></textarea>
+                    </div>
+
+                    <div class="mt-6">
+                        <label for="work-tags" class="block text-sm font-medium text-gray-700 mb-2">태그</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" id="tag-input" class="flex-grow p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="태그를 입력하세요">
+                            <button id="add-tag-btn" class="p-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="tags-container" class="flex flex-wrap gap-2 mt-3">
+                            </div>
+                    </div>
+                </section>
+
+                <section id="content-creation-section" class="bg-white p-8 rounded-lg border border-gray-300 mt-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6"><span id="content-type-title">소설</span> 내용 작성 (<span id="novel-page-count-display"></span>페이지)</h2>
+                    <p class="text-gray-600 mb-6" id="content-type-description">책처럼 페이지별로 소설을 작성해 보세요</p>
+
+                    <div id="editor-container"></div>
+
+                    <div class="editor-controls-wrapper">
+                        <button id="prev-page-btn" class="btn-gray btn-primary flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                            이전 페이지
+                        </button>
+                        <span id="page-counter" class="page-counter">1 / 1 페이지</span>
+                        <button id="add-page-btn" class="btn-teal btn-primary flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            페이지 추가
+                        </button>
+                        <button id="delete-page-btn" class="btn-red btn-primary flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 6 6 18"></path>
+                                <path d="M6 6 18 18"></path>
+                            </svg>
+                            삭제
+                        </button>
+                        <button id="next-page-btn" class="btn-gray btn-primary flex items-center">
+                            다음 페이지
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="flex justify-center space-x-4 mt-6">
+                        <button id="save-page-btn" class="btn-blue btn-primary flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            페이지 저장
+                        </button>
+                    </div>
+
+                    <div id="page-thumbnails-container" class="page-thumbnails-container">
+                        </div>
+                </section>
+            </div>
+
+            <div class="md:col-span-1">
+                <section class="bg-white p-8 rounded-lg border border-gray-300 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">썸네일</h2>
+                    <p class="text-gray-600 mb-6">작품을 대표할 이미지 URL을 입력해 주세요</p>
+                    <div>
+                        <label for="thumbnail-url" class="block text-sm font-medium text-gray-700 mb-2">썸네일 URL</label>
+                        <input type="url" id="thumbnail-url" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="https://example.com/image.jpg">
+                        <p class="text-xs text-gray-500 mt-2">외부 이미지 호스팅 서비스 (imgur, postimages 등)에 이미지를 업로드하고 URL을 입력하세요.</p>
+                    </div>
+                </section>
+
+                <section class="bg-white p-8 rounded-lg border border-gray-300">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">발행 설정</h2>
+                    <div>
+                        <label for="public-setting" class="block text-sm font-medium text-gray-700 mb-2">공개 설정</label>
+                        <select id="public-setting" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
+                            <option value="public">전체 공개</option>
+                            <option value="private">비공개</option>
+                            <option value="draft">임시 저장</option>
+                        </select>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div class="flex justify-center mt-10">
+            <button id="upload-work-btn" class="px-8 py-4 bg-teal-600 text-white font-bold rounded-md text-lg hover:bg-teal-700 transition-colors duration-300 flex items-center justify-center">
+                <svg id="upload-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span id="upload-button-text">작품 업로드</span>
+                <svg id="loading-spinner" class="animate-spin h-6 w-6 text-white ml-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </button>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-10 px-4 mt-12">
+        <div class="container mx-auto text-center">
+            <div class="mb-4">
+                <a href="#" class="text-teal-400 hover:text-teal-300 mx-3 text-sm">이용약관</a>
+                <span class="text-gray-600 text-sm">|</span>
+                <a href="#" class="text-teal-400 hover:text-teal-300 mx-3 text-sm">개인정보처리방침</a>
+                <span class="text-gray-600 text-sm">|</span>
+                <a href="#" class="text-teal-400 hover:text-teal-300 mx-3 text-sm">문의하기</a>
+            </div>
+            <p class="text-xs">&copy; 2025 Crafiq. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration (replace with your actual config or load from environment)
+        const firebaseConfig = JSON.parse(`{"apiKey": "AIzaSyBJFAV4-QMggAW2K1YtpsXIZ5PQ8KJzo9k", "authDomain": "crafiq-a.firebaseapp.com", "projectId": "crafiq-a", "storageBucket": "crafiq-a.firebasestorage.app", "messagingSenderId": "176082460783", "appId": "1:176082460783:web:cd0b594cc803932eaa2d9a", "measurementId": "G-QB84Z9EMZW"}`);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use __app_id if available
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Get DOM elements
+        const authSection = document.getElementById('auth-section');
+        const loginSignupBtn = document.getElementById('login-signup-btn');
+        const userInfoDisplay = document.getElementById('user-info-display');
+        const userNicknameSpan = document.getElementById('user-nickname');
+        const dropdownToggleBtn = document.getElementById('dropdown-toggle-btn');
+        const dropdownArrowIcon = document.getElementById('dropdown-arrow-icon');
+        const userDropdownMenu = document.getElementById('user-dropdown-menu');
+        const logoutBtn = document.getElementById('logout-btn');
+        const mainHeader = document.getElementById('main-header'); // Get the header element
+
+        // Form elements
+        const workTitleInput = document.getElementById('work-title');
+        const workIntroductionTextarea = document.getElementById('work-introduction');
+        const tagInput = document.getElementById('tag-input');
+        const addTagBtn = document.getElementById('add-tag-btn');
+        const tagsContainer = document.getElementById('tags-container');
+        const uploadWorkBtn = document.getElementById('upload-work-btn');
+        const uploadButtonText = document.getElementById('upload-button-text');
+        const uploadIcon = document.getElementById('upload-icon');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const workTypeSelect = document.getElementById('work-type'); // Added for type checking
+
+        // Content creation section elements (unified for novel/webtoon)
+        const contentCreationSection = document.getElementById('content-creation-section');
+        const contentTypeTitle = document.getElementById('content-type-title');
+        const contentTypeDescription = document.getElementById('content-type-description');
+        const novelPageCountDisplay = document.getElementById('novel-page-count-display'); // For "소설/웹툰 작성 (X페이지)" title
+        const editorContainer = document.getElementById('editor-container'); // Quill will be initialized here
+        const pageCounter = document.getElementById('page-counter');
+        const prevPageBtn = document.getElementById('prev-page-btn');
+        const nextPageBtn = document.getElementById('next-page-btn');
+        const addPageBtn = document.getElementById('add-page-btn');
+        const deletePageBtn = document.getElementById('delete-page-btn');
+        const savePageBtn = document.getElementById('save-page-btn');
+        const pageThumbnailsContainer = document.getElementById('page-thumbnails-container'); // New thumbnail container
+
+
+        let novelPages = ['<p>이것은 첫 번째 페이지의 내용입니다. 소설을 책처럼 넘기면서 작성해 보세요!</p>']; // Array to hold HTML content for each page
+        let currentPageIndex = 0; // Current active page index (0-based)
+        let currentNovelId = new URLSearchParams(window.location.search).get('novelId'); // Get novelId from URL if editing existing
+        let quill; // Quill editor instance
+
+        // Dummy data for existing novels (simulate fetching from Firestore)
+        // These will be replaced by actual Firestore data if implemented
+        const dummyNovels = {
+            'novel-1': {
+                title: '나의 첫 번째 소설',
+                pages: [
+                    '<p>이것은 나의 첫 번째 소설의 첫 페이지입니다. 마법과 모험의 세계로 떠나볼까요?</p><p>새로운 문단을 시작하려면 엔터를 두 번 누르세요.</p>',
+                    '<p>두 번째 페이지에는 <strong>새로운 인물들</strong>이 등장합니다. 그들의 운명은 어떻게 될까요?</p><p>Quill.js 에디터를 사용해 텍스트를 <u>강조</u>하거나 <span style="color: rgb(230, 0, 0);">색상</span>을 변경할 수 있습니다.</p>',
+                    '<p>세 번째 페이지, 이야기는 절정으로 치닫습니다. 예측 불가능한 반전이 기다립니다!</p><p>글쓰기에 집중해 보세요.</p>'
+                ]
+            },
+            'novel-2': {
+                title: '어둠 속 한 줄기 빛',
+                pages: [
+                    '<p>어두운 도시의 밤, 한 줄기 빛이 절망에 빠진 이들을 비춥니다.</p>',
+                    '<p>빛을 따라 나선 여정, 그 끝에는 어떤 진실이 숨겨져 있을까요?</p>',
+                    '<p>사랑과 희생, 그리고 용기가 필요한 순간. 그들은 빛을 지켜낼 수 있을까요?</p>'
+                ]
+            },
+            'novel-3': {
+                title: '시간 여행자의 일기',
+                pages: [
+                    '<p>낡은 일기장 속에서 발견된 시간 여행의 비밀. 나는 과거로 떠난다.</p>',
+                    '<p>빅토리아 시대 런던, 예상치 못한 만남과 사건들이 나를 기다린다.</p>',
+                    '<p>미래로의 도약, 인류의 운명을 바꿀 수 있을까? 나의 선택은...</p>'
+                ]
+            }
+        };
+
+        // Dummy data for existing webtoons (for testing purposes) - now using HTML content with images
+        const dummyWebtoons = {
+            'webtoon-1': {
+                title: '용사님, 다시 태어났습니다!',
+                pages: [
+                    '<p>프롤로그: 이세계 전생</p><p><img src="https://placehold.co/300x200/FFD700/000000?text=EP1_Image" alt="Episode 1 Image"></p><p>용사가 이세계로 전생하는 이야기의 시작입니다.</p>',
+                    '<p>1화: 새로운 시작</p><p>새로운 모험이 시작됩니다.</p><p><img src="https://placehold.co/300x200/C0C0C0/000000?text=EP2_Image" alt="Episode 2 Image"></p>',
+                    '<p>2화: 마왕성으로 가는 길</p><p>험난한 여정의 시작.</p><p><img src="https://placehold.co/300x200/808080/FFFFFF?text=EP3_Image" alt="Episode 3 Image"></p>'
+                ]
+            },
+            'webtoon-2': {
+                title: '옆집 마법사는 사실 아이돌',
+                pages: [
+                    '<p>1화: 수상한 이웃</p><p><img src="https://placehold.co/300x200/ADD8E6/000000?text=EP1_Image" alt="Episode 1 Image"></p><p>옆집에 사는 수상한 이웃의 정체는?</p>',
+                    '<p>2화: 콘서트에서 만난 그</p><p>놀라운 비밀이 밝혀진다!</p><p><img src="https://placehold.co/300x200/90EE90/000000?text=EP2_Image" alt="Episode 2 Image"></p>'
+                ]
+            }
+        };
+
+
+        /**
+         * Updates the header's style (shadow and border) based on dark mode.
+         */
+        function updateHeaderStyle() {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            mainHeader.classList.remove('shadow-sm');
+            mainHeader.style.borderBottom = 'none'; /* Ensure no border */
+
+            if (isDarkMode) {
+                mainHeader.style.backgroundColor = '#1e1e1e';
+            } else {
+                mainHeader.style.backgroundColor = '#ffffff';
+            }
+        }
+
+        /**
+         * Applies or removes dark mode based on the toggle state.
+         * Stores the preference in localStorage.
+         */
+        function applyDarkModeToPage(isDarkMode) {
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+            updateHeaderStyle();
+        }
+
+        /**
+         * Updates the header's authentication section based on user login status.
+         * @param {Object|null} user - The Firebase User object or null if logged out.
+         */
+        async function updateAuthSection(user) {
+            if (user) {
+                loginSignupBtn.classList.add('hidden');
+                authSection.classList.remove('hidden');
+                userInfoDisplay.classList.remove('hidden');
+                userInfoDisplay.classList.add('flex');
+
+                userNicknameSpan.textContent = '로딩 중...';
+
+                const userProfileRef = doc(db, `artifacts/${appId}/users/${user.uid}/userProfiles`, user.uid);
+                try {
+                    const docSnap = await getDoc(userProfileRef);
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data();
+                        if (userData.nickname && userData.nickname.trim() !== '') {
+                            userNicknameSpan.textContent = userData.nickname;
+                        } else {
+                            userNicknameSpan.textContent = user.email || '사용자';
+                            console.warn("User profile found but nickname is empty or missing, displaying email:", user.uid);
+                        }
+                    } else {
+                        userNicknameSpan.textContent = user.email || '사용자';
+                        console.warn("User profile document not found for:", user.uid);
+                    }
+                } catch (error) {
+                    console.error("Error fetching user profile, displaying email:", error);
+                    userNicknameSpan.textContent = user.email || '오류';
+                }
+            } else {
+                loginSignupBtn.classList.remove('hidden');
+                userInfoDisplay.classList.add('hidden');
+                userInfoDisplay.classList.remove('flex');
+                userNicknameSpan.textContent = '';
+                userDropdownMenu.classList.add('hidden');
+                if (dropdownArrowIcon) {
+                    dropdownArrowIcon.classList.remove('rotate-180');
+                }
+            }
+        }
+
+        /**
+         * Adds a tag to the tags container.
+         * @param {string} tagText - The text of the tag to add.
+         */
+        function addTag(tagText) {
+            if (tagText.trim() === '') return;
+
+            const tagDiv = document.createElement('div');
+            tagDiv.className = 'tag-item flex items-center bg-gray-200 text-gray-800 text-sm px-3 py-1 rounded-full';
+            tagDiv.innerHTML = `
+                <span>${tagText}</span>
+                <button type="button" class="remove-tag-btn ml-2 text-gray-600 hover:text-gray-900 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            `;
+            tagsContainer.appendChild(tagDiv);
+
+            // Add event listener to remove button
+            tagDiv.querySelector('.remove-tag-btn').addEventListener('click', () => {
+                tagDiv.remove();
+            });
+        }
+
+        /**
+         * Renders the content of the current page in the Quill editor.
+         * Updates page counter and button states.
+         */
+        function renderCurrentPage() {
+            // Load content into Quill editor
+            quill.root.innerHTML = novelPages[currentPageIndex];
+            pageCounter.textContent = `${currentPageIndex + 1} / ${novelPages.length} 페이지`;
+            novelPageCountDisplay.textContent = novelPages.length; // Update total page count in title
+
+            prevPageBtn.disabled = currentPageIndex === 0;
+            nextPageBtn.disabled = currentPageIndex === novelPages.length - 1;
+            deletePageBtn.disabled = novelPages.length === 1; // Cannot delete the last page
+
+            renderPageThumbnails(); // Re-render thumbnails on page change
+        }
+
+        /**
+         * Renders the page thumbnails at the bottom.
+         */
+        function renderPageThumbnails() {
+            pageThumbnailsContainer.innerHTML = ''; // Clear existing thumbnails
+            const isWebtoon = workTypeSelect.value === 'webtoon';
+            const pagePrefix = isWebtoon ? 'EP.' : 'P.';
+
+            novelPages.forEach((pageContent, index) => {
+                const thumbnailDiv = document.createElement('div');
+                thumbnailDiv.className = `page-thumbnail ${index === currentPageIndex ? 'active' : ''}`;
+                thumbnailDiv.setAttribute('data-page-index', index);
+
+                const contentWrapper = document.createElement('div');
+                contentWrapper.className = 'page-thumbnail-content-wrapper';
+
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = pageContent;
+
+                let contentElement;
+                const firstImage = tempDiv.querySelector('img');
+
+                if (isWebtoon && firstImage) {
+                    contentElement = document.createElement('img');
+                    contentElement.src = firstImage.src;
+                    contentElement.alt = "Episode Image";
+                    contentElement.className = "w-full h-full object-cover rounded-sm";
+                    contentElement.onerror = function() { this.onerror=null;this.src='https://placehold.co/100x120/CCCCCC/333333?text=No+Img'; };
+                } else {
+                    contentElement = document.createElement('div');
+                    contentElement.className = 'page-thumbnail-text-content';
+                    contentElement.textContent = tempDiv.textContent.trim().substring(0, 50) || '내용 없음';
+                }
+
+                contentWrapper.appendChild(contentElement);
+                thumbnailDiv.appendChild(pageNumberDiv);
+
+                const pageNumberDiv = document.createElement('div');
+                pageNumberDiv.className = 'page-thumbnail-number';
+                pageNumberDiv.textContent = `${pagePrefix}${index + 1}`;
+                thumbnailDiv.appendChild(pageNumberDiv);
+
+                thumbnailDiv.addEventListener('click', () => {
+                    saveCurrentPageContent(); // Save current page before switching
+                    currentPageIndex = index;
+                    renderCurrentPage();
+                });
+                pageThumbnailsContainer.appendChild(thumbnailDiv);
+            });
+
+            // Scroll to the active thumbnail
+            const activeThumbnail = pageThumbnailsContainer.querySelector('.page-thumbnail.active');
+            if (activeThumbnail) {
+                activeThumbnail.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }
+
+
+        /**
+         * Saves the content from the Quill editor to the current page in the array.
+         */
+        function saveCurrentPageContent() {
+            novelPages[currentPageIndex] = quill.root.innerHTML; // Get HTML content from Quill
+            renderCurrentPage(); // Update display with saved content
+            alert('페이지 내용이 저장되었습니다!');
+            // In a real app, you would save this to Firestore for the current novelId
+            // Example: setDoc(doc(db, `artifacts/${appId}/novels`, currentNovelId), { pages: novelPages }, { merge: true });
+        }
+
+        /**
+         * Navigates to the previous page.
+         */
+        function goToPrevPage() {
+            if (currentPageIndex > 0) {
+                saveCurrentPageContent(); // Save current page before navigating
+                currentPageIndex--;
+                renderCurrentPage();
+            }
+        }
+
+        /**
+         * Navigates to the next page.
+         */
+        function goToNextPage() {
+            if (currentPageIndex < novelPages.length - 1) {
+                saveCurrentPageContent(); // Save current page before navigating
+                currentPageIndex++;
+                renderCurrentPage();
+            }
+        }
+
+        /**
+         * Adds a new blank page after the current page.
+         */
+        function addPage() {
+            saveCurrentPageContent(); // Save current page before adding new
+            novelPages.splice(currentPageIndex + 1, 0, '<p><br></p>'); // Insert empty HTML paragraph for Quill
+            currentPageIndex++; // Move to the new page
+            renderCurrentPage();
+            alert('새 페이지가 추가되었습니다!');
+        }
+
+        /**
+         * Deletes the current page.
+         */
+        function deletePage() {
+            if (novelPages.length === 1) {
+                alert('마지막 페이지는 삭제할 수 없습니다.');
+                return;
+            }
+            if (confirm('정말로 현재 페이지를 삭제하시겠습니까?')) {
+                novelPages.splice(currentPageIndex, 1); // Remove current page
+                if (currentPageIndex >= novelPages.length) {
+                    currentPageIndex = novelPages.length - 1; // Adjust index if last page was deleted
+                }
+                renderCurrentPage();
+                alert('페이지가 삭제되었습니다.');
+            }
+        }
+
+        /**
+         * Handles the change in work type selection.
+         * Updates content section titles and descriptions.
+         */
+        function handleWorkTypeChange() {
+            const selectedType = workTypeSelect.value;
+
+            if (selectedType === 'novel') {
+                contentTypeTitle.textContent = '소설';
+                contentTypeDescription.textContent = '책처럼 페이지별로 소설을 작성해 보세요';
+                // If switching from webtoon, reset novelPages to a default empty page if it was empty
+                if (novelPages.length === 0) {
+                    novelPages = ['<p>여기에 내용을 작성해 보세요.</p>'];
+                }
+                currentPageIndex = 0; // Always start at first page when switching types
+                renderCurrentPage(); // Render novel page when switching back
+            } else if (selectedType === 'webtoon') {
+                contentTypeTitle.textContent = '웹툰';
+                contentTypeDescription.textContent = '각 에피소드 내용을 페이지별로 작성하고 이미지를 추가하세요.';
+                // If switching from novel, reset novelPages to a default empty page if it was empty
+                if (novelPages.length === 0) {
+                    novelPages = ['<p>여기에 에피소드 내용을 작성하고 이미지를 추가하세요.</p>'];
+                }
+                currentPageIndex = 0; // Always start at first page when switching types
+                renderCurrentPage(); // Render webtoon page (using same novel page logic)
+            }
+        }
+
+
+        // Event Listeners
+        window.addEventListener('load', async () => {
+            // Authenticate with Firebase on load
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                console.log("Firebase authenticated.");
+            } catch (error) {
+                console.error("Firebase authentication failed:", error);
+                alert("Firebase 인증에 실패했습니다. 페이지를 새로고침하거나 나중에 다시 시도해주세요.");
+            }
+
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode !== null) {
+                applyDarkModeToPage(savedDarkMode === 'true');
+            } else {
+                updateHeaderStyle();
+            }
+
+            // Initialize Quill editor once on page load
+            quill = new Quill(editorContainer, {
+                theme: 'snow', // 'bubble' or 'snow'
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+                        [{ 'align': [] }],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+                        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+                        ['link', 'image'],
+                        ['clean']                                         // remove formatting button
+                    ]
+                },
+                placeholder: '현재 페이지의 내용을 작성해 주세요.',
+            });
+
+            // Listen for changes in Quill editor (no live preview, but for internal state)
+            quill.on('text-change', () => {
+                // No live preview needed here, just ensure the content is internally updated if needed.
+            });
+
+            // Determine initial content based on URL parameters (for editing existing work)
+            const urlParams = new URLSearchParams(window.location.search);
+            const novelIdParam = urlParams.get('novelId');
+            const webtoonIdParam = urlParams.get('webtoonId'); // Assuming a webtoonId param for webtoons
+            const workNameParam = urlParams.get('novelName') || urlParams.get('webtoonName') || ''; // Unified name param
+
+
+            if (novelIdParam && dummyNovels[novelIdParam]) {
+                // Load existing novel
+                workTitleInput.value = dummyNovels[novelIdParam].title;
+                novelPages = [...dummyNovels[novelIdParam].pages];
+                currentPageIndex = 0;
+                workTypeSelect.value = 'novel';
+            } else if (webtoonIdParam && dummyWebtoons[webtoonIdParam]) {
+                // Load existing webtoon
+                workTitleInput.value = dummyWebtoons[webtoonIdParam].title;
+                novelPages = [...dummyWebtoons[webtoonIdParam].pages]; // Load webtoon pages into novelPages
+                currentPageIndex = 0;
+                workTypeSelect.value = 'webtoon';
+            } else {
+                // Default to a new novel if no existing work is specified
+                novelPages = ['<p>여기에 내용을 작성해 보세요.</p>'];
+                workTitleInput.value = workNameParam;
+                currentPageIndex = 0;
+                workTypeSelect.value = 'novel'; // Default to novel
+            }
+
+            // Call handler to set initial visibility and content based on default/loaded type
+            handleWorkTypeChange();
+        });
+
+        // Firebase Auth State Listener
+        onAuthStateChanged(auth, (user) => {
+            updateAuthSection(user);
+        });
+
+        // Login/Signup Button
+        loginSignupBtn.addEventListener('click', () => {
+            window.location.href = 'login.html';
+        });
+
+        // Dropdown Toggle
+        dropdownToggleBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            userDropdownMenu.classList.toggle('hidden');
+            if (dropdownArrowIcon) {
+                dropdownArrowIcon.classList.toggle('rotate-180');
+            }
+        });
+
+        // Logout Button
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                console.log("User signed out successfully.");
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!userDropdownMenu.contains(event.target) && !dropdownToggleBtn.contains(event.target)) {
+                userDropdownMenu.classList.add('hidden');
+                if (dropdownArrowIcon) {
+                    dropdownArrowIcon.classList.remove('rotate-180');
+                }
+            }
+        });
+
+        // Add tag on button click
+        addTagBtn.addEventListener('click', () => {
+            const tagText = tagInput.value.trim();
+            if (tagText) {
+                addTag(tagText);
+                tagInput.value = ''; // Clear input
+            }
+        });
+
+        // Add tag on Enter key press in input field
+        tagInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent form submission
+                const tagText = tagInput.value.trim();
+                if (tagText) {
+                    addTag(tagText);
+                    tagInput.value = ''; // Clear input
+                }
+            }
+        });
+
+        // Page navigation and management event listeners
+        prevPageBtn.addEventListener('click', goToPrevPage);
+        nextPageBtn.addEventListener('click', goToNextPage);
+        addPageBtn.addEventListener('click', addPage);
+        deletePageBtn.addEventListener('click', deletePage);
+        savePageBtn.addEventListener('click', saveCurrentPageContent); // Explicit save button
+
+        // Handle work type change event
+        workTypeSelect.addEventListener('change', handleWorkTypeChange);
+
+
+        // Handle work upload button click
+        uploadWorkBtn.addEventListener('click', async () => {
+            // Check if user is logged in
+            if (!auth.currentUser) {
+                alert('작품을 업로드하려면 로그인해야 합니다.');
+                window.location.href = 'login.html'; // Redirect to login page
+                return;
+            }
+
+            // Show loading state
+            uploadButtonText.textContent = '업로드 중...';
+            uploadIcon.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+            uploadWorkBtn.disabled = true;
+
+            try {
+                // Ensure current page content is saved before final upload
+                saveCurrentPageContent();
+
+                const workTitle = workTitleInput.value;
+                const workType = workTypeSelect.value;
+                const workGenre = document.getElementById('work-genre').value;
+                const ageRating = document.getElementById('age-rating').value;
+                const workIntroduction = workIntroductionTextarea.value;
+                const thumbnailUrl = document.getElementById('thumbnail-url').value;
+                const publicSetting = document.getElementById('public-setting').value;
+                const currentTags = Array.from(tagsContainer.querySelectorAll('.tag-item span')).map(span => span.textContent);
+
+                let contentToUpload = novelPages; // Always novelPages now, containing HTML for both novel/webtoon
+
+                if (!workTitle || !workType || !workGenre || !workIntroduction) {
+                    alert('필수 입력 항목 (제목, 유형, 장르, 소개)을 모두 채워주세요.');
+                    return;
+                }
+
+                // Validate content based on type
+                if (contentToUpload.length === 0 || contentToUpload.every(page => page.trim() === '<p><br></p>' || page.trim() === '')) {
+                    if (workType === 'novel') {
+                        alert('소설 내용을 한 페이지 이상 작성해주세요.');
+                    } else { // webtoon
+                        alert('웹툰 에피소드를 한 개 이상 작성해주세요.');
+                    }
+                    return;
+                }
+
+                const workData = {
+                    title: workTitle,
+                    type: workType,
+                    genre: workGenre,
+                    ageRating: ageRating,
+                    introduction: workIntroduction,
+                    tags: currentTags,
+                    thumbnailUrl: thumbnailUrl,
+                    publicSetting: publicSetting,
+                    content: contentToUpload, // This will be novelPages for both novel and webtoon
+                    authorId: auth.currentUser.uid, // Use actual logged-in user ID
+                    authorNickname: userNicknameSpan.textContent, // Use displayed nickname
+                    timestamp: serverTimestamp(), // Use Firestore server timestamp
+                    views: 0, // Initialize views
+                    likes: 0 // Initialize likes
+                };
+
+                // Save to Firestore in a public collection
+                const docRef = await addDoc(collection(db, `artifacts/${appId}/public/data/works`), workData);
+                console.log("Document written with ID: ", docRef.id);
+
+                alert('작품이 성공적으로 업로드되었습니다!');
+                window.location.href = 'index.html'; // Redirect to home page after successful upload
+
+            } catch (error) {
+                console.error("작품 업로드 중 오류 발생:", error);
+                alert(`작품 업로드에 실패했습니다: ${error.message}`);
+            } finally {
+                // Hide loading state
+                uploadButtonText.textContent = '작품 업로드';
+                uploadIcon.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
+                uploadWorkBtn.disabled = false;
+            }
+        });
+
+    </script>
+</body>
+</html>
