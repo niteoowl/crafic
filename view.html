@@ -570,12 +570,10 @@
         const submitCommentBtn = document.getElementById('submit-comment-btn');
         const commentsList = document.getElementById('comments-list');
 
-        // Extract workId from URL path (e.g., /view/work_id_here)
+        // Extract workId from URL path (e.g., /view/work_id_here) or from query parameter (fallback)
         let workId = null;
         const pathSegments = window.location.pathname.split('/');
-        // Find the segment that is likely the work ID.
-        // Assuming the URL will be something like /view/WORK_ID or /view/index.html/WORK_ID
-        // We look for the last non-empty segment that isn't 'view' or 'index.html' or 'detail.html'.
+        // Attempt to extract from path first
         for (let i = pathSegments.length - 1; i >= 0; i--) {
             const segment = pathSegments[i];
             if (segment && segment !== 'view' && segment !== 'index.html' && segment !== 'detail.html') {
@@ -583,7 +581,14 @@
                 break;
             }
         }
-        console.log("Extracted workId from path:", workId);
+
+        // Fallback to query parameter if path extraction failed
+        if (!workId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            workId = urlParams.get('workId');
+        }
+
+        console.log("Extracted workId:", workId);
 
         /**
          * Updates the header's style (shadow and border) based on dark mode.
