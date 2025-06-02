@@ -183,6 +183,61 @@
             color: #e0e0e0;
         }
 
+        /* Thumbnail editor specific styles */
+        #thumbnail-editor-container {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 150px; /* Fixed height for thumbnail editor */
+            display: flex;
+            flex-direction: column;
+        }
+        body.dark-mode #thumbnail-editor-container {
+            border-color: #3a3a3a;
+        }
+        #thumbnail-editor-container .ql-toolbar {
+            background-color: #fcfcfc;
+            border-bottom: 1px solid #e0e0e0;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        body.dark-mode #thumbnail-editor-container .ql-toolbar {
+            background-color: #2a2a2a;
+            border-color: #3a3a3a;
+        }
+        #thumbnail-editor-container .ql-container {
+            flex-grow: 1;
+            background-color: #fcfcfc;
+            border: none;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            display: flex; /* Use flex to center content */
+            align-items: center; /* Center vertically */
+            justify-content: center; /* Center horizontally */
+        }
+        body.dark-mode #thumbnail-editor-container .ql-container {
+            background-color: #2a2a2a;
+        }
+        #thumbnail-editor-container .ql-editor {
+            padding: 0.5rem; /* Reduced padding */
+            text-align: center; /* Center placeholder text */
+            display: flex; /* Flex for content within editor */
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            overflow: hidden; /* Prevent scrollbars */
+        }
+        #thumbnail-editor-container .ql-editor img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Ensure image fits within bounds */
+            border-radius: 4px; /* Apply some border radius to image */
+        }
+        body.dark-mode #thumbnail-editor-container .ql-editor {
+            color: #e0e0e0;
+        }
+
+
         .page-counter {
             font-size: 0.9rem;
             color: #6b7280;
@@ -582,12 +637,9 @@
                 <div class="md:col-span-1">
                     <section class="bg-white p-8 rounded-lg border border-gray-300 mb-8">
                         <h2 class="text-2xl font-bold text-gray-900 mb-6">썸네일</h2>
-                        <p class="text-gray-600 mb-6">작품을 대표할 이미지 URL을 입력해 주세요</p>
-                        <div>
-                            <label for="thumbnail-url" class="block text-sm font-medium text-gray-700 mb-2">썸네일 URL</label>
-                            <input type="url" id="thumbnail-url" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="https://example.com/image.jpg">
-                            <p class="text-xs text-gray-500 mt-2">외부 이미지 호스팅 서비스 (imgur, postimages 등)에 이미지를 업로드하고 URL을 입력하세요.</p>
-                        </div>
+                        <p class="text-gray-600 mb-6">작품을 대표할 이미지를 업로드하거나 붙여넣어 주세요.</p>
+                        <div id="thumbnail-editor-container"></div>
+                        <p class="text-xs text-gray-500 mt-2">썸네일은 첫 번째 이미지로 사용됩니다. (파일 크기에 따라 업로드 시간이 길어질 수 있습니다.)</p>
                     </section>
 
                     <section class="bg-white p-8 rounded-lg border border-gray-300">
@@ -689,9 +741,8 @@
         const workTypeSelect = document.getElementById('work-type'); // Added for type checking
         const workGenreSelect = document.getElementById('work-genre');
         const ageRatingSelect = document.getElementById('age-rating');
-        const thumbnailUrlInput = document.getElementById('thumbnail-url');
+        // const thumbnailUrlInput = document.getElementById('thumbnail-url'); // REMOVED
         const publicSettingSelect = document.getElementById('public-setting');
-
 
         // Content creation section elements (unified for novel/webtoon)
         const contentCreationSection = document.getElementById('content-creation-section');
@@ -707,6 +758,9 @@
         const savePageBtn = document.getElementById('save-page-btn');
         const pageThumbnailsContainer = document.getElementById('page-thumbnails-container'); // New thumbnail container
 
+        // Thumbnail editor element
+        const thumbnailEditorContainer = document.getElementById('thumbnail-editor-container'); // NEW
+
         // My Works List elements (Manage Tab)
         const myWorksListContainer = document.getElementById('my-works-list');
         const noWorksMessage = document.getElementById('no-works-message');
@@ -716,7 +770,8 @@
         let currentPageIndex = 0; // Current active page index (0-based)
         let currentWorkId = new URLSearchParams(window.location.search).get('workId'); // Unified ID for novel/webtoon
 
-        let quill; // Quill editor instance
+        let quill; // Main Quill editor instance
+        let quillThumbnail; // NEW: Thumbnail Quill editor instance
 
         /**
          * Updates the header's style (shadow and border) based on dark mode.
@@ -889,11 +944,11 @@
                 pageThumbnailsContainer.appendChild(thumbnailDiv);
             });
 
-            // Scroll to the active thumbnail
-            const activeThumbnail = pageThumbnailsContainer.querySelector('.page-thumbnail.active');
-            if (activeThumbnail) {
-                activeThumbnail.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-            }
+            // REMOVED: Scroll to the active thumbnail (this was causing unwanted main page scroll)
+            // const activeThumbnail = pageThumbnailsContainer.querySelector('.page-thumbnail.active');
+            // if (activeThumbnail) {
+            //     activeThumbnail.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            // }
         }
 
 
@@ -1074,7 +1129,7 @@
                 myWorksListContainer.querySelectorAll('.edit-work-btn').forEach(button => {
                     button.addEventListener('click', (event) => {
                         const idToEdit = event.target.dataset.workId;
-                        window.location.href = `upload-work.html?workId=${idToEdit}`; // Redirect to upload page for editing
+                        window.location.href = `hello-world-tabs.html?workId=${idToEdit}`; // Redirect to upload page for editing
                     });
                 });
 
@@ -1139,7 +1194,7 @@
                 updateHeaderStyle();
             }
 
-            // Initialize Quill editor once on page load
+            // Initialize Main Quill editor
             quill = new Quill(editorContainer, {
                 theme: 'snow', // 'bubble' or 'snow'
                 modules: {
@@ -1157,7 +1212,17 @@
                 placeholder: '현재 페이지의 내용을 작성해 주세요.',
             });
 
-            // Listen for changes in Quill editor to auto-save to local array
+            // Initialize Thumbnail Quill editor (NEW)
+            quillThumbnail = new Quill(thumbnailEditorContainer, {
+                theme: 'snow',
+                modules: {
+                    toolbar: [['image']] // Only image upload
+                },
+                placeholder: '썸네일 이미지를 여기에 드래그하거나 붙여넣으세요.',
+            });
+
+
+            // Listen for changes in Main Quill editor to auto-save to local array
             quill.on('text-change', () => {
                 saveCurrentPageContent();
             });
@@ -1168,14 +1233,22 @@
                     const workDocRef = doc(db, `artifacts/${appId}/public/data/works`, currentWorkId);
                     const workDocSnap = await getDoc(workDocRef);
 
-                    if (workDocSnap.exists()) {
-                        const workData = workDocSnap.data();
+                    if (docSnap.exists()) {
+                        const workData = docSnap.data();
                         workTitleInput.value = workData.title || '';
                         workTypeSelect.value = workData.type || 'novel';
                         workGenreSelect.value = workData.genre || '';
                         ageRatingSelect.value = workData.ageRating || '';
                         workIntroductionTextarea.value = workData.introduction || '';
-                        thumbnailUrlInput.value = workData.thumbnailUrl || '';
+                        // thumbnailUrlInput.value = workData.thumbnailUrl || ''; // REMOVED
+
+                        // Load thumbnail into thumbnail Quill editor (NEW)
+                        if (workData.thumbnailUrl && workData.thumbnailUrl.startsWith('data:image/')) {
+                            quillThumbnail.root.innerHTML = `<img src="${workData.thumbnailUrl}" alt="Thumbnail"/>`;
+                        } else {
+                            quillThumbnail.root.innerHTML = ''; // Clear if no Base64 thumbnail
+                        }
+
                         publicSettingSelect.value = workData.publicSetting || 'public';
 
                         // Clear existing tags and add loaded tags
@@ -1213,7 +1286,10 @@
             handleWorkTypeChange();
 
             // Explicitly scroll to the top of the page after everything is loaded and rendered
-            window.scrollTo(0, 0);
+            // Use a setTimeout to ensure it runs after any potential browser scroll restoration
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+            }, 100); // Small delay
         });
 
         // Firebase Auth State Listener
@@ -1286,11 +1362,11 @@
         // Handle work type change event
         workTypeSelect.addEventListener('change', handleWorkTypeChange);
 
-        // Add scroll to top on dropdown changes
-        workTypeSelect.addEventListener('change', () => window.scrollTo(0, 0));
-        workGenreSelect.addEventListener('change', () => window.scrollTo(0, 0));
-        ageRatingSelect.addEventListener('change', () => window.scrollTo(0, 0));
-        publicSettingSelect.addEventListener('change', () => window.scrollTo(0, 0));
+        // REMOVED: Scroll to top on dropdown changes (as per user's request)
+        // workTypeSelect.addEventListener('change', () => window.scrollTo(0, 0));
+        // workGenreSelect.addEventListener('change', () => window.scrollTo(0, 0));
+        // ageRatingSelect.addEventListener('change', () => window.scrollTo(0, 0));
+        // publicSettingSelect.addEventListener('change', () => window.scrollTo(0, 0));
 
 
         // Handle work upload button click
@@ -1317,9 +1393,27 @@
                 const workGenre = workGenreSelect.value;
                 const ageRating = ageRatingSelect.value;
                 const workIntroduction = workIntroductionTextarea.value;
-                const thumbnailUrl = thumbnailUrlInput.value;
                 const publicSetting = publicSettingSelect.value;
                 const currentTags = Array.from(tagsContainer.querySelectorAll('.tag-item span')).map(span => span.textContent);
+
+                // NEW: Get Base64 image from thumbnail Quill editor
+                let thumbnailUrl = '';
+                const thumbnailEditorContent = quillThumbnail.root.innerHTML;
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = thumbnailEditorContent;
+                const imgElement = tempDiv.querySelector('img');
+                if (imgElement && imgElement.src.startsWith('data:image/')) {
+                    thumbnailUrl = imgElement.src;
+                } else if (thumbnailEditorContent.trim() !== '<p><br></p>' && thumbnailEditorContent.trim() !== '') {
+                    // If there's text content but no image, warn user
+                    showCustomAlert('썸네일 에디터에 이미지가 아닌 텍스트가 입력되었습니다. 이미지를 업로드하거나 비워두세요.');
+                    uploadButtonText.textContent = '작품 업로드';
+                    uploadIcon.classList.remove('hidden');
+                    loadingSpinner.classList.add('hidden');
+                    uploadWorkBtn.disabled = false;
+                    return;
+                }
+                // END NEW
 
                 let contentToUpload = novelPages; // This will be novelPages for both novel and webtoon
 
@@ -1345,7 +1439,7 @@
                     ageRating: ageRating,
                     introduction: workIntroduction,
                     tags: currentTags,
-                    thumbnailUrl: thumbnailUrl,
+                    thumbnailUrl: thumbnailUrl, // Use extracted Base64 URL
                     publicSetting: publicSetting,
                     content: contentToUpload, // This will be novelPages for both novel and webtoon
                     authorId: auth.currentUser.uid, // Use actual logged-in user ID
@@ -1369,7 +1463,7 @@
                 }
                 
                 // Redirect to the manage tab after successful upload/update
-                window.location.href = 'upload-work.html?tab=manage';
+                window.location.href = 'hello-world-tabs.html?tab=manage';
 
             } catch (error) {
                 console.error("작품 업로드/업데이트 중 오류 발생:", error);
@@ -1421,7 +1515,8 @@
             workGenreSelect.value = '';
             ageRatingSelect.value = '';
             workIntroductionTextarea.value = '';
-            thumbnailUrlInput.value = '';
+            // thumbnailUrlInput.value = ''; // REMOVED
+            quillThumbnail.root.innerHTML = ''; // NEW: Clear thumbnail editor
             publicSettingSelect.value = 'public';
             tagsContainer.innerHTML = '';
             novelPages = ['<p>이것은 첫 번째 페이지의 내용입니다. 소설을 책처럼 넘기면서 작성해 보세요!</p>'];
