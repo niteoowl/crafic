@@ -82,7 +82,7 @@
         }
         /* Sections/Cards in dark mode */
         body.dark-mode .bg-white { /* Apply to sections with border */
-            background-color: #1e1e1e; /* Darker card background */
+            background-color: #1e1e1e;
             border-color: #3a3a3a; /* Darker border */
             box-shadow: none; /* Ensure no shadow */
         }
@@ -469,7 +469,7 @@
         <section id="tab-content-container" class="container mx-auto px-4">
             <div id="episodes-tab-content" class="tab-content">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold text-gray-900">에피소드</h3>
+                    <h3 id="episodes-tab-title" class="text-xl font-bold text-gray-900">에피소드</h3>
                     <button class="text-sm text-gray-600 hover:text-teal-600">1화부터 ↑↓</button>
                 </div>
                 <div id="episode-list">
@@ -564,31 +564,32 @@
         const reviewsTabContent = document.getElementById('reviews-tab-content');
         const similarTabContent = document.getElementById('similar-tab-content');
         const episodeList = document.getElementById('episode-list');
+        const episodesTabTitle = document.getElementById('episodes-tab-title'); // New element for dynamic title
 
         // Comments Section Elements (moved to reviews tab)
         const commentTextarea = document.getElementById('comment-textarea');
         const submitCommentBtn = document.getElementById('submit-comment-btn');
         const commentsList = document.getElementById('comments-list');
 
-        // Extract workId from URL path (e.g., /view/work_id_here) or from query parameter (fallback)
+        // Extract workId from URL: Prioritize query parameter, then path segments
         let workId = null;
-        const pathSegments = window.location.pathname.split('/');
-        // Attempt to extract from path first
-        for (let i = pathSegments.length - 1; i >= 0; i--) {
-            const segment = pathSegments[i];
-            if (segment && segment !== 'view' && segment !== 'index.html' && segment !== 'detail.html') {
-                workId = segment;
-                break;
+        const urlParams = new URLSearchParams(window.location.search);
+        workId = urlParams.get('workId'); // Try to get from query parameter first
+
+        if (!workId) { // If not found in query parameter, try path segments
+            const pathSegments = window.location.pathname.split('/');
+            // Find the segment that is likely the work ID.
+            // We look for the last non-empty segment that isn't 'view' or 'index.html' or 'view.html' (new name)
+            for (let i = pathSegments.length - 1; i >= 0; i--) {
+                const segment = pathSegments[i];
+                if (segment && segment !== 'view' && segment !== 'index.html' && segment !== 'view.html') {
+                    workId = segment;
+                    break;
+                }
             }
         }
-
-        // Fallback to query parameter if path extraction failed
-        if (!workId) {
-            const urlParams = new URLSearchParams(window.location.search);
-            workId = urlParams.get('workId');
-        }
-
         console.log("Extracted workId:", workId);
+
 
         /**
          * Updates the header's style (shadow and border) based on dark mode.
@@ -728,10 +729,18 @@
                         heroIntroductionFull.classList.remove('hidden');
                     }
 
-                    // Set "Play First Episode" button link to new URL structure
-                    playFirstEpisodeBtn.onclick = () => {
-                        window.location.href = `/read/${workId}`; // Changed to new URL structure
-                    };
+                    // Set "Play First Episode" button text and link based on work type
+                    if (currentWorkData.type === 'webtoon') {
+                        playFirstEpisodeBtn.textContent = '1화 재생하기';
+                        playFirstEpisodeBtn.onclick = () => {
+                            window.location.href = `/read/${workId}`; // Webtoon goes to read page without pageIndex
+                        };
+                    } else { // Assuming 'novel' or other text-based types
+                        playFirstEpisodeBtn.textContent = '읽기 시작';
+                        playFirstEpisodeBtn.onclick = () => {
+                            window.location.href = `/read/${workId}?pageIndex=0`; // Novel starts from page 0
+                        };
+                    }
                     playFirstEpisodeBtn.disabled = false; // Enable button once data is loaded
 
                     // Increment views only on initial load, not on subsequent updates from onSnapshot
@@ -755,7 +764,7 @@
                         likeButton.disabled = false; // Enable like button even if not logged in (to prompt login)
                     }
 
-                    // Render Episodes
+                    // Render Episodes (or Pages/Chapters)
                     renderEpisodes();
                     // Fetch and Render Comments (for reviews tab)
                     fetchAndRenderComments();
@@ -774,7 +783,7 @@
                     playFirstEpisodeBtn.disabled = true;
                     likeButton.disabled = true;
                     episodeList.innerHTML = '<p class="text-gray-500 text-center">에피소드를 불러올 수 없습니다.</p>';
-                    commentsList.innerHTML = '<p class="text-gray-500 text-center">댓글을 불러올 수 없습니다.</p>';
+                    commentsList.innerHTML = '<p class="text-red-500 text-center">댓글을 불러올 수 없습니다.</p>';
                     console.error("No such work document with ID:", workId);
                 }
             }, (error) => {
@@ -810,46 +819,65 @@
         }
 
         /**
-         * Renders the list of episodes/chapters.
+         * Renders the list of episodes/chapters based on work type.
          */
         function renderEpisodes() {
             episodeList.innerHTML = ''; // Clear existing episodes
+
             if (!currentWorkData || !currentWorkData.content || currentWorkData.content.length === 0) {
                 episodeList.innerHTML = '<p class="text-gray-500 text-center">등록된 에피소드/페이지가 없습니다.</p>';
+                episodesTabTitle.textContent = '에피소드'; // Default title if no content
                 return;
             }
 
-            currentWorkData.content.forEach((pageContent, index) => {
-                const episodeDiv = document.createElement('div');
-                episodeDiv.className = 'episode-item';
-                episodeDiv.onclick = () => {
-                    // Changed to new URL structure
-                    window.location.href = `/read/${workId}?pageIndex=${index}`;
-                };
+            // Determine the title for the tab based on work type
+            if (currentWorkData.type === 'webtoon') {
+                episodesTabTitle.textContent = '화'; // Change tab title to '화' for webtoons
+            } else { // Assuming 'novel' or other text-based types
+                episodesTabTitle.textContent = '권'; // Change tab title to '권' for novels
+            }
 
-                // Extract a text snippet for description
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = pageContent;
-                const descriptionSnippet = tempDiv.textContent.trim().substring(0, 100) + (tempDiv.textContent.trim().length > 100 ? '...' : '');
+            // For both novels and webtoons, each Firestore document represents one 'episode' (chapter/volume)
+            // So, we display a single entry for the current work.
+            const episodeDiv = document.createElement('div');
+            episodeDiv.className = 'episode-item';
 
-                // Determine thumbnail (placeholder for now, could be first image in content later)
-                const thumbnailUrl = 'https://placehold.co/96x54/CCCCCC/333333?text=EP'; // Generic placeholder
+            let episodeTitleText;
+            let episodeMetaText;
+            let readLink;
 
-                episodeDiv.innerHTML = `
-                    <img src="${thumbnailUrl}" alt="Episode Thumbnail" class="episode-thumbnail" onerror="this.onerror=null;this.src='https://placehold.co/96x54/CCCCCC/333333?text=EP';"/>
-                    <div class="episode-info">
-                        <div class="episode-title">${index + 1}화 ${currentWorkData.type === 'novel' ? '' : '제목'}</div>
-                        <div class="episode-meta">23분 · ${currentWorkData.timestamp ? new Date(currentWorkData.timestamp.toDate()).toLocaleDateString('ko-KR') : '날짜 없음'}</div>
-                        <p class="episode-description">${descriptionSnippet || '에피소드 내용 요약'}</p>
+            if (currentWorkData.type === 'webtoon') {
+                episodeTitleText = (currentWorkData.chapterNumber ? `${currentWorkData.chapterNumber}화` : '1화');
+                episodeMetaText = `총 ${currentWorkData.content.length || 0} 이미지`;
+                readLink = `/read/${workId}`; // Webtoon goes to read page without pageIndex
+            } else { // Novel
+                episodeTitleText = (currentWorkData.volumeNumber ? `${currentWorkData.volumeNumber}권` : '본편');
+                episodeMetaText = `총 ${currentWorkData.content.length || 0} 쪽`;
+                readLink = `/read/${workId}?pageIndex=0`; // Novel starts from page 0
+            }
+
+            const thumbnailUrl = currentWorkData.thumbnailUrl || 'https://placehold.co/96x54/CCCCCC/333333?text=NO+IMAGE';
+            const descriptionSnippet = currentWorkData.introduction ? currentWorkData.introduction.substring(0, 100) + (currentWorkData.introduction.length > 100 ? '...' : '') : '내용 요약 없음';
+
+            episodeDiv.innerHTML = `
+                <img src="${thumbnailUrl}" alt="${episodeTitleText} 썸네일" class="episode-thumbnail" onerror="this.onerror=null;this.src='${thumbnailUrl}';"/>
+                <div class="episode-info">
+                    <div class="episode-title">${episodeTitleText}</div>
+                    <div class="episode-meta">
+                        ${episodeMetaText} · ${currentWorkData.timestamp ? new Date(currentWorkData.timestamp.toDate()).toLocaleDateString('ko-KR') : '날짜 없음'}
                     </div>
-                    <div class="episode-play-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                    </div>
-                `;
-                episodeList.appendChild(episodeDiv);
-            });
+                    <p class="episode-description">${descriptionSnippet}</p>
+                </div>
+                <div class="episode-play-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                </div>
+            `;
+            episodeDiv.onclick = () => {
+                window.location.href = readLink;
+            };
+            episodeList.appendChild(episodeDiv);
         }
 
 
