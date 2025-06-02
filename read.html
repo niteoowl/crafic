@@ -95,6 +95,34 @@
         body.dark-mode .like-button.liked svg {
             fill: #f87171; /* Lighter red for liked icon in dark mode */
         }
+        body.dark-mode #settings-modal .bg-white {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
+        body.dark-mode #settings-modal .text-gray-900 {
+            color: #e0e0e0;
+        }
+        body.dark-mode #settings-modal .text-gray-800 {
+            color: #e0e0e0;
+        }
+        body.dark-mode #settings-modal .text-gray-700 {
+            color: #c0c0c0;
+        }
+        body.dark-mode #settings-modal .bg-gray-200 {
+            background-color: #3a3a3a;
+        }
+        body.dark-mode #settings-modal .hover\:bg-gray-300:hover {
+            background-color: #4a4a4a;
+        }
+        body.dark-mode #settings-modal .form-radio {
+            border-color: #6b7280;
+            background-color: #2a2a2a;
+        }
+        body.dark-mode #settings-modal .form-radio:checked {
+            background-color: #2dd4bf;
+            border-color: #2dd4bf;
+        }
+
 
         /* Reader Header */
         #reader-header {
@@ -184,6 +212,9 @@
         }
 
         /* Style for content within the display area (Quill's output) */
+        #work-content-display {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* Add transition for page turn effect */
+        }
         #work-content-display h1, #work-content-display h2, #work-content-display h3, #work-content-display h4, #work-content-display h5, #work-content-display h6 {
             font-family: 'Pretendard', sans-serif;
             margin-top: 1.5em;
@@ -296,6 +327,26 @@
             50% { transform: scale(1.2); }
             100% { transform: scale(1); }
         }
+
+        /* Book Mode Specific Styles */
+        body.book-mode main {
+            padding-top: 5rem; /* Same as scroll mode */
+            padding-bottom: 5rem; /* Same as scroll mode */
+            display: block; /* Override flex-column to allow fixed height on container */
+        }
+
+        body.book-mode #document-page-container {
+            height: calc(100vh - 10rem); /* Fixed height: viewport height - header height - footer height */
+            overflow-y: auto; /* Allow scrolling within the fixed height */
+            scroll-snap-type: y mandatory; /* Optional: for snapping to pages */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            margin: 2rem auto; /* Center with margin */
+        }
+
+        body.book-mode #work-content-display {
+            padding-bottom: 2rem; /* Ensure content doesn't get cut off at the bottom */
+            scroll-snap-align: start; /* Optional: for snapping content to top of container */
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-800">
@@ -305,6 +356,11 @@
             <a href="index.html" class="text-xl font-extrabold text-teal-500">
                 CRAFIQ Reader
             </a>
+            <button id="back-to-detail-btn" class="icon-button text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
             <button class="icon-button text-gray-700">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
                     <circle cx="11" cy="11" r="8"></circle>
@@ -322,16 +378,17 @@
                     <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
             </button>
-            <div id="font-size-controls-header" class="flex items-center space-x-1 ml-2">
-                <button id="font-decrease-button" class="text-gray-700">-</button>
-                <span class="text-gray-700 font-semibold text-base">Aa</span>
-                <button id="font-increase-button" class="text-gray-700">+</button>
-            </div>
         </div>
 
         <div id="work-title-header" class="work-title-center">작품 제목 로딩 중...</div>
 
         <div class="flex items-center space-x-2">
+            <button id="settings-button" class="icon-button text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.78 1.22a2 2 0 0 0 .73 2.73l.04.02a2 2 0 0 1 .97 1.73v.44a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.78 1.22a2 2 0 0 0 .73 2.73l.04.02a2 2 0 0 1 .97 1.73v.44a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.78-1.22a2 2 0 0 0-.73-2.73l-.04-.02a2 2 0 0 1-.97-1.73v-.44a2 2 0 0 0 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.78-1.22a2 2 0 0 0-.73-2.73l-.04-.02a2 2 0 0 1-.97-1.73V4a2 2 0 0 0-2-2z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+            </button>
             <div id="user-info-display-header" class="relative flex items-center space-x-1">
                 <span id="user-nickname-header" class="text-sm font-semibold text-gray-700 hidden md:block"></span>
                 <button id="auth-button-header" class="icon-button text-gray-700">
@@ -400,6 +457,50 @@
         </div>
     </footer>
 
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">읽기 설정</h2>
+
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-lg font-semibold text-gray-800">다크 모드</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="dark-mode-toggle" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 dark:peer-focus:ring-teal-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-teal-600"></div>
+                </label>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-lg font-semibold text-gray-800 mb-2">글자 크기</label>
+                <div class="flex items-center justify-center space-x-4">
+                    <button id="modal-font-decrease-button" class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 text-gray-700 font-bold text-xl">-</button>
+                    <span id="current-font-size-display" class="text-xl font-semibold text-gray-800">1.1rem</span>
+                    <button id="modal-font-increase-button" class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 text-gray-700 font-bold text-xl">+</button>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-lg font-semibold text-gray-800 mb-2">읽기 모드</label>
+                <div class="flex flex-col space-y-2">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="reading-mode" value="scroll" id="scroll-mode-radio" class="form-radio text-teal-600 h-5 w-5">
+                        <span class="ml-2 text-gray-700">스크롤 모드 (자유롭게 스크롤)</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="reading-mode" value="book" id="book-mode-radio" class="form-radio text-teal-600 h-5 w-5">
+                        <span class="ml-2 text-gray-700">책 모드 (화면 단위로 보기)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button id="close-settings-modal" class="px-6 py-2 bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-700 transition-colors">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
+
     <script type="module">
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -422,20 +523,25 @@
         let currentUserId = null;
         let hasUserLiked = false; // To track if the current user has liked this work
         let currentFontSize = parseFloat(localStorage.getItem('readerFontSize')) || 1.1; // Default font size in rem
+        let currentReadingMode = localStorage.getItem('readingMode') || 'scroll'; // Default reading mode
+
+        // Touch swipe variables
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const swipeThreshold = 50; // Minimum pixels to register a swipe
 
         // Get DOM elements (Header)
         const readerHeader = document.getElementById('reader-header');
-        const backButton = document.getElementById('back-button');
+        const backToDetailBtn = document.getElementById('back-to-detail-btn'); // New back button
         const workTitleHeader = document.getElementById('work-title-header');
         const pageCounterHeader = document.getElementById('page-counter-header');
         const prevPageHeaderBtn = document.getElementById('prev-page-header-btn');
         const nextPageHeaderBtn = document.getElementById('next-page-header-btn');
-        const fontDecreaseButton = document.getElementById('font-decrease-button');
-        const fontIncreaseButton = document.getElementById('font-increase-button');
         const authButtonHeader = document.getElementById('auth-button-header');
         const userNicknameHeader = document.getElementById('user-nickname-header');
         const userDropdownMenuHeader = document.getElementById('user-dropdown-menu-header');
         const logoutBtnHeader = document.getElementById('logout-btn-header');
+        const settingsButton = document.getElementById('settings-button'); // New settings button
 
         // Get DOM elements (Main Content)
         const documentPageContainer = document.getElementById('document-page-container');
@@ -450,7 +556,52 @@
         const likeButtonIcon = likeButton.querySelector('svg');
         const workLikesElement = document.getElementById('work-likes');
 
-        const workId = new URLSearchParams(window.location.search).get('workId');
+        // Get DOM elements (Settings Modal)
+        const settingsModal = document.getElementById('settings-modal');
+        const closeSettingsModal = document.getElementById('close-settings-modal');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const modalFontDecreaseButton = document.getElementById('modal-font-decrease-button');
+        const modalFontIncreaseButton = document.getElementById('modal-font-increase-button');
+        const currentFontSizeDisplay = document.getElementById('current-font-size-display');
+        const scrollModeRadio = document.getElementById('scroll-mode-radio');
+        const bookModeRadio = document.getElementById('book-mode-radio');
+        const readingModeRadios = document.querySelectorAll('input[name="reading-mode"]');
+
+
+        // Extract workId and pageIndex from URL: Prioritize query parameter, then path segments
+        let workId = null;
+        let initialPageIndex = 0; // Default to 0
+
+        const urlParams = new URLSearchParams(window.location.search);
+        workId = urlParams.get('workId'); // Try to get from query parameter first
+        const pageIndexParam = urlParams.get('pageIndex');
+        if (pageIndexParam !== null) {
+            initialPageIndex = parseInt(pageIndexParam, 10);
+            if (isNaN(initialPageIndex) || initialPageIndex < 0) {
+                initialPageIndex = 0;
+            }
+        }
+
+        if (!workId) { // If workId not found in query parameter, try path segments
+            const pathSegments = window.location.pathname.split('/');
+            // Example paths: /read/workId, /read/workId/pageIndex
+            // We look for the segment after 'read'
+            const readIndex = pathSegments.indexOf('read');
+            if (readIndex !== -1 && readIndex + 1 < pathSegments.length) {
+                workId = pathSegments[readIndex + 1];
+                if (readIndex + 2 < pathSegments.length) {
+                    const pageIndexSegment = pathSegments[readIndex + 2];
+                    const parsedPageIndex = parseInt(pageIndexSegment, 10);
+                    if (!isNaN(parsedPageIndex) && parsedPageIndex >= 0) {
+                        initialPageIndex = parsedPageIndex;
+                    }
+                }
+            }
+        }
+        currentPageIndex = initialPageIndex; // Set the global current page index
+
+        console.log("Extracted workId:", workId, "initialPageIndex:", initialPageIndex);
+
 
         /**
          * Applies or removes dark mode based on the toggle state.
@@ -459,9 +610,12 @@
         function applyDarkModeToPage(isDarkMode) {
             if (isDarkMode) {
                 document.body.classList.add('dark-mode');
+                darkModeToggle.checked = true;
             } else {
                 document.body.classList.remove('dark-mode');
+                darkModeToggle.checked = false;
             }
+            localStorage.setItem('darkMode', isDarkMode);
         }
 
         /**
@@ -518,8 +672,9 @@
 
         /**
          * Renders the current page of the work.
+         * @param {string} [direction='none'] - 'prev', 'next', or 'none' for animation direction.
          */
-        function renderWorkPage() {
+        function renderWorkPage(direction = 'none') {
             if (!currentWorkData || !currentWorkData.content || currentWorkData.content.length === 0) {
                 workContentDisplay.innerHTML = '<p class="text-gray-500 text-center">작품 내용을 불러올 수 없습니다.</p>';
                 pageCounterHeader.textContent = '0 / 0';
@@ -529,8 +684,46 @@
                 return;
             }
 
+            // Ensure currentPageIndex is within bounds
+            if (currentPageIndex >= currentWorkData.content.length) {
+                currentPageIndex = currentWorkData.content.length - 1;
+            }
+            if (currentPageIndex < 0) {
+                currentPageIndex = 0;
+            }
+
             const pageContent = currentWorkData.content[currentPageIndex];
 
+            // Apply animation if in book mode and a direction is given
+            if (currentReadingMode === 'book' && direction !== 'none') {
+                workContentDisplay.style.opacity = '0';
+                workContentDisplay.style.transform = direction === 'next' ? 'translateX(-20px)' : 'translateX(20px)';
+
+                setTimeout(() => {
+                    updateContentAndResetAnimation(pageContent);
+                }, 300); // Match CSS transition duration
+            } else {
+                updateContentAndResetAnimation(pageContent);
+            }
+
+            // Update header and footer page counters
+            pageCounterHeader.textContent = `${currentPageIndex + 1} / ${currentWorkData.content.length}`;
+            footerPageInfo.textContent = `${currentPageIndex + 1} / ${currentWorkData.content.length}`;
+
+            // Update header navigation button states
+            prevPageHeaderBtn.disabled = currentPageIndex === 0;
+            nextPageHeaderBtn.disabled = currentPageIndex === currentWorkData.content.length - 1;
+
+            // Apply current font size
+            workContentDisplay.style.fontSize = `${currentFontSize}rem`;
+            currentFontSizeDisplay.textContent = `${currentFontSize.toFixed(1)}rem`; // Update display in modal
+        }
+
+        /**
+         * Updates the content display and resets animation properties.
+         * @param {string} contentHtml - The HTML content for the current page.
+         */
+        function updateContentAndResetAnimation(contentHtml) {
             // For the first page, display title, author, introduction, tags before content
             if (currentPageIndex === 0) {
                 let initialDetailsHtml = `
@@ -549,22 +742,23 @@
                     initialDetailsHtml += `</div>`;
                 }
                 initialDetailsHtml += `</div><hr>`; // Separator
-                workContentDisplay.innerHTML = initialDetailsHtml + pageContent;
+                workContentDisplay.innerHTML = initialDetailsHtml + contentHtml;
             } else {
-                workContentDisplay.innerHTML = pageContent;
+                workContentDisplay.innerHTML = contentHtml;
             }
 
-            // Update header and footer page counters
-            pageCounterHeader.textContent = `${currentPageIndex + 1} / ${currentWorkData.content.length}`;
-            footerPageInfo.textContent = `${currentPageIndex + 1} / ${currentWorkData.content.length}`;
+            // Reset transform and fade back in
+            workContentDisplay.style.transform = 'translateX(0)';
+            workContentDisplay.style.opacity = '1';
 
-            // Update header navigation button states
-            prevPageHeaderBtn.disabled = currentPageIndex === 0;
-            nextPageHeaderBtn.disabled = currentPageIndex === currentWorkData.content.length - 1;
-
-            // Apply current font size
-            workContentDisplay.style.fontSize = `${currentFontSize}rem`;
+            // Scroll to top of the content container if in book mode, or window if scroll mode
+            if (currentReadingMode === 'book') {
+                documentPageContainer.scrollTo(0, 0);
+            } else {
+                window.scrollTo(0, 0);
+            }
         }
+
 
         /**
          * Navigates to the previous page.
@@ -572,8 +766,7 @@
         function goToPrevPage() {
             if (currentPageIndex > 0) {
                 currentPageIndex--;
-                renderWorkPage();
-                window.scrollTo(0, 0); // Scroll to top of the page
+                renderWorkPage('prev'); // Pass direction for animation
             }
         }
 
@@ -583,8 +776,7 @@
         function goToNextPage() {
             if (currentPageIndex < currentWorkData.content.length - 1) {
                 currentPageIndex++;
-                renderWorkPage();
-                window.scrollTo(0, 0); // Scroll to top of the page
+                renderWorkPage('next'); // Pass direction for animation
             }
         }
 
@@ -595,7 +787,37 @@
         function adjustFontSize(delta) {
             currentFontSize = Math.max(0.8, Math.min(2.0, currentFontSize + delta)); // Limit min/max font size
             workContentDisplay.style.fontSize = `${currentFontSize}rem`;
+            currentFontSizeDisplay.textContent = `${currentFontSize.toFixed(1)}rem`;
             localStorage.setItem('readerFontSize', currentFontSize); // Save preference
+        }
+
+        /**
+         * Applies the selected reading mode CSS classes.
+         * @param {string} mode - 'scroll' or 'book'.
+         */
+        function applyReadingMode(mode) {
+            if (mode === 'book' && currentWorkData && currentWorkData.type === 'webtoon') {
+                // Webtoons must always be in scroll mode
+                document.body.classList.remove('book-mode');
+                scrollModeRadio.checked = true; // Ensure scroll mode is selected in UI
+                localStorage.setItem('readingMode', 'scroll'); // Force save scroll mode
+                currentReadingMode = 'scroll'; // Update global variable
+                bookModeRadio.disabled = true; // Disable book mode radio for webtoons
+                bookModeRadio.closest('label').style.opacity = '0.5'; // Visually indicate disabled
+                showCustomAlert('웹툰은 "책 모드"를 지원하지 않습니다. 스크롤 모드로 전환됩니다.');
+            } else {
+                if (mode === 'book') {
+                    document.body.classList.add('book-mode');
+                    bookModeRadio.checked = true;
+                } else { // scroll mode
+                    document.body.classList.remove('book-mode');
+                    scrollModeRadio.checked = true;
+                }
+                localStorage.setItem('readingMode', mode);
+                currentReadingMode = mode;
+                bookModeRadio.disabled = false; // Enable book mode radio for novels
+                bookModeRadio.closest('label').style.opacity = '1';
+            }
         }
 
         /**
@@ -629,7 +851,14 @@
                         footerPublishedDate.textContent = '';
                     }
 
-                    renderWorkPage(); // Render the current page content
+                    // Enforce reading mode for webtoons
+                    if (currentWorkData.type === 'webtoon') {
+                        applyReadingMode('scroll'); // Force scroll mode for webtoons
+                    } else {
+                        applyReadingMode(currentReadingMode); // Apply user's preference
+                    }
+
+                    renderWorkPage(); // Render the current page content (initial load, no animation)
 
                     // Increment views only on initial load, not on subsequent updates from onSnapshot
                     const sessionKey = `viewed_${workId}`;
@@ -787,10 +1016,20 @@
                 updateAuthSection(null);
             }
 
+            // Load dark mode preference
             const savedDarkMode = localStorage.getItem('darkMode');
             if (savedDarkMode !== null) {
                 applyDarkModeToPage(savedDarkMode === 'true');
             }
+
+            // Load reading mode preference
+            const savedReadingMode = localStorage.getItem('readingMode');
+            if (savedReadingMode !== null) {
+                currentReadingMode = savedReadingMode;
+            } else {
+                currentReadingMode = 'scroll'; // Default to scroll mode
+            }
+            // applyReadingMode will be called within fetchWorkData to handle webtoon specific logic
 
             fetchWorkData(); // Fetch work data after Firebase is initialized
         });
@@ -831,17 +1070,97 @@
         prevPageHeaderBtn.addEventListener('click', goToPrevPage);
         nextPageHeaderBtn.addEventListener('click', goToNextPage);
 
-        // Font size controls
-        fontDecreaseButton.addEventListener('click', () => adjustFontSize(-0.1));
-        fontIncreaseButton.addEventListener('click', () => adjustFontSize(0.1));
+        // Settings modal controls
+        settingsButton.addEventListener('click', () => {
+            settingsModal.classList.remove('hidden');
+            // Set initial state of controls in modal
+            darkModeToggle.checked = document.body.classList.contains('dark-mode');
+            currentFontSizeDisplay.textContent = `${currentFontSize.toFixed(1)}rem`;
+            if (currentReadingMode === 'scroll') {
+                scrollModeRadio.checked = true;
+            } else {
+                bookModeRadio.checked = true;
+            }
+            // Disable book mode if it's a webtoon
+            if (currentWorkData && currentWorkData.type === 'webtoon') {
+                bookModeRadio.disabled = true;
+                bookModeRadio.closest('label').style.opacity = '0.5'; // Visually indicate disabled
+            } else {
+                bookModeRadio.disabled = false;
+                bookModeRadio.closest('label').style.opacity = '1';
+            }
+        });
 
-        // Back button
-        backButton.addEventListener('click', () => {
-            window.history.back(); // Go back to the previous page
+        closeSettingsModal.addEventListener('click', () => {
+            settingsModal.classList.add('hidden');
+        });
+
+        darkModeToggle.addEventListener('change', (event) => {
+            applyDarkModeToPage(event.target.checked);
+        });
+
+        modalFontDecreaseButton.addEventListener('click', () => adjustFontSize(-0.1));
+        modalFontIncreaseButton.addEventListener('click', () => adjustFontSize(0.1));
+
+        readingModeRadios.forEach(radio => {
+            radio.addEventListener('change', (event) => {
+                applyReadingMode(event.target.value);
+            });
+        });
+
+        // Back to detail page button
+        backToDetailBtn.addEventListener('click', () => {
+            if (workId) {
+                window.location.href = `/view/${workId}`; // Navigate back to the detail page
+            } else {
+                window.history.back(); // Fallback to browser history back
+            }
         });
 
         // Like button in footer
         likeButton.addEventListener('click', handleLikeUnlike);
+
+        // --- New: Swipe and Keyboard Navigation ---
+
+        // Swipe event listeners on the document container
+        documentPageContainer.addEventListener('touchstart', (e) => {
+            if (currentReadingMode === 'book') {
+                touchStartX = e.touches[0].clientX;
+            }
+        });
+
+        documentPageContainer.addEventListener('touchmove', (e) => {
+            if (currentReadingMode === 'book') {
+                touchEndX = e.touches[0].clientX;
+            }
+        });
+
+        documentPageContainer.addEventListener('touchend', () => {
+            if (currentReadingMode === 'book') {
+                const swipeDistance = touchStartX - touchEndX;
+                if (swipeDistance > swipeThreshold) {
+                    // Swiped left (go to next page)
+                    goToNextPage();
+                } else if (swipeDistance < -swipeThreshold) {
+                    // Swiped right (go to previous page)
+                    goToPrevPage();
+                }
+                // Reset touch variables
+                touchStartX = 0;
+                touchEndX = 0;
+            }
+        });
+
+        // Keyboard event listener for arrow keys
+        document.addEventListener('keydown', (e) => {
+            if (currentReadingMode === 'book') {
+                if (e.key === 'ArrowLeft') {
+                    goToPrevPage();
+                } else if (e.key === 'ArrowRight') {
+                    goToNextPage();
+                }
+            }
+        });
 
     </script>
 </body>
