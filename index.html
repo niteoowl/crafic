@@ -381,7 +381,8 @@
 
             // Set the "지금 읽기" button to navigate to the detail page of the current banner work
             heroReadNowBtn.onclick = () => {
-                window.location.href = `/view/${currentBanner.id}`; // Changed to new URL structure
+                // Modified to use clean URL format /view/workId
+                window.location.href = `/view/${currentBanner.id}`;
             };
             heroReadNowBtn.disabled = false;
 
