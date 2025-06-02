@@ -418,6 +418,7 @@
 
     <main class="flex-grow">
         <section id="work-hero-section" class="relative pt-16" style="background-image: url('https://placehold.co/1920x400/2a2a4e/ffffff?text=Work+Hero+Image');">
+            <div class="absolute inset-0 bg-gradient-to-top from-black via-transparent to-transparent opacity-80"></div>
             <div id="work-hero-content" class="relative z-20 py-10">
                 <div class="flex items-center text-sm mb-2">
                     <span id="hero-rating" class="text-yellow-400 mr-2">★ 0.0</span>
@@ -569,7 +570,20 @@
         const submitCommentBtn = document.getElementById('submit-comment-btn');
         const commentsList = document.getElementById('comments-list');
 
-        const workId = new URLSearchParams(window.location.search).get('workId');
+        // Extract workId from URL path (e.g., /view/work_id_here)
+        let workId = null;
+        const pathSegments = window.location.pathname.split('/');
+        // Find the segment that is likely the work ID.
+        // Assuming the URL will be something like /view/WORK_ID or /view/index.html/WORK_ID
+        // We look for the last non-empty segment that isn't 'view' or 'index.html' or 'detail.html'.
+        for (let i = pathSegments.length - 1; i >= 0; i--) {
+            const segment = pathSegments[i];
+            if (segment && segment !== 'view' && segment !== 'index.html' && segment !== 'detail.html') {
+                workId = segment;
+                break;
+            }
+        }
+        console.log("Extracted workId from path:", workId);
 
         /**
          * Updates the header's style (shadow and border) based on dark mode.
@@ -663,9 +677,16 @@
         async function fetchWorkData() {
             if (!workId) {
                 heroTitle.textContent = '오류: 작품 ID가 없습니다.';
-                heroIntroductionShort.textContent = '잘못된 접근입니다.';
+                heroIntroductionShort.textContent = '작품을 찾을 수 없습니다. URL에 유효한 작품 ID가 포함되어 있는지 확인해주세요.';
+                heroIntroductionFull.textContent = '작품을 찾을 수 없습니다. URL에 유효한 작품 ID가 포함되어 있는지 확인해주세요.';
+                heroRating.textContent = '★ 0.0';
+                heroGenreType.textContent = '';
+                heroAgeRating.textContent = '';
+                workLikesElement.textContent = '0';
                 playFirstEpisodeBtn.disabled = true;
                 likeButton.disabled = true;
+                episodeList.innerHTML = '<p class="text-red-500 text-center">작품 ID가 없어 에피소드를 불러올 수 없습니다.</p>';
+                commentsList.innerHTML = '<p class="text-red-500 text-center">작품 ID가 없어 댓글을 불러올 수 없습니다.</p>';
                 return;
             }
 
@@ -679,6 +700,8 @@
 
                     // Update Hero Section
                     workHeroSection.style.backgroundImage = `url('${currentWorkData.thumbnailUrl || 'https://placehold.co/1920x400/2a2a4e/ffffff?text=Work+Hero+Image'}')`;
+                    workHeroSection.style.backgroundSize = 'cover'; // Ensure cover
+                    workHeroSection.style.backgroundPosition = 'center'; // Ensure center
                     heroRating.textContent = `★ ${currentWorkData.rating ? currentWorkData.rating.toFixed(1) : '0.0'}`; // Assuming a rating field
                     heroGenreType.textContent = `${currentWorkData.genre || '장르'} · ${currentWorkData.type || '유형'}`;
                     heroAgeRating.textContent = currentWorkData.ageRating || '전체 이용가';
@@ -700,9 +723,9 @@
                         heroIntroductionFull.classList.remove('hidden');
                     }
 
-                    // Set "Play First Episode" button link
+                    // Set "Play First Episode" button link to new URL structure
                     playFirstEpisodeBtn.onclick = () => {
-                        window.location.href = `read.html?workId=${workId}&pageIndex=0`;
+                        window.location.href = `/read/${workId}`; // Changed to new URL structure
                     };
                     playFirstEpisodeBtn.disabled = false; // Enable button once data is loaded
 
@@ -733,6 +756,7 @@
                     fetchAndRenderComments();
 
                 } else {
+                    // Document does not exist
                     workHeroSection.style.backgroundImage = `url('https://placehold.co/1920x400/FF0000/FFFFFF?text=Work+Not+Found')`;
                     heroTitle.textContent = '작품을 찾을 수 없습니다.';
                     heroAuthor.textContent = '';
@@ -746,22 +770,37 @@
                     likeButton.disabled = true;
                     episodeList.innerHTML = '<p class="text-gray-500 text-center">에피소드를 불러올 수 없습니다.</p>';
                     commentsList.innerHTML = '<p class="text-gray-500 text-center">댓글을 불러올 수 없습니다.</p>';
-                    console.error("No such work document!");
+                    console.error("No such work document with ID:", workId);
                 }
             }, (error) => {
-                console.error("Error fetching work data:", error);
+                // This block is for actual errors during the snapshot listener setup or data retrieval
+                console.error("Error fetching work data from Firestore:", error);
+                console.error("Error code:", error.code);
+                console.error("Error message:", error.message);
+
+                let errorMessage = '작품을 불러오는 중 알 수 없는 오류가 발생했습니다.';
+                if (error.code === 'permission-denied') {
+                    errorMessage = '작품을 볼 권한이 없습니다. 관리자에게 문의하세요.';
+                } else if (error.code === 'unavailable') {
+                    errorMessage = '네트워크 연결 상태를 확인하거나 잠시 후 다시 시도해주세요.';
+                } else if (error.code === 'not-found') {
+                    // This case should ideally be caught by docSnap.exists() === false,
+                    // but sometimes can occur if the document is deleted right after onSnapshot setup.
+                    errorMessage = '요청하신 작품을 찾을 수 없습니다. 이미 삭제되었을 수 있습니다.';
+                }
+
                 workHeroSection.style.backgroundImage = `url('https://placehold.co/1920x400/FF0000/FFFFFF?text=Error')`;
                 heroTitle.textContent = '오류 발생';
-                heroIntroductionShort.textContent = '작품을 불러오는 중 오류가 발생했습니다.';
-                heroIntroductionFull.textContent = '작품을 불러오는 중 오류가 발생했습니다.';
+                heroIntroductionShort.textContent = errorMessage;
+                heroIntroductionFull.textContent = errorMessage;
                 heroRating.textContent = '★ 0.0';
                 heroGenreType.textContent = '';
                 heroAgeRating.textContent = '';
                 workLikesElement.textContent = '0';
                 playFirstEpisodeBtn.disabled = true;
                 likeButton.disabled = true;
-                episodeList.innerHTML = '<p class="text-red-500 text-center">에피소드를 불러오는 중 오류가 발생했습니다.</p>';
-                commentsList.innerHTML = '<p class="text-red-500 text-center">댓글을 불러오는 중 오류가 발생했습니다.</p>';
+                episodeList.innerHTML = `<p class="text-red-500 text-center">${errorMessage}</p>`;
+                commentsList.innerHTML = `<p class="text-red-500 text-center">${errorMessage}</p>`;
             });
         }
 
@@ -779,7 +818,8 @@
                 const episodeDiv = document.createElement('div');
                 episodeDiv.className = 'episode-item';
                 episodeDiv.onclick = () => {
-                    window.location.href = `read.html?workId=${workId}&pageIndex=${index}`;
+                    // Changed to new URL structure
+                    window.location.href = `/read/${workId}?pageIndex=${index}`;
                 };
 
                 // Extract a text snippet for description
@@ -794,11 +834,11 @@
                     <img src="${thumbnailUrl}" alt="Episode Thumbnail" class="episode-thumbnail" onerror="this.onerror=null;this.src='https://placehold.co/96x54/CCCCCC/333333?text=EP';"/>
                     <div class="episode-info">
                         <div class="episode-title">${index + 1}화 ${currentWorkData.type === 'novel' ? '' : '제목'}</div>
-                        <div class="episode-meta">23분 · ${new Date(currentWorkData.timestamp.toDate()).toLocaleDateString('ko-KR')}</div>
+                        <div class="episode-meta">23분 · ${currentWorkData.timestamp ? new Date(currentWorkData.timestamp.toDate()).toLocaleDateString('ko-KR') : '날짜 없음'}</div>
                         <p class="episode-description">${descriptionSnippet || '에피소드 내용 요약'}</p>
                     </div>
                     <div class="episode-play-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polygon points="5 3 19 12 5 21 5 3"></polygon>
                         </svg>
                     </div>
