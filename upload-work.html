@@ -1231,10 +1231,10 @@
             if (currentWorkId) {
                 try {
                     const workDocRef = doc(db, `artifacts/${appId}/public/data/works`, currentWorkId);
-                    const workDocSnap = await getDoc(workDocRef);
+                    const workDocSnap = await getDoc(workDocRef); // Correct variable name here
 
-                    if (docSnap.exists()) {
-                        const workData = docSnap.data();
+                    if (workDocSnap.exists()) { // Use the correct variable name here
+                        const workData = workDocSnap.data();
                         workTitleInput.value = workData.title || '';
                         workTypeSelect.value = workData.type || 'novel';
                         workGenreSelect.value = workData.genre || '';
@@ -1463,7 +1463,7 @@
                 }
                 
                 // Redirect to the manage tab after successful upload/update
-                window.location.href = 'upload-work.html?tab=manage';
+                window.location.href = 'upload-.html?tab=manage';
 
             } catch (error) {
                 console.error("작품 업로드/업데이트 중 오류 발생:", error);
