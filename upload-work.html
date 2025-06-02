@@ -544,7 +544,7 @@
                                     <option value="">장르를 선택하세요</option>
                                     <option value="fantasy">판타지</option>
                                     <option value="romance">로맨스</option>
-                                    <option value="action">액션</option>
+                                    <option value="action">액션</md>
                                     <option value="drama">드라마</option>
                                     <option value="thriller">스릴러</option>
                                 </select>
@@ -714,6 +714,11 @@
         const db = getFirestore(app);
         const storage = getStorage(app); // Initialize Firebase Storage
 
+        // Global variables
+        let currentWorkId = null; // 작품 ID를 전역으로 관리
+        let novelPages = []; // 소설 페이지 내용을 저장할 배열
+        let currentPageIndex = 0; // 현재 편집 중인 페이지 인덱스
+
         // Get DOM elements
         const authSection = document.getElementById('auth-section');
         const loginSignupBtn = document.getElementById('login-signup-btn');
@@ -838,9 +843,9 @@
                     quillInstance.editor.insertEmbed(range.index, 'image', 'https://placehold.co/150x150/cccccc/ffffff?text=Uploading...');
 
                     try {
-                        // Generate a temporary workId for storage path if it's a new work
-                        const tempWorkId = currentWorkId || doc(collection(db, `artifacts/${appId}/public/data/works`)).id;
-                        const imageUrl = await uploadFileToStorage(file, `work_content_images/${tempWorkId}/`);
+                        // Use the globally managed currentWorkId directly
+                        // It will be either the loaded workId or a newly generated one for new works
+                        const imageUrl = await uploadFileToStorage(file, `work_content_images/${currentWorkId}/`);
                         console.log("Image uploaded:", imageUrl);
 
                         // Replace placeholder with actual image URL
@@ -1123,7 +1128,7 @@
                     theme: 'snow',
                     modules: {
                         toolbar: {
-                            container: novelQuillToolbarOptions,
+                            container: novelQuillToolbarOptions, // Default to novel toolbar
                             handlers: {
                                 image: () => quillImageHandler(quill)
                             }
@@ -1325,6 +1330,18 @@
                 updateHeaderStyle();
             }
 
+            // Load existing work if workId is present in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            currentWorkId = urlParams.get('workId'); // Get workId for editing
+
+            // If it's a new work (no workId in URL), generate one immediately
+            if (!currentWorkId) {
+                currentWorkId = doc(collection(db, `artifacts/${appId}/public/data/works`)).id;
+                console.log("New work ID generated:", currentWorkId);
+            } else {
+                console.log("Editing existing work with ID:", currentWorkId);
+            }
+
             // Initialize Main Quill editor
             quill = new Quill(editorContainer, {
                 theme: 'snow', // 'bubble' or 'snow'
@@ -1353,11 +1370,7 @@
                 saveCurrentPageContent();
             });
 
-            // Load existing work if workId is present in URL
-            const urlParams = new URLSearchParams(window.location.search);
-            currentWorkId = urlParams.get('workId'); // Get workId for editing
-
-            if (currentWorkId) {
+            if (currentWorkId && urlParams.get('workId')) { // Only try to load if workId came from URL
                 try {
                     const workDocRef = doc(db, `artifacts/${appId}/public/data/works`, currentWorkId);
                     const workDocSnap = await getDoc(workDocRef);
@@ -1525,11 +1538,8 @@
                 const publicSetting = publicSettingSelect.value;
                 const currentTags = Array.from(tagsContainer.querySelectorAll('.tag-item span')).map(span => span.textContent);
 
-                // Generate a new workId upfront if it's a new work
-                let finalWorkId = currentWorkId;
-                if (!finalWorkId) {
-                    finalWorkId = doc(collection(db, `artifacts/${appId}/public/data/works`)).id;
-                }
+                // `currentWorkId` is already set globally on page load or reset.
+                // No need to re-generate `finalWorkId` here.
 
                 // Process thumbnail: upload Base64 to storage or keep existing URL
                 let finalThumbnailUrl = '';
@@ -1541,8 +1551,8 @@
                 if (thumbnailImgElement && thumbnailImgElement.src) {
                     if (thumbnailImgElement.src.startsWith('data:image/')) {
                         const blob = await (await fetch(thumbnailImgElement.src)).blob();
-                        const thumbnailFile = new File([blob], `thumbnail_${finalWorkId}.${blob.type.split('/')[1]}`, { type: blob.type });
-                        finalThumbnailUrl = await uploadFileToStorage(thumbnailFile, `thumbnails/${finalWorkId}/`);
+                        const thumbnailFile = new File([blob], `thumbnail_${currentWorkId}.${blob.type.split('/')[1]}`, { type: blob.type });
+                        finalThumbnailUrl = await uploadFileToStorage(thumbnailFile, `thumbnails/${currentWorkId}/`);
                         console.log("Thumbnail uploaded to storage:", finalThumbnailUrl);
                     } else {
                         finalThumbnailUrl = thumbnailImgElement.src; // Already a URL, keep it
@@ -1580,7 +1590,7 @@
                             if (img.src.startsWith('data:image/')) {
                                 const blob = await (await fetch(img.src)).blob();
                                 const file = new File([blob], `novel_content_image_${Date.now()}.${blob.type.split('/')[1]}`, { type: blob.type });
-                                img.src = await uploadFileToStorage(file, `work_content_images/${finalWorkId}/`);
+                                img.src = await uploadFileToStorage(file, `work_content_images/${currentWorkId}/`);
                             }
                         }
                         return tempDiv.innerHTML;
@@ -1606,7 +1616,7 @@
                         if (img.src.startsWith('data:image/')) {
                             const blob = await (await fetch(img.src)).blob();
                             const file = new File([blob], `webtoon_image_${Date.now()}.${blob.type.split('/')[1]}`, { type: blob.type });
-                            return await uploadFileToStorage(file, `work_content_images/${finalWorkId}/`);
+                            return await uploadFileToStorage(file, `work_content_images/${currentWorkId}/`);
                         } else {
                             return img.src; // Already a URL
                         }
@@ -1646,15 +1656,10 @@
                     workData.chapterNumber = parseInt(chapterNumberInput.value, 10);
                 }
 
-                if (currentWorkId) {
-                    await setDoc(doc(db, `artifacts/${appId}/public/data/works`, finalWorkId), workData, { merge: true });
-                    console.log("Document updated with ID: ", finalWorkId);
-                    showCustomAlert('작품이 성공적으로 업데이트되었습니다!');
-                } else {
-                    await setDoc(doc(db, `artifacts/${appId}/public/data/works`, finalWorkId), workData);
-                    console.log("Document written with ID: ", finalWorkId);
-                    showCustomAlert('작품이 성공적으로 업로드되었습니다!');
-                }
+                // Use currentWorkId for setDoc
+                await setDoc(doc(db, `artifacts/${appId}/public/data/works`, currentWorkId), workData, { merge: true });
+                console.log("Document saved/updated with ID: ", currentWorkId);
+                showCustomAlert('작품이 성공적으로 업로드/업데이트되었습니다!');
                 
                 // Redirect to the manage tab after successful upload/update
                 window.location.href = 'upload-.html?tab=manage';
@@ -1685,7 +1690,7 @@
                 if (targetTab === 'upload') {
                     uploadTabContent.classList.remove('hidden');
                     // Reset form when switching to upload tab, unless editing
-                    if (!currentWorkId) {
+                    if (!urlParams.get('workId')) { // Check original URL param, not currentWorkId
                         resetUploadForm();
                     }
                 } else if (targetTab === 'manage') {
@@ -1716,7 +1721,8 @@
             novelPages = ['<p>이것은 첫 번째 페이지의 내용입니다. 소설을 책처럼 넘기면서 작성해 보세요!</p>'];
             currentPageIndex = 0;
             renderCurrentPage();
-            currentWorkId = null; // Clear current work ID
+            currentWorkId = doc(collection(db, `artifacts/${appId}/public/data/works`)).id; // Generate new ID for next new work
+            console.log("Form reset. New work ID generated:", currentWorkId);
             uploadButtonText.textContent = '작품 업로드'; // Reset button text
             // Reset novel/webtoon specific fields
             document.getElementById('volume-number').value = '';
