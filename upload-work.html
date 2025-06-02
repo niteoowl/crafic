@@ -700,7 +700,8 @@
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, addDoc, collection, serverTimestamp, query, where, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, addDoc, collection, serverTimestamp, query, where, getDocs, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // Firebase configuration (replace with your actual config or load from environment)
         const firebaseConfig = JSON.parse(`{"apiKey": "AIzaSyBJFAV4-QMggAW2K1YtpsXIZ5PQ8KJzo9k", "authDomain": "crafiq-a.firebaseapp.com", "projectId": "crafiq-a", "storageBucket": "crafiq-a.firebasestorage.app", "messagingSenderId": "176082460783", "appId": "1:176082460783:web:cd0b594cc803932eaa2d9a", "measurementId": "G-QB84Z9EMZW"}`);
@@ -711,6 +712,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app); // Initialize Firebase Storage
 
         // Get DOM elements
         const authSection = document.getElementById('auth-section');
@@ -741,7 +743,6 @@
         const workTypeSelect = document.getElementById('work-type'); // Added for type checking
         const workGenreSelect = document.getElementById('work-genre');
         const ageRatingSelect = document.getElementById('age-rating');
-        // const thumbnailUrlInput = document.getElementById('thumbnail-url'); // REMOVED
         const publicSettingSelect = document.getElementById('public-setting');
 
         // Content creation section elements (unified for novel/webtoon)
@@ -765,13 +766,107 @@
         const myWorksListContainer = document.getElementById('my-works-list');
         const noWorksMessage = document.getElementById('no-works-message');
 
+        // New elements for novel volume and webtoon series/chapter
+        const novelVolumeField = document.createElement('div');
+        novelVolumeField.innerHTML = `
+            <label for="volume-number" class="block text-sm font-medium text-gray-700 mb-2 mt-6">시리즈 권 번호 (소설, 선택 사항)</label>
+            <input type="number" id="volume-number" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" min="1" placeholder="소설 시리즈의 권 번호 (예: 1)">
+        `;
+        // Insert it after age-rating select
+        ageRatingSelect.closest('div').after(novelVolumeField);
 
-        let novelPages = ['<p>이것은 첫 번째 페이지의 내용입니다. 소설을 책처럼 넘기면서 작성해 보세요!</p>']; // Array to hold HTML content for each page
-        let currentPageIndex = 0; // Current active page index (0-based)
-        let currentWorkId = new URLSearchParams(window.location.search).get('workId'); // Unified ID for novel/webtoon
 
-        let quill; // Main Quill editor instance
-        let quillThumbnail; // NEW: Thumbnail Quill editor instance
+        const webtoonSeriesFields = document.createElement('div');
+        webtoonSeriesFields.innerHTML = `
+            <div class="mt-6">
+                <label for="series-title" class="block text-sm font-medium text-gray-700 mb-2">시리즈 제목 (웹툰)</label>
+                <input type="text" id="series-title" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="시리즈 제목을 입력하세요 (예: 나의 판타지 웹툰)">
+            </div>
+            <div class="mt-4">
+                <label for="chapter-number" class="block text-sm font-medium text-gray-700 mb-2">챕터 번호 (웹툰)</label>
+                <input type="number" id="chapter-number" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" min="1" value="1" placeholder="챕터 번호를 입력하세요 (예: 1)">
+            </div>
+        `;
+        // Insert it after age-rating select, initially hidden
+        ageRatingSelect.closest('div').after(webtoonSeriesFields);
+        webtoonSeriesFields.classList.add('hidden'); // Initially hidden
+
+        let tags = [];
+
+        let quill; // Main Quill editor instance for content
+        let quillThumbnail; // Quill editor instance for thumbnail
+
+        // Quill editor toolbar options for novels (full features)
+        const novelQuillToolbarOptions = [
+            ['bold', 'italic', 'underline', 'strike'],
+            ['blockquote', 'code-block'],
+            [{ 'header': 1 }, { 'header': 2 }],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'script': 'sub'}, { 'script': 'super' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            [{ 'direction': 'rtl' }],
+            [{ 'size': ['small', false, 'large', 'huge'] }],
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['clean'],
+            ['link', 'image']
+        ];
+
+        // Quill editor toolbar options for webtoons (only image)
+        const webtoonQuillToolbarOptions = [
+            ['image'] // Only image upload button
+        ];
+
+        /**
+         * Custom image handler for Quill to upload to Firebase Storage.
+         * This handler is used for both content and thumbnail editors.
+         * @param {Quill} quillInstance - The Quill editor instance.
+         */
+        async function quillImageHandler(quillInstance) {
+            const input = document.createElement('input');
+            input.setAttribute('type', 'file');
+            input.setAttribute('accept', 'image/*');
+            input.click();
+
+            input.onchange = async () => {
+                const file = input.files[0];
+                if (file) {
+                    const range = quillInstance.getSelection(true);
+                    // Insert a placeholder image while uploading
+                    quillInstance.editor.insertEmbed(range.index, 'image', 'https://placehold.co/150x150/cccccc/ffffff?text=Uploading...');
+
+                    try {
+                        // Generate a temporary workId for storage path if it's a new work
+                        const tempWorkId = currentWorkId || doc(collection(db, `artifacts/${appId}/public/data/works`)).id;
+                        const imageUrl = await uploadFileToStorage(file, `work_content_images/${tempWorkId}/`);
+                        console.log("Image uploaded:", imageUrl);
+
+                        // Replace placeholder with actual image URL
+                        quillInstance.editor.deleteText(range.index, 1); // Delete placeholder
+                        quillInstance.editor.insertEmbed(range.index, 'image', imageUrl);
+                        quillInstance.setSelection(range.index + 1); // Move cursor after image
+                    } catch (error) {
+                        console.error("Error uploading image:", error);
+                        showCustomAlert(`이미지 업로드 중 오류가 발생했습니다: ${error.message}`);
+                        quillInstance.editor.deleteText(range.index, 1); // Remove placeholder on error
+                    }
+                }
+            };
+        }
+
+        /**
+         * Uploads a file to Firebase Storage and returns its URL.
+         * @param {File} file - The file to upload.
+         * @param {string} path - The storage path (e.g., 'thumbnails/' or 'work_content_images/').
+         * @returns {Promise<string>} The download URL of the uploaded file.
+         */
+        async function uploadFileToStorage(file, path) {
+            const storageRef = ref(storage, `${path}${file.name}_${Date.now()}`);
+            const snapshot = await uploadBytes(storageRef, file);
+            return await getDownloadURL(snapshot.ref);
+        }
 
         /**
          * Updates the header's style (shadow and border) based on dark mode.
@@ -883,9 +978,12 @@
          * Updates page counter and button states.
          */
         function renderCurrentPage() {
+            const selectedType = workTypeSelect.value;
+            const pagePrefix = selectedType === 'webtoon' ? 'EP.' : 'P.';
+
             // Load content into Quill editor
             quill.root.innerHTML = novelPages[currentPageIndex];
-            pageCounter.textContent = `${currentPageIndex + 1} / ${novelPages.length} 페이지`;
+            pageCounter.textContent = `${currentPageIndex + 1} / ${novelPages.length} ${selectedType === 'webtoon' ? '화' : '페이지'}`;
             novelPageCountDisplay.textContent = novelPages.length; // Update total page count in title
 
             prevPageBtn.disabled = currentPageIndex === 0;
@@ -934,6 +1032,7 @@
                 const pageNumberDiv = document.createElement('div'); // Corrected: moved declaration before usage
                 pageNumberDiv.className = 'page-thumbnail-number';
                 pageNumberDiv.textContent = `${pagePrefix}${index + 1}`;
+                thumbnailDiv.appendChild(contentWrapper); // Append content wrapper first
                 thumbnailDiv.appendChild(pageNumberDiv);
 
                 thumbnailDiv.addEventListener('click', () => {
@@ -943,12 +1042,6 @@
                 });
                 pageThumbnailsContainer.appendChild(thumbnailDiv);
             });
-
-            // REMOVED: Scroll to the active thumbnail (this was causing unwanted main page scroll)
-            // const activeThumbnail = pageThumbnailsContainer.querySelector('.page-thumbnail.active');
-            // if (activeThumbnail) {
-            //     activeThumbnail.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-            // }
         }
 
 
@@ -957,7 +1050,6 @@
          */
         function saveCurrentPageContent() {
             novelPages[currentPageIndex] = quill.root.innerHTML; // Get HTML content from Quill
-            // renderCurrentPage(); // Don't re-render here to avoid infinite loop with text-change
             // showCustomAlert('페이지 내용이 저장되었습니다!'); // This alert can be annoying on every change
         }
 
@@ -1014,7 +1106,7 @@
 
         /**
          * Handles the change in work type selection.
-         * Updates content section titles and descriptions.
+         * Updates content section titles and descriptions, and UI elements.
          */
         function handleWorkTypeChange() {
             const selectedType = workTypeSelect.value;
@@ -1022,21 +1114,60 @@
             if (selectedType === 'novel') {
                 contentTypeTitle.textContent = '소설';
                 contentTypeDescription.textContent = '책처럼 페이지별로 소설을 작성해 보세요';
-                // If switching from webtoon, reset novelPages to a default empty page if it was empty
+                novelVolumeField.classList.remove('hidden'); // Show novel volume field
+                webtoonSeriesFields.classList.add('hidden'); // Hide webtoon series fields
+
+                // Re-initialize Quill with full toolbar for novel
+                quill.destroy();
+                quill = new Quill(editorContainer, {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: {
+                            container: novelQuillToolbarOptions,
+                            handlers: {
+                                image: () => quillImageHandler(quill)
+                            }
+                        }
+                    },
+                    placeholder: '현재 페이지의 내용을 작성해 주세요.',
+                });
+                quill.on('text-change', saveCurrentPageContent); // Re-attach listener
+
+                // Ensure at least one page for novel
                 if (novelPages.length === 0 || (novelPages.length === 1 && novelPages[0].trim() === '<p><br></p>')) {
                     novelPages = ['<p>여기에 내용을 작성해 보세요.</p>'];
                 }
-                currentPageIndex = 0; // Always start at first page when switching types
-                renderCurrentPage(); // Render novel page when switching back
+                currentPageIndex = 0;
+                renderCurrentPage();
+
             } else if (selectedType === 'webtoon') {
                 contentTypeTitle.textContent = '웹툰';
                 contentTypeDescription.textContent = '각 에피소드 내용을 페이지별로 작성하고 이미지를 추가하세요.';
-                // If switching from novel, reset novelPages to a default empty page if it was empty
+                novelVolumeField.classList.add('hidden'); // Hide novel volume field
+                webtoonSeriesFields.classList.remove('hidden'); // Show webtoon series fields
+
+                // Re-initialize Quill with limited toolbar for webtoon
+                quill.destroy();
+                quill = new Quill(editorContainer, {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: {
+                            container: webtoonQuillToolbarOptions,
+                            handlers: {
+                                image: () => quillImageHandler(quill)
+                            }
+                        }
+                    },
+                    placeholder: '웹툰 이미지를 업로드하세요. (이미지 버튼만 사용 가능)',
+                });
+                quill.on('text-change', saveCurrentPageContent); // Re-attach listener
+
+                // Ensure at least one page for webtoon
                 if (novelPages.length === 0 || (novelPages.length === 1 && novelPages[0].trim() === '<p><br></p>')) {
                     novelPages = ['<p>여기에 에피소드 내용을 작성하고 이미지를 추가하세요.</p>'];
                 }
-                currentPageIndex = 0; // Always start at first page when switching types
-                renderCurrentPage(); // Render webtoon page (using same novel page logic)
+                currentPageIndex = 0;
+                renderCurrentPage();
             }
         }
 
@@ -1198,16 +1329,12 @@
             quill = new Quill(editorContainer, {
                 theme: 'snow', // 'bubble' or 'snow'
                 modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-                        [{ 'align': [] }],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
-                        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
-                        ['link', 'image'],
-                        ['clean']                                         // remove formatting button
-                    ]
+                    toolbar: {
+                        container: novelQuillToolbarOptions, // Default to novel toolbar
+                        handlers: {
+                            image: () => quillImageHandler(quill)
+                        }
+                    }
                 },
                 placeholder: '현재 페이지의 내용을 작성해 주세요.',
             });
@@ -1221,35 +1348,43 @@
                 placeholder: '썸네일 이미지를 여기에 드래그하거나 붙여넣으세요.',
             });
 
-
             // Listen for changes in Main Quill editor to auto-save to local array
             quill.on('text-change', () => {
                 saveCurrentPageContent();
             });
 
             // Load existing work if workId is present in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            currentWorkId = urlParams.get('workId'); // Get workId for editing
+
             if (currentWorkId) {
                 try {
                     const workDocRef = doc(db, `artifacts/${appId}/public/data/works`, currentWorkId);
                     const workDocSnap = await getDoc(workDocRef);
 
-                    if (docSnap.exists()) {
-                        const workData = docSnap.data();
+                    if (workDocSnap.exists()) {
+                        const workData = workDocSnap.data();
                         workTitleInput.value = workData.title || '';
                         workTypeSelect.value = workData.type || 'novel';
                         workGenreSelect.value = workData.genre || '';
                         ageRatingSelect.value = workData.ageRating || '';
                         workIntroductionTextarea.value = workData.introduction || '';
-                        // thumbnailUrlInput.value = workData.thumbnailUrl || ''; // REMOVED
+                        publicSettingSelect.value = workData.publicSetting || 'public';
 
-                        // Load thumbnail into thumbnail Quill editor (NEW)
-                        if (workData.thumbnailUrl && workData.thumbnailUrl.startsWith('data:image/')) {
-                            quillThumbnail.root.innerHTML = `<img src="${workData.thumbnailUrl}" alt="Thumbnail"/>`;
-                        } else {
-                            quillThumbnail.root.innerHTML = ''; // Clear if no Base64 thumbnail
+                        // Load novel volume or webtoon series/chapter
+                        if (workData.type === 'novel') {
+                            document.getElementById('volume-number').value = workData.volumeNumber || '';
+                        } else { // webtoon
+                            document.getElementById('series-title').value = workData.seriesTitle || '';
+                            document.getElementById('chapter-number').value = workData.chapterNumber || '1';
                         }
 
-                        publicSettingSelect.value = workData.publicSetting || 'public';
+                        // Load thumbnail into thumbnail Quill editor
+                        if (workData.thumbnailUrl) {
+                            quillThumbnail.root.innerHTML = `<img src="${workData.thumbnailUrl}" alt="Thumbnail"/>`;
+                        } else {
+                            quillThumbnail.root.innerHTML = '';
+                        }
 
                         // Clear existing tags and add loaded tags
                         tagsContainer.innerHTML = '';
@@ -1265,10 +1400,11 @@
                         }
                         currentPageIndex = 0;
                         console.log("Work loaded successfully for editing:", workData);
+                        uploadButtonText.textContent = '작품 업데이트'; // Change button text for update
                     } else {
                         console.log("No such work found for ID:", currentWorkId);
                         novelPages = ['<p>여기에 내용을 작성해 보세요.</p>']; // Default for new work
-                        const workNameParam = new URLSearchParams(window.location.search).get('workName') || '';
+                        const workNameParam = urlParams.get('workName') || '';
                         workTitleInput.value = workNameParam;
                     }
                 } catch (error) {
@@ -1278,15 +1414,15 @@
                 }
             } else {
                 novelPages = ['<p>여기에 내용을 작성해 보세요.</p>']; // Default for new work
-                const workNameParam = new URLSearchParams(window.location.search).get('workName') || '';
+                const workNameParam = urlParams.get('workName') || '';
                 workTitleInput.value = workNameParam;
             }
 
             // Call handler to set initial visibility and content based on default/loaded type
             handleWorkTypeChange();
+            renderCurrentPage(); // Initial render of the content editor
 
             // Explicitly scroll to the top of the page after everything is loaded and rendered
-            // Use a setTimeout to ensure it runs after any potential browser scroll restoration
             setTimeout(() => {
                 window.scrollTo(0, 0);
             }, 100); // Small delay
@@ -1362,13 +1498,6 @@
         // Handle work type change event
         workTypeSelect.addEventListener('change', handleWorkTypeChange);
 
-        // REMOVED: Scroll to top on dropdown changes (as per user's request)
-        // workTypeSelect.addEventListener('change', () => window.scrollTo(0, 0));
-        // workGenreSelect.addEventListener('change', () => window.scrollTo(0, 0));
-        // ageRatingSelect.addEventListener('change', () => window.scrollTo(0, 0));
-        // publicSettingSelect.addEventListener('change', () => window.scrollTo(0, 0));
-
-
         // Handle work upload button click
         uploadWorkBtn.addEventListener('click', async () => {
             // Check if user is logged in
@@ -1396,40 +1525,92 @@
                 const publicSetting = publicSettingSelect.value;
                 const currentTags = Array.from(tagsContainer.querySelectorAll('.tag-item span')).map(span => span.textContent);
 
-                // NEW: Get Base64 image from thumbnail Quill editor
-                let thumbnailUrl = '';
+                // Generate a new workId upfront if it's a new work
+                let finalWorkId = currentWorkId;
+                if (!finalWorkId) {
+                    finalWorkId = doc(collection(db, `artifacts/${appId}/public/data/works`)).id;
+                }
+
+                // Process thumbnail: upload Base64 to storage or keep existing URL
+                let finalThumbnailUrl = '';
                 const thumbnailEditorContent = quillThumbnail.root.innerHTML;
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = thumbnailEditorContent;
-                const imgElement = tempDiv.querySelector('img');
-                if (imgElement && imgElement.src.startsWith('data:image/')) {
-                    thumbnailUrl = imgElement.src;
-                } else if (thumbnailEditorContent.trim() !== '<p><br></p>' && thumbnailEditorContent.trim() !== '') {
-                    // If there's text content but no image, warn user
-                    showCustomAlert('썸네일 에디터에 이미지가 아닌 텍스트가 입력되었습니다. 이미지를 업로드하거나 비워두세요.');
-                    uploadButtonText.textContent = '작품 업로드';
+                const tempThumbnailDiv = document.createElement('div');
+                tempThumbnailDiv.innerHTML = thumbnailEditorContent;
+                const thumbnailImgElement = tempThumbnailDiv.querySelector('img');
+
+                if (thumbnailImgElement && thumbnailImgElement.src) {
+                    if (thumbnailImgElement.src.startsWith('data:image/')) {
+                        const blob = await (await fetch(thumbnailImgElement.src)).blob();
+                        const thumbnailFile = new File([blob], `thumbnail_${finalWorkId}.${blob.type.split('/')[1]}`, { type: blob.type });
+                        finalThumbnailUrl = await uploadFileToStorage(thumbnailFile, `thumbnails/${finalWorkId}/`);
+                        console.log("Thumbnail uploaded to storage:", finalThumbnailUrl);
+                    } else {
+                        finalThumbnailUrl = thumbnailImgElement.src; // Already a URL, keep it
+                    }
+                }
+
+                // Validate required fields
+                if (!workTitle || !workType || !workGenre || !workIntroduction || !finalThumbnailUrl) {
+                    showCustomAlert('모든 필수 입력 항목 (제목, 유형, 장르, 소개, 썸네일)을 채워주세요.');
+                    uploadButtonText.textContent = currentWorkId ? '작품 업데이트' : '작품 업로드';
                     uploadIcon.classList.remove('hidden');
                     loadingSpinner.classList.add('hidden');
                     uploadWorkBtn.disabled = false;
                     return;
                 }
-                // END NEW
 
-                let contentToUpload = novelPages; // This will be novelPages for both novel and webtoon
+                let contentToUpload;
 
-                if (!workTitle || !workType || !workGenre || !workIntroduction) {
-                    showCustomAlert('필수 입력 항목 (제목, 유형, 장르, 소개)을 모두 채워주세요.');
-                    return;
-                }
-
-                // Validate content based on type
-                if (contentToUpload.length === 0 || contentToUpload.every(page => page.trim() === '<p><br></p>' || page.trim() === '')) {
-                    if (workType === 'novel') {
+                // Process content based on work type
+                if (workType === 'novel') {
+                    if (novelPages.length === 0 || novelPages.every(page => page.trim() === '<p><br></p>' || page.trim() === '')) {
                         showCustomAlert('소설 내용을 한 페이지 이상 작성해주세요.');
-                    } else { // webtoon
-                        showCustomAlert('웹툰 에피소드를 한 개 이상 작성해주세요.');
+                        uploadButtonText.textContent = currentWorkId ? '작품 업데이트' : '작품 업로드';
+                        uploadIcon.classList.remove('hidden');
+                        loadingSpinner.classList.add('hidden');
+                        uploadWorkBtn.disabled = false;
+                        return;
                     }
-                    return;
+                    // Process images within novel pages
+                    contentToUpload = await Promise.all(novelPages.map(async (pageHtml) => {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = pageHtml;
+                        const imgElements = tempDiv.querySelectorAll('img');
+                        for (const img of imgElements) {
+                            if (img.src.startsWith('data:image/')) {
+                                const blob = await (await fetch(img.src)).blob();
+                                const file = new File([blob], `novel_content_image_${Date.now()}.${blob.type.split('/')[1]}`, { type: blob.type });
+                                img.src = await uploadFileToStorage(file, `work_content_images/${finalWorkId}/`);
+                            }
+                        }
+                        return tempDiv.innerHTML;
+                    }));
+
+                } else { // webtoon
+                    const webtoonHtmlContent = quill.root.innerHTML;
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = webtoonHtmlContent;
+                    const imgElements = tempDiv.querySelectorAll('img');
+
+                    if (imgElements.length === 0) {
+                        showCustomAlert('웹툰은 최소 한 개 이상의 이미지가 필요합니다.');
+                        uploadButtonText.textContent = currentWorkId ? '작품 업데이트' : '작품 업로드';
+                        uploadIcon.classList.remove('hidden');
+                        loadingSpinner.classList.add('hidden');
+                        uploadWorkBtn.disabled = false;
+                        return;
+                    }
+
+                    // For webtoons, content is an array of image URLs
+                    contentToUpload = await Promise.all(Array.from(imgElements).map(async (img) => {
+                        if (img.src.startsWith('data:image/')) {
+                            const blob = await (await fetch(img.src)).blob();
+                            const file = new File([blob], `webtoon_image_${Date.now()}.${blob.type.split('/')[1]}`, { type: blob.type });
+                            return await uploadFileToStorage(file, `work_content_images/${finalWorkId}/`);
+                        } else {
+                            return img.src; // Already a URL
+                        }
+                    }));
                 }
 
                 const workData = {
@@ -1439,38 +1620,51 @@
                     ageRating: ageRating,
                     introduction: workIntroduction,
                     tags: currentTags,
-                    thumbnailUrl: thumbnailUrl, // Use extracted Base64 URL
+                    thumbnailUrl: finalThumbnailUrl,
                     publicSetting: publicSetting,
-                    content: contentToUpload, // This will be novelPages for both novel and webtoon
-                    authorId: auth.currentUser.uid, // Use actual logged-in user ID
-                    authorNickname: userNicknameSpan.textContent, // Use displayed nickname
-                    timestamp: serverTimestamp(), // Use Firestore server timestamp
-                    views: 0, // Initialize views
-                    likes: 0 // Initialize likes
+                    content: contentToUpload,
+                    authorId: auth.currentUser.uid,
+                    authorNickname: userNicknameSpan.textContent,
+                    timestamp: serverTimestamp(),
+                    views: 0,
+                    likes: 0,
+                    rating: 0,
+                    ratingCount: 0
                 };
 
-                // Determine if it's a new work or an an update
+                // Add type-specific fields
+                if (workType === 'novel') {
+                    const volumeNumberInput = document.getElementById('volume-number');
+                    const volumeNumber = volumeNumberInput.value.trim();
+                    if (volumeNumber !== '') {
+                        workData.volumeNumber = parseInt(volumeNumber, 10);
+                    }
+                } else { // webtoon
+                    const seriesTitleInput = document.getElementById('series-title');
+                    const chapterNumberInput = document.getElementById('chapter-number');
+                    workData.seriesTitle = seriesTitleInput.value.trim();
+                    workData.chapterNumber = parseInt(chapterNumberInput.value, 10);
+                }
+
                 if (currentWorkId) {
-                    // Update existing work
-                    await updateDoc(doc(db, `artifacts/${appId}/public/data/works`, currentWorkId), workData);
-                    console.log("Document updated with ID: ", currentWorkId);
+                    await setDoc(doc(db, `artifacts/${appId}/public/data/works`, finalWorkId), workData, { merge: true });
+                    console.log("Document updated with ID: ", finalWorkId);
                     showCustomAlert('작품이 성공적으로 업데이트되었습니다!');
                 } else {
-                    // Add new work
-                    const docRef = await addDoc(collection(db, `artifacts/${appId}/public/data/works`), workData);
-                    console.log("Document written with ID: ", docRef.id);
+                    await setDoc(doc(db, `artifacts/${appId}/public/data/works`, finalWorkId), workData);
+                    console.log("Document written with ID: ", finalWorkId);
                     showCustomAlert('작품이 성공적으로 업로드되었습니다!');
                 }
                 
                 // Redirect to the manage tab after successful upload/update
-                window.location.href = 'upload-work.html?tab=manage';
+                window.location.href = 'upload-.html?tab=manage';
 
             } catch (error) {
                 console.error("작품 업로드/업데이트 중 오류 발생:", error);
                 showCustomAlert(`작품 업로드/업데이트에 실패했습니다: ${error.message}`);
             } finally {
                 // Hide loading state
-                uploadButtonText.textContent = '작품 업로드';
+                uploadButtonText.textContent = currentWorkId ? '작품 업데이트' : '작품 업로드';
                 uploadIcon.classList.remove('hidden');
                 loadingSpinner.classList.add('hidden');
                 uploadWorkBtn.disabled = false;
@@ -1515,19 +1709,23 @@
             workGenreSelect.value = '';
             ageRatingSelect.value = '';
             workIntroductionTextarea.value = '';
-            // thumbnailUrlInput.value = ''; // REMOVED
-            quillThumbnail.root.innerHTML = ''; // NEW: Clear thumbnail editor
+            quillThumbnail.root.innerHTML = ''; // Clear thumbnail editor
             publicSettingSelect.value = 'public';
             tagsContainer.innerHTML = '';
+            tags = []; // Clear the tags array
             novelPages = ['<p>이것은 첫 번째 페이지의 내용입니다. 소설을 책처럼 넘기면서 작성해 보세요!</p>'];
             currentPageIndex = 0;
             renderCurrentPage();
             currentWorkId = null; // Clear current work ID
             uploadButtonText.textContent = '작품 업로드'; // Reset button text
+            // Reset novel/webtoon specific fields
+            document.getElementById('volume-number').value = '';
+            document.getElementById('series-title').value = '';
+            document.getElementById('chapter-number').value = '1';
+            handleWorkTypeChange(); // Ensure correct editor and fields are shown
         }
 
         // Check URL for tab parameter on load
-        const urlParams = new URLSearchParams(window.location.search);
         const initialTab = urlParams.get('tab');
         if (initialTab === 'manage') {
             document.querySelector('.main-tab-button[data-tab="manage"]').click();
