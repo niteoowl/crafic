@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRAFIQ - 작가 연재 대시보드</title>
+    <title>CRAFIQ - 작품 업로드</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
-        /* Pretendard Web Font Definitions - Ensure consistency with main site */
+        /* Pretendard Web Font Definitions */
         @font-face {
             font-family: 'Pretendard';
             src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
@@ -35,6 +36,11 @@
         /* Base font application */
         body {
             font-family: 'Pretendard', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Ensure full viewport height */
+            background-color: #ffffff; /* Changed to white */
+            color: #333;
         }
 
         /* Custom style for dropdown arrow rotation */
@@ -46,72 +52,413 @@
             transition-duration: 300ms;
             transition-timing-function: ease-in-out;
         }
-        /* Style for the custom confirmation modal */
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 100; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-            justify-content: center;
-            align-items: center;
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #121212; /* Very dark gray/near black */
+            color: #e0e0e0; /* Light gray text */
         }
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
+        body.dark-mode header {
+            background-color: #1e1e1e; /* Darker header */
+            box-shadow: none; /* Remove shadow */
+            border-bottom: none; /* Remove border */
         }
-        .modal-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
+        body.dark-mode header a,
+        body.dark-mode header button,
+        body.dark-mode header span {
+            color: #e0e0e0; /* Light text for header */
+        }
+        body.dark-mode header a.text-teal-500 { /* CRAFIQ logo */
+            color: #2dd4bf; /* Teal-400 in dark mode */
+        }
+        body.dark-mode header button.hover\:bg-teal-50:hover {
+            background-color: #2a2a2a; /* Darker hover */
+            color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode header button.border-teal-600 {
+            border-color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode header .hover\:text-teal-600:hover {
+            color: #2dd4bf; /* Teal-400 */
+        }
+        /* Sections/Cards in dark mode */
+        body.dark-mode .bg-white.border { /* Apply to sections with border */
+            background-color: #1e1e1e; /* Darker card background */
+            border-color: #3a3a3a; /* Darker border */
+            box-shadow: none; /* Ensure no shadow */
+        }
+        body.dark-mode .text-gray-900 {
+            color: #e0e0e0; /* Light headings */
+        }
+        body.dark-mode .text-gray-700 {
+            color: #c0c0c0; /* Lighter gray text */
+        }
+        body.dark-mode .text-gray-500 {
+            color: #888888; /* Even lighter gray text */
+        }
+        body.dark-mode input,
+        body.dark-mode select,
+        body.dark-mode textarea {
+            background-color: #2a2a2a;
+            border-color: #3a3a3a;
+            color: #e0e0e0;
+        }
+        body.dark-mode input::placeholder,
+        body.dark-mode textarea::placeholder {
+            color: #888888;
+        }
+        body.dark-mode select option {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+        }
+        body.dark-mode .bg-gray-200 { /* For tags input button and tag item background */
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+        }
+        body.dark-mode .hover\:bg-gray-300:hover {
+            background-color: #4a4a4a;
+        }
+        body.dark-mode .tag-item .remove-tag-btn {
+            color: #c0c0c0; /* Darker remove tag button icon */
+            filter: brightness(1.5); /* Make it slightly brighter for visibility */
+        }
+        body.dark-mode footer {
+            background-color: #121212; /* Dark footer */
+            color: #c0c0c0;
+        }
+        body.dark-mode footer .text-teal-400 {
+            color: #2dd4bf; /* Teal-400 */
+        }
+        body.dark-mode footer .text-gray-600 {
+            color: #888888; /* Gray-400 */
         }
 
-        /* Styles for the novel reading/editing modal */
-        #view-chapter-modal .modal-content {
-            max-width: 800px; /* Wider for chapter content */
-            text-align: left;
-        }
-        #chapter-content-display {
-            white-space: pre-wrap; /* Preserve whitespace and wrap text */
-            line-height: 1.8;
-            font-size: 1rem;
-            max-height: 400px; /* Limit height for scrolling */
-            overflow-y: auto;
-            border: 1px solid #e2e8f0;
-            padding: 1rem;
-            border-radius: 0.375rem;
-            background-color: #f8fafc;
-        }
-        #chapter-content-edit {
+        /* Quill editor container styles */
+        #editor-container {
             width: 100%;
-            height: 400px;
-            border: 1px solid #e2e8f0;
-            padding: 1rem;
-            border-radius: 0.375rem;
-            resize: vertical;
+            height: 400px; /* Increased height for more comfortable writing */
+            margin-top: 1.5rem; /* Adjusted margin */
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            display: flex; /* Flex container for toolbar and editor */
+            flex-direction: column;
+            overflow: hidden; /* To contain Quill's internal overflow */
         }
-        .pagination-controls {
+        body.dark-mode #editor-container {
+            border-color: #3a3a3a;
+        }
+
+        #editor-container .ql-toolbar {
+            background-color: #fcfcfc; /* Toolbar background */
+            border-bottom: 1px solid #e0e0e0;
+            border-top-left-radius: 8px; /* Match container border radius */
+            border-top-right-radius: 8px;
+        }
+        body.dark-mode #editor-container .ql-toolbar {
+            background-color: #2a2a2a;
+            border-color: #3a3a3a;
+        }
+
+        #editor-container .ql-container {
+            flex-grow: 1; /* Editor takes remaining space */
+            background-color: #fcfcfc; /* Editor background */
+            border: none; /* Remove default Quill border */
+            border-bottom-left-radius: 8px; /* Match container border radius */
+            border-bottom-right-radius: 8px;
+            font-family: 'Pretendard', sans-serif; /* Apply custom font to editor */
+            font-size: 1rem; /* Default font size for editor */
+            line-height: 1.8; /* Line height for editor */
+        }
+        body.dark-mode #editor-container .ql-container {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+        }
+
+        #editor-container .ql-editor {
+            padding: 1.5rem; /* Padding inside editor */
+            height: 100%; /* Fill container */
+            overflow-y: auto; /* Enable scrolling for editor content */
+        }
+        body.dark-mode #editor-container .ql-editor {
+            color: #e0e0e0;
+        }
+
+        /* Thumbnail editor specific styles */
+        #thumbnail-editor-container {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 150px; /* Fixed height for thumbnail editor */
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+        }
+        body.dark-mode #thumbnail-editor-container {
+            border-color: #3a3a3a;
+        }
+        #thumbnail-editor-container .ql-toolbar {
+            background-color: #fcfcfc;
+            border-bottom: 1px solid #e0e0e0;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        body.dark-mode #thumbnail-editor-container .ql-toolbar {
+            background-color: #2a2a2a;
+            border-color: #3a3a3a;
+        }
+        #thumbnail-editor-container .ql-container {
+            flex-grow: 1;
+            background-color: #fcfcfc;
+            border: none;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            display: flex; /* Use flex to center content */
+            align-items: center; /* Center vertically */
+            justify-content: center; /* Center horizontally */
+        }
+        body.dark-mode #thumbnail-editor-container .ql-container {
+            background-color: #2a2a2a;
+        }
+        #thumbnail-editor-container .ql-editor {
+            padding: 0.5rem; /* Reduced padding */
+            text-align: center; /* Center placeholder text */
+            display: flex; /* Flex for content within editor */
             align-items: center;
-            margin-top: 1rem;
+            justify-content: center;
+            height: 100%;
+            overflow: hidden; /* Prevent scrollbars */
+        }
+        #thumbnail-editor-container .ql-editor img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Ensure image fits within bounds */
+            border-radius: 4px; /* Apply some border radius to image */
+        }
+        body.dark-mode #thumbnail-editor-container .ql-editor {
+            color: #e0e0e0;
+        }
+
+
+        .page-counter {
+            font-size: 0.9rem;
+            color: #6b7280;
+            text-align: center;
+            flex-grow: 1; /* Center the counter */
+        }
+        body.dark-mode .page-counter {
+            color: #a0a0a0;
+        }
+
+        /* Button styles for consistency */
+        .btn-primary {
+            @apply px-4 py-2 rounded-md font-semibold transition-colors duration-200;
+        }
+        .btn-teal {
+            @apply bg-teal-600 text-white hover:bg-teal-700;
+        }
+        .btn-gray {
+            @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+        }
+        .btn-red {
+            @apply bg-red-500 text-white hover:bg-red-600;
+        }
+        .btn-blue {
+            @apply bg-blue-600 text-white hover:bg-blue-700;
+        }
+
+        /* Page preview thumbnails */
+        .page-thumbnails-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-bottom: 1rem; /* Add some padding at the bottom */
+            overflow-x: auto; /* Allow horizontal scrolling if many pages */
+        }
+        .page-thumbnail {
+            width: 100px; /* Fixed width for thumbnails */
+            height: 120px; /* Fixed height for thumbnails */
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #6b7280;
+            background-color: #fcfcfc;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        body.dark-mode .page-thumbnail {
+            background-color: #2a2a2a;
+            border-color: #3a3a3a;
+            color: #a0a0a0;
+        }
+        .page-thumbnail:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .page-thumbnail.active {
+            border-color: #2dd4bf; /* Teal border for active page */
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.4); /* Teal glow */
+            font-weight: bold;
+            color: #2dd4bf; /* Teal text for active page */
+        }
+        body.dark-mode .page-thumbnail.active {
+            border-color: #2dd4bf;
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.4);
+            color: #2dd4bf;
+        }
+        .page-thumbnail-number {
+            margin-top: 0.5rem;
+            font-weight: bold;
+        }
+        /* New style for the book controls wrapper */
+        .editor-controls-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem; /* Space between buttons */
+            padding: 1rem 0; /* Vertical padding */
+            margin-top: 1.5rem; /* Space from the editor */
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+        .editor-controls-wrapper .btn-primary {
+            min-width: 120px; /* Ensure buttons have a minimum width */
+            justify-content: center; /* Center content within buttons */
+        }
+
+        /* Styles for thumbnail content (image or text) */
+        .page-thumbnail .page-thumbnail-content-wrapper {
+            width: 100%;
+            height: calc(100% - 24px); /* Adjust height to make space for page number */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .page-thumbnail .page-thumbnail-content-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures image covers the area without distortion */
+            border-radius: 4px; /* Inherit from parent or specify */
+        }
+        .page-thumbnail .page-thumbnail-text-content {
+            padding: 0.5rem;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* Show 2 lines of text */
+            -webkit-box-orient: vertical;
+            white-space: normal;
+            line-height: 1.2;
+            font-size: 0.7rem; /* Smaller font for snippet */
+            color: inherit; /* Ensure text color adapts to dark mode */
+        }
+
+        /* Tabs for Upload/Manage */
+        #main-tabs-container {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+        body.dark-mode #main-tabs-container {
+            border-bottom-color: #3a3a3a;
+        }
+        .main-tab-button {
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            color: #6b7280;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            flex-grow: 1; /* Distribute space evenly */
+            text-align: center;
+        }
+        .main-tab-button.active {
+            color: #10b981;
+            border-bottom-color: #10b981;
+        }
+        .main-tab-button:hover:not(.active) {
+            color: #14b8a6;
+        }
+        body.dark-mode .main-tab-button {
+            color: #a0a0a0;
+        }
+        body.dark-mode .main-tab-button.active {
+            color: #2dd4bf;
+            border-bottom-color: #2dd4bf;
+        }
+        body.dark-mode .main-tab-button:hover:not(.active) {
+            color: #4fd1c5;
+        }
+
+        /* My Works List Styling */
+        .my-work-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            background-color: #fcfcfc;
+            transition: all 0.2s ease-in-out;
+        }
+        body.dark-mode .my-work-item {
+            background-color: #2a2a2a;
+            border-color: #3a3a3a;
+        }
+        .my-work-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transform: translateY(-2px);
+        }
+        body.dark-mode .my-work-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .my-work-thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        .my-work-info {
+            flex-grow: 1;
+        }
+        .my-work-title {
+            font-weight: 700;
+            font-size: 1.125rem; /* text-lg */
+            color: #1a202c;
+            margin-bottom: 0.25rem;
+        }
+        body.dark-mode .my-work-title {
+            color: #e0e0e0;
+        }
+        .my-work-meta {
+            font-size: 0.875rem; /* text-sm */
+            color: #6b7280;
+        }
+        body.dark-mode .my-work-meta {
+            color: #a0a0a0;
+        }
+        .my-work-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+        .my-work-actions .btn-primary {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
         }
     </style>
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-800">
+<body class="min-h-screen bg-white text-gray-800">
 
-    <header id="main-header" class="fixed top-0 left-0 w-full z-50 py-3 transition-all duration-500 ease-in-out bg-white shadow-sm">
+    <header id="main-header" class="fixed top-0 left-0 w-full z-50 py-3 transition-all duration-500 ease-in-out bg-white">
         <div class="container mx-auto px-4 flex justify-between items-center">
             <a href="index.html" class="text-2xl font-extrabold transition-colors duration-500 text-teal-500">
                 CRAFIQ
@@ -124,7 +471,7 @@
                 <a href="#" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
                     인기작품
                 </a>
-                <a href="author.html" class="text-sm font-semibold transition-colors duration-500 text-teal-600 hover:text-teal-600">
+                <a href="author.html" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
                     작가 페이지
                 </a>
                 <a href="#" class="text-sm font-semibold transition-colors duration-500 text-gray-700 hover:text-teal-600">
@@ -152,7 +499,7 @@
                         </button>
                         <div id="user-dropdown-menu" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden z-20">
                             <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 프로필</a>
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">설정</a>
+                            <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">설정</a>
                             <button id="logout-btn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 로그아웃
                             </button>
@@ -163,216 +510,175 @@
         </div>
     </header>
 
-    <main class="pt-20 pb-12 container mx-auto px-4">
-        <h1 class="text-4xl font-extrabold text-gray-900 mb-8 text-center">작가 연재 대시보드</h1>
+    <main class="flex-grow container mx-auto px-4 py-8 pt-24">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-2 text-center">작품 관리</h1>
+        <p class="text-center text-gray-600 mb-10">작품을 업로드하거나 기존 작품을 관리하세요.</p>
 
-        <section class="bg-white p-8 rounded-lg shadow-md mb-12">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">새 작품 등록</h2>
-            <form id="new-work-form" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">작품 유형</label>
-                    <div class="flex space-x-4">
-                        <label class="inline-flex items-center">
-                            <input type="radio" name="workType" value="novel" class="form-radio text-teal-600" checked>
-                            <span class="ml-2 text-gray-700">소설</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="radio" name="workType" value="comic" class="form-radio text-teal-600">
-                            <span class="ml-2 text-gray-700">만화</span>
-                        </label>
-                    </div>
-                </div>
-                <div>
-                    <label for="work-title" class="block text-sm font-medium text-gray-700 mb-1">작품 제목</label>
-                    <input type="text" id="work-title" name="title" required
-                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="work-description" class="block text-sm font-medium text-gray-700 mb-1">작품 설명</label>
-                    <textarea id="work-description" name="description" rows="4" required
-                              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm"></textarea>
-                </div>
-                <div>
-                    <label for="work-genre" class="block text-sm font-medium text-gray-700 mb-1">장르</label>
-                    <select id="work-genre" name="genre" required
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                        <option value="">장르 선택</option>
-                        <option value="fantasy">판타지</option>
-                        <option value="romance">로맨스</option>
-                        <option value="action">액션</option>
-                        <option value="mystery">미스터리</option>
-                        <option value="sci-fi">SF</option>
-                        <option value="drama">드라마</option>
-                        <option value="daily">일상</option>
-                        <option value="thriller">스릴러</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="work-cover-image" class="block text-sm font-medium text-gray-700 mb-1">표지 이미지 URL</label>
-                    <input type="url" id="work-cover-image" name="coverImage"
-                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
-                           placeholder="예: https://placehold.co/400x225">
-                </div>
-                <button type="submit"
-                        class="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-semibold text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200">
-                    작품 등록
-                </button>
-            </form>
-        </section>
-
-        <section class="bg-white p-8 rounded-lg shadow-md">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">내 연재 작품</h2>
-            <div id="my-works-list" class="space-y-4">
-                <div class="text-center text-gray-500 py-8" id="no-works-message">등록된 작품이 없습니다.</div>
-            </div>
-        </section>
-
-        <div id="edit-work-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 hidden">
-            <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md mx-4">
-                <h3 class="text-2xl font-bold text-gray-900 mb-6">작품 수정</h3>
-                <form id="edit-work-form" class="space-y-6">
-                    <input type="hidden" id="edit-work-id">
-                    <input type="hidden" id="edit-work-type"> <div>
-                        <label for="edit-title" class="block text-sm font-medium text-gray-700 mb-1">작품 제목</label>
-                        <input type="text" id="edit-title" name="title" required
-                               class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                    </div>
-                    <div>
-                        <label for="edit-description" class="block text-sm font-medium text-gray-700 mb-1">작품 설명</label>
-                        <textarea id="edit-description" name="description" rows="4" required
-                                  class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm"></textarea>
-                    </div>
-                    <div>
-                        <label for="edit-genre" class="block text-sm font-medium text-gray-700 mb-1">장르</label>
-                        <select id="edit-genre" name="genre" required
-                                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                            <option value="">장르 선택</option>
-                            <option value="fantasy">판타지</option>
-                            <option value="romance">로맨스</option>
-                            <option value="action">액션</option>
-                            <option value="mystery">미스터리</option>
-                            <option value="sci-fi">SF</option>
-                            <option value="drama">드라마</option>
-                            <option value="daily">일상</option>
-                            <option value="thriller">스릴러</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="edit-cover-image" class="block text-sm font-medium text-gray-700 mb-1">표지 이미지 URL</label>
-                        <input type="url" id="edit-cover-image" name="coverImage"
-                               class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
-                               placeholder="예: https://placehold.co/400x225">
-                    </div>
-                    <div class="flex justify-end space-x-3">
-                        <button type="button" id="cancel-edit-btn"
-                                class="px-5 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-                            취소
-                        </button>
-                        <button type="submit"
-                                class="px-5 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200">
-                            수정 완료
-                        </button>
-                    </div>
-                </form>
-            </div>
+        <div id="main-tabs-container">
+            <button class="main-tab-button active" data-tab="upload">작품 업로드</button>
+            <button class="main-tab-button" data-tab="manage">내 작품 관리</button>
         </div>
 
-        <div id="add-episode-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 hidden">
-            <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-xl mx-4">
-                <h3 class="text-2xl font-bold text-gray-900 mb-6" id="add-episode-modal-title">새 에피소드/챕터 추가</h3>
-                <form id="add-episode-form" class="space-y-6">
-                    <input type="hidden" id="add-episode-work-id">
-                    <input type="hidden" id="add-episode-work-type">
+        <div id="upload-tab-content" class="main-tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-2">
+                    <section class="bg-white p-8 rounded-lg border border-gray-300">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">기본 정보</h2>
+                        <p class="text-gray-600 mb-6">작품의 기본 정보를 입력해 주세요</p>
 
-                    <div>
-                        <label for="episode-title" class="block text-sm font-medium text-gray-700 mb-1">에피소드/챕터 제목</label>
-                        <input type="text" id="episode-title" name="episodeTitle" required
-                               class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                    </div>
-
-                    <div id="novel-fields" class="space-y-6 hidden">
-                        <div>
-                            <label for="chapter-content" class="block text-sm font-medium text-gray-700 mb-1">챕터 내용</label>
-                            <textarea id="chapter-content" name="chapterContent" rows="10"
-                                      class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm"></textarea>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="work-title" class="block text-sm font-medium text-gray-700 mb-2">작품 제목 <span class="text-red-500">*</span></label>
+                                <input type="text" id="work-title" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="작품 제목을 입력하세요">
+                            </div>
+                            <div>
+                                <label for="work-type" class="block text-sm font-medium text-gray-700 mb-2">작품 유형 <span class="text-red-500">*</span></label>
+                                <select id="work-type" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
+                                    <option value="novel">소설</option>
+                                    <option value="webtoon">웹툰</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="work-genre" class="block text-sm font-medium text-gray-700 mb-2">장르 <span class="text-red-500">*</span></label>
+                                <select id="work-genre" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
+                                    <option value="">장르를 선택하세요</option>
+                                    <option value="fantasy">판타지</option>
+                                    <option value="romance">로맨스</option>
+                                    <option value="action">액션</option>
+                                    <option value="drama">드라마</option>
+                                    <option value="thriller">스릴러</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="age-rating" class="block text-sm font-medium text-gray-700 mb-2">연령 등급</label>
+                                <select id="age-rating" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
+                                    <option value="">연령 등급을 선택하세요</option>
+                                    <option value="all">전체 이용가</option>
+                                    <option value="12">12세 이용가</option>
+                                    <option value="15">15세 이용가</option>
+                                    <option value="18">18세 이용가</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
 
-                    <div id="comic-fields" class="space-y-6 hidden">
-                        <div>
-                            <label for="comic-files" class="block text-sm font-medium text-gray-700 mb-1">만화 파일 (이미지)</label>
-                            <input type="file" id="comic-files" name="comicFiles" accept="image/*" multiple
-                                   class="mt-1 block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
-                            <p class="mt-1 text-sm text-gray-500">여러 개의 이미지 파일을 선택할 수 있습니다.</p>
-                            <div id="comic-files-preview" class="mt-4 grid grid-cols-3 gap-4">
+                        <div class="mt-6">
+                            <label for="work-introduction" class="block text-sm font-medium text-gray-700 mb-2">작품 소개 <span class="text-red-500">*</span></label>
+                            <textarea id="work-introduction" rows="5" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="작품에 대한 간단한 소개를 작성해 주세요"></textarea>
+                        </div>
+
+                        <div class="mt-6">
+                            <label for="work-tags" class="block text-sm font-medium text-gray-700 mb-2">태그</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="text" id="tag-input" class="flex-grow p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="태그를 입력하세요">
+                                <button id="add-tag-btn" class="p-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="tags-container" class="flex flex-wrap gap-2 mt-3">
                                 </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <div class="flex justify-end space-x-3">
-                        <button type="button" id="cancel-add-episode-btn"
-                                class="px-5 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-                            취소
-                        </button>
-                        <button type="submit"
-                                class="px-5 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200">
-                            추가 완료
-                        </button>
-                    </div>
-                </form>
+                    <section id="content-creation-section" class="bg-white p-8 rounded-lg border border-gray-300 mt-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6"><span id="content-type-title">소설</span> 내용 작성 (<span id="novel-page-count-display"></span>페이지)</h2>
+                        <p class="text-gray-600 mb-6" id="content-type-description">책처럼 페이지별로 소설을 작성해 보세요</p>
+
+                        <div id="editor-container"></div>
+
+                        <div class="editor-controls-wrapper">
+                            <button id="prev-page-btn" class="btn-gray btn-primary flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                </svg>
+                                이전 페이지
+                            </button>
+                            <span id="page-counter" class="page-counter">1 / 1 페이지</span>
+                            <button id="add-page-btn" class="btn-teal btn-primary flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                페이지 추가
+                            </button>
+                            <button id="delete-page-btn" class="btn-red btn-primary flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 6 6 18"></path>
+                                    <path d="M6 6 18 18"></path>
+                                </svg>
+                                삭제
+                            </button>
+                            <button id="next-page-btn" class="btn-gray btn-primary flex items-center">
+                                다음 페이지
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="flex justify-center space-x-4 mt-6">
+                            <button id="save-page-btn" class="btn-blue btn-primary flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                    <polyline points="7 3 7 8 15 8"></polyline>
+                                </svg>
+                                페이지 저장
+                            </button>
+                        </div>
+
+                        <div id="page-thumbnails-container" class="page-thumbnails-container">
+                            </div>
+                    </section>
+                </div>
+
+                <div class="md:col-span-1">
+                    <section class="bg-white p-8 rounded-lg border border-gray-300 mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">썸네일</h2>
+                        <p class="text-gray-600 mb-6">작품을 대표할 이미지를 업로드하거나 붙여넣어 주세요.</p>
+                        <div id="thumbnail-editor-container"></div>
+                        <p class="text-xs text-gray-500 mt-2">썸네일은 첫 번째 이미지로 사용됩니다. (파일 크기에 따라 업로드 시간이 길어질 수 있습니다.)</p>
+                    </section>
+
+                    <section class="bg-white p-8 rounded-lg border border-gray-300">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">발행 설정</h2>
+                        <div>
+                            <label for="public-setting" class="block text-sm font-medium text-gray-700 mb-2">공개 설정</label>
+                            <select id="public-setting" class="w-full p-3 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 bg-white">
+                                <option value="public">전체 공개</option>
+                                <option value="private">비공개</option>
+                                <option value="draft">임시 저장</option>
+                            </select>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <div class="flex justify-center mt-10">
+                <button id="upload-work-btn" class="px-8 py-4 bg-teal-600 text-white font-bold rounded-md text-lg hover:bg-teal-700 transition-colors duration-300 flex items-center justify-center">
+                    <svg id="upload-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span id="upload-button-text">작품 업로드</span>
+                    <svg id="loading-spinner" class="animate-spin h-6 w-6 text-white ml-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
             </div>
         </div>
 
-        <div id="view-chapter-modal" class="modal">
-            <div class="modal-content">
-                <h3 class="text-2xl font-bold text-gray-900 mb-4" id="view-chapter-modal-title"></h3>
-                <h4 class="text-lg font-semibold text-gray-700 mb-4" id="view-chapter-title"></h4>
-
-                <div id="chapter-content-display" class="hidden"></div>
-                <textarea id="chapter-content-edit" class="hidden"></textarea>
-
-                <div class="pagination-controls">
-                    <button id="prev-page-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">이전 페이지</button>
-                    <span id="page-info" class="text-gray-600"></span>
-                    <button id="next-page-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">다음 페이지</button>
-                </div>
-
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button type="button" id="edit-chapter-btn"
-                            class="px-5 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
-                        편집
-                    </button>
-                    <button type="button" id="save-chapter-btn"
-                            class="px-5 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 hidden">
-                        저장
-                    </button>
-                    <button type="button" id="cancel-chapter-edit-btn"
-                            class="px-5 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 hidden">
-                        취소
-                    </button>
-                    <button type="button" id="delete-chapter-btn"
-                            class="px-5 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
-                        삭제
-                    </button>
-                    <button type="button" id="close-chapter-modal-btn"
-                            class="px-5 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-                        닫기
-                    </button>
-                </div>
+        <div id="manage-tab-content" class="main-tab-content hidden">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">내 작품 목록</h2>
+            <div id="my-works-list" class="space-y-4">
+                <p class="text-gray-500 text-center">작품을 불러오는 중...</p>
             </div>
+            <p id="no-works-message" class="text-gray-500 text-center mt-4 hidden">아직 업로드한 작품이 없습니다.</p>
         </div>
-
-
-        <div id="confirmation-modal" class="modal">
-            <div class="modal-content">
-                <p id="confirmation-message" class="text-lg font-semibold text-gray-800 mb-4"></p>
-                <div class="modal-buttons">
-                    <button id="confirm-yes-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">예</button>
-                    <button id="confirm-no-btn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors">아니오</button>
-                </div>
-            </div>
-        </div>
-
     </main>
 
     <footer class="bg-gray-800 text-gray-300 py-10 px-4 mt-12">
@@ -388,32 +694,23 @@
         </div>
     </footer>
 
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
     <script type="module">
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, deleteDoc, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, collection, serverTimestamp, query, where, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase configuration (replace with your actual config or load from environment)
         const firebaseConfig = JSON.parse(`{"apiKey": "AIzaSyBJFAV4-QMggAW2K1YtpsXIZ5PQ8KJzo9k", "authDomain": "crafiq-a.firebaseapp.com", "projectId": "crafiq-a", "storageBucket": "crafiq-a.firebasestorage.app", "messagingSenderId": "176082460783", "appId": "1:176082460783:web:cd0b594cc803932eaa2d9a", "measurementId": "G-QB84Z9EMZW"}`);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use __app_id if available
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app); // Initialize Firebase Storage
-
-        let currentUserId = null; // To store the current authenticated user's ID
-        let myWorks = []; // Stores the list of works for the current user
-
-        // Variables for chapter viewing/editing
-        let currentNovelChapters = []; // Stores chapters for the currently viewed novel
-        let currentChapterIndex = 0; // Index of the chapter being viewed/edited
-        let currentChapterContentPages = []; // Array of pages for the current chapter content
-        let currentPageIndex = 0; // Current page number within a chapter
-        const CHARS_PER_PAGE = 1500; // Approximate characters per page for novel content
 
         // Get DOM elements
         const authSection = document.getElementById('auth-section');
@@ -424,617 +721,85 @@
         const dropdownArrowIcon = document.getElementById('dropdown-arrow-icon');
         const userDropdownMenu = document.getElementById('user-dropdown-menu');
         const logoutBtn = document.getElementById('logout-btn');
+        const mainHeader = document.getElementById('main-header'); // Get the header element
 
-        const newWorkForm = document.getElementById('new-work-form');
-        const workTypeRadios = document.querySelectorAll('input[name="workType"]');
-        const myWorksList = document.getElementById('my-works-list');
-        const noWorksMessage = document.getElementById('no-works-message');
+        // Main Tabs elements
+        const mainTabButtons = document.querySelectorAll('.main-tab-button');
+        const uploadTabContent = document.getElementById('upload-tab-content');
+        const manageTabContent = document.getElementById('manage-tab-content');
 
-        const editWorkModal = document.getElementById('edit-work-modal');
-        const editWorkForm = document.getElementById('edit-work-form');
-        const cancelEditBtn = document.getElementById('cancel-edit-btn');
-        const editWorkTypeInput = document.getElementById('edit-work-type'); // Hidden field for work type
+        // Form elements (Upload Tab)
+        const workTitleInput = document.getElementById('work-title');
+        const workIntroductionTextarea = document.getElementById('work-introduction');
+        const tagInput = document.getElementById('tag-input');
+        const addTagBtn = document.getElementById('add-tag-btn');
+        const tagsContainer = document.getElementById('tags-container');
+        const uploadWorkBtn = document.getElementById('upload-work-btn');
+        const uploadButtonText = document.getElementById('upload-button-text');
+        const uploadIcon = document.getElementById('upload-icon');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const workTypeSelect = document.getElementById('work-type'); // Added for type checking
+        const workGenreSelect = document.getElementById('work-genre');
+        const ageRatingSelect = document.getElementById('age-rating');
+        // const thumbnailUrlInput = document.getElementById('thumbnail-url'); // REMOVED
+        const publicSettingSelect = document.getElementById('public-setting');
 
-        const addEpisodeModal = document.getElementById('add-episode-modal');
-        const addEpisodeModalTitle = document.getElementById('add-episode-modal-title');
-        const addEpisodeForm = document.getElementById('add-episode-form');
-        const addEpisodeWorkIdInput = document.getElementById('add-episode-work-id');
-        const addEpisodeWorkTypeInput = document.getElementById('add-episode-work-type');
-        const novelFields = document.getElementById('novel-fields');
-        const comicFields = document.getElementById('comic-fields');
-        const chapterContentInput = document.getElementById('chapter-content');
-        const comicFilesInput = document.getElementById('comic-files');
-        const comicFilesPreview = document.getElementById('comic-files-preview');
-        const cancelAddEpisodeBtn = document.getElementById('cancel-add-episode-btn');
-
-        const viewChapterModal = document.getElementById('view-chapter-modal');
-        const viewChapterModalTitle = document.getElementById('view-chapter-modal-title');
-        const viewChapterTitle = document.getElementById('view-chapter-title');
-        const chapterContentDisplay = document.getElementById('chapter-content-display');
-        const chapterContentEdit = document.getElementById('chapter-content-edit');
+        // Content creation section elements (unified for novel/webtoon)
+        const contentCreationSection = document.getElementById('content-creation-section');
+        const contentTypeTitle = document.getElementById('content-type-title');
+        const contentTypeDescription = document.getElementById('content-type-description');
+        const novelPageCountDisplay = document.getElementById('novel-page-count-display'); // For "소설/웹툰 작성 (X페이지)" title
+        const editorContainer = document.getElementById('editor-container'); // Quill will be initialized here
+        const pageCounter = document.getElementById('page-counter');
         const prevPageBtn = document.getElementById('prev-page-btn');
         const nextPageBtn = document.getElementById('next-page-btn');
-        const pageInfoSpan = document.getElementById('page-info');
-        const editChapterBtn = document.getElementById('edit-chapter-btn');
-        const saveChapterBtn = document.getElementById('save-chapter-btn');
-        const cancelChapterEditBtn = document.getElementById('cancel-chapter-edit-btn');
-        const deleteChapterBtn = document.getElementById('delete-chapter-btn');
-        const closeChapterModalBtn = document.getElementById('close-chapter-modal-btn');
+        const addPageBtn = document.getElementById('add-page-btn');
+        const deletePageBtn = document.getElementById('delete-page-btn');
+        const savePageBtn = document.getElementById('save-page-btn');
+        const pageThumbnailsContainer = document.getElementById('page-thumbnails-container'); // New thumbnail container
+
+        // Thumbnail editor element
+        const thumbnailEditorContainer = document.getElementById('thumbnail-editor-container'); // NEW
+
+        // My Works List elements (Manage Tab)
+        const myWorksListContainer = document.getElementById('my-works-list');
+        const noWorksMessage = document.getElementById('no-works-message');
 
 
-        const confirmationModal = document.getElementById('confirmation-modal');
-        const confirmationMessage = document.getElementById('confirmation-message');
-        const confirmYesBtn = document.getElementById('confirm-yes-btn');
-        const confirmNoBtn = document.getElementById('confirm-no-btn');
+        let novelPages = ['<p>이것은 첫 번째 페이지의 내용입니다. 소설을 책처럼 넘기면서 작성해 보세요!</p>']; // Array to hold HTML content for each page
+        let currentPageIndex = 0; // Current active page index (0-based)
+        let currentWorkId = new URLSearchParams(window.location.search).get('workId'); // Unified ID for novel/webtoon
 
-        // --- Custom Confirmation Modal Logic ---
-        let resolveConfirmation;
-
-        /**
-         * Shows a custom confirmation modal.
-         * @param {string} message - The message to display in the modal.
-         * @returns {Promise<boolean>} A promise that resolves to true if confirmed, false otherwise.
-         */
-        function showConfirmationModal(message) {
-            confirmationMessage.textContent = message;
-            confirmationModal.style.display = 'flex'; // Show the modal
-
-            return new Promise(resolve => {
-                resolveConfirmation = resolve;
-            });
-        }
-
-        confirmYesBtn.addEventListener('click', () => {
-            confirmationModal.style.display = 'none';
-            resolveConfirmation(true);
-        });
-
-        confirmNoBtn.addEventListener('click', () => {
-            confirmationModal.style.display = 'none';
-            resolveConfirmation(false);
-        });
-
-        // --- Work Management Functions ---
+        let quill; // Main Quill editor instance
+        let quillThumbnail; // NEW: Thumbnail Quill editor instance
 
         /**
-         * Renders the list of serialized works.
+         * Updates the header's style (shadow and border) based on dark mode.
          */
-        function renderMyWorks() {
-            myWorksList.innerHTML = ''; // Clear existing items
-            if (myWorks.length === 0) {
-                noWorksMessage.classList.remove('hidden');
+        function updateHeaderStyle() {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            mainHeader.classList.remove('shadow-sm');
+            mainHeader.style.borderBottom = 'none'; /* Ensure no border */
+
+            if (isDarkMode) {
+                mainHeader.style.backgroundColor = '#1e1e1e';
             } else {
-                noWorksMessage.classList.add('hidden');
-                myWorks.forEach(work => {
-                    const workElement = document.createElement('div');
-                    workElement.id = `work-${work.id}`;
-                    workElement.className = 'flex flex-col md:flex-row items-start md:items-center bg-gray-100 p-4 rounded-md shadow-sm';
-                    workElement.innerHTML = `
-                        <img src="${work.coverImage || 'https://placehold.co/100x56/CCCCCC/333333?text=No+Image'}"
-                             alt="${work.title}" class="w-24 h-14 object-cover rounded-md mr-4 mb-2 md:mb-0" onerror="this.onerror=null;this.src='https://placehold.co/100x56/CCCCCC/333333?text=No+Image';"/>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-lg font-semibold text-gray-900 truncate">${work.title} <span class="text-sm font-normal text-teal-600">(${work.type === 'novel' ? '소설' : '만화'})</span></h3>
-                            <p class="text-sm text-gray-600 line-clamp-2">${work.description}</p>
-                            <span class="text-xs text-gray-500">${work.genre}</span>
-                        </div>
-                        <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 ml-0 md:ml-4 mt-4 md:mt-0 w-full md:w-auto">
-                            <button data-id="${work.id}" data-type="${work.type}" class="add-episode-btn px-3 py-1 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-colors w-full md:w-auto">
-                                에피소드/챕터 추가
-                            </button>
-                            ${work.type === 'novel' ? `<button data-id="${work.id}" class="view-chapters-btn px-3 py-1 bg-purple-500 text-white text-sm rounded-md hover:bg-purple-600 transition-colors w-full md:w-auto">챕터 보기/수정</button>` : ''}
-                            <button data-id="${work.id}" class="edit-btn px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors w-full md:w-auto">
-                                수정
-                            </button>
-                            <button data-id="${work.id}" class="delete-btn px-3 py-1 bg-red-500 text-white text-sm rounded-md hover:bg-red-600 transition-colors w-full md:w-auto">
-                                삭제
-                            </button>
-                        </div>
-                    `;
-                    myWorksList.appendChild(workElement);
-                });
-
-                // Attach event listeners to new buttons
-                document.querySelectorAll('.add-episode-btn').forEach(button => {
-                    button.addEventListener('click', handleAddEpisodeOrChapterClick);
-                });
-                document.querySelectorAll('.view-chapters-btn').forEach(button => {
-                    button.addEventListener('click', handleViewChaptersClick);
-                });
-                document.querySelectorAll('.edit-btn').forEach(button => {
-                    button.addEventListener('click', handleEditWork);
-                });
-                document.querySelectorAll('.delete-btn').forEach(button => {
-                    button.addEventListener('click', handleDeleteWork);
-                });
+                mainHeader.style.backgroundColor = '#ffffff';
             }
         }
 
         /**
-         * Handles the submission of the new work form.
-         * @param {Event} event - The form submission event.
+         * Applies or removes dark mode based on the toggle state.
+         * Stores the preference in localStorage.
          */
-        async function handleNewWorkSubmit(event) {
-            event.preventDefault();
-
-            if (!currentUserId) {
-                await showConfirmationModal("로그인해야 작품을 등록할 수 있습니다.");
-                return;
+        function applyDarkModeToPage(isDarkMode) {
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
             }
-
-            const title = document.getElementById('work-title').value;
-            const description = document.getElementById('work-description').value;
-            const genre = document.getElementById('work-genre').value;
-            const coverImage = document.getElementById('work-cover-image').value;
-            const workType = document.querySelector('input[name="workType"]:checked').value; // 'novel' or 'comic'
-
-            const newWork = {
-                title,
-                description,
-                genre,
-                coverImage,
-                type: workType, // Store the type of work
-                authorId: currentUserId, // Associate work with the current user
-                createdAt: new Date()
-            };
-
-            try {
-                // Add a new document to the 'works' subcollection under the user's private data
-                const docRef = await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/works`), newWork);
-                console.log("Document written with ID: ", docRef.id);
-                newWorkForm.reset(); // Clear the form
-                // The onSnapshot listener will automatically update the UI
-            } catch (e) {
-                console.error("Error adding document: ", e);
-                await showConfirmationModal("작품 등록 중 오류가 발생했습니다.");
-            }
+            updateHeaderStyle();
         }
-
-        /**
-         * Handles the click on the edit button for a work.
-         * @param {Event} event - The click event.
-         */
-        function handleEditWork(event) {
-            if (!currentUserId) {
-                showConfirmationModal("로그인해야 작품을 수정할 수 있습니다.");
-                return;
-            }
-            const workId = event.target.dataset.id;
-            const workToEdit = myWorks.find(work => work.id === workId);
-
-            if (workToEdit) {
-                document.getElementById('edit-work-id').value = workToEdit.id;
-                document.getElementById('edit-title').value = workToEdit.title;
-                document.getElementById('edit-description').value = workToEdit.description;
-                document.getElementById('edit-genre').value = workToEdit.genre;
-                document.getElementById('edit-cover-image').value = workToEdit.coverImage;
-                editWorkTypeInput.value = workToEdit.type; // Set the hidden type field
-                editWorkModal.classList.remove('hidden'); // Show the modal
-            }
-        }
-
-        /**
-         * Handles the submission of the edit work form.
-         * @param {Event} event - The form submission event.
-         */
-        async function handleEditWorkSubmit(event) {
-            event.preventDefault();
-
-            if (!currentUserId) {
-                await showConfirmationModal("로그인해야 작품을 수정할 수 있습니다.");
-                return;
-            }
-
-            const workId = document.getElementById('edit-work-id').value;
-            const updatedTitle = document.getElementById('edit-title').value;
-            const updatedDescription = document.getElementById('edit-description').value;
-            const updatedGenre = document.getElementById('edit-genre').value;
-            const updatedCoverImage = document.getElementById('edit-cover-image').value;
-
-            try {
-                // Update the document in Firestore
-                const workRef = doc(db, `artifacts/${appId}/users/${currentUserId}/works`, workId);
-                await updateDoc(workRef, {
-                    title: updatedTitle,
-                    description: updatedDescription,
-                    genre: updatedGenre,
-                    coverImage: updatedCoverImage,
-                    updatedAt: new Date()
-                });
-                console.log("Document successfully updated!");
-                editWorkModal.classList.add('hidden'); // Hide the modal
-                // The onSnapshot listener will automatically update the UI
-            } catch (e) {
-                console.error("Error updating document: ", e);
-                await showConfirmationModal("작품 수정 중 오류가 발생했습니다.");
-            }
-        }
-
-        /**
-         * Handles the click on the delete button for a work.
-         * @param {Event} event - The click event.
-         */
-        async function handleDeleteWork(event) {
-            const workId = event.target.dataset.id;
-
-            if (!currentUserId) {
-                await showConfirmationModal("로그인해야 작품을 삭제할 수 있습니다.");
-                return;
-            }
-
-            const confirmed = await showConfirmationModal('정말로 이 작품을 삭제하시겠습니까?');
-            if (confirmed) {
-                try {
-                    // Delete the document from Firestore
-                    await deleteDoc(doc(db, `artifacts/${appId}/users/${currentUserId}/works`, workId));
-                    console.log("Document successfully deleted!");
-                    // The onSnapshot listener will automatically update the UI
-                } catch (e) {
-                    console.error("Error removing document: ", e);
-                    await showConfirmationModal("작품 삭제 중 오류가 발생했습니다.");
-                }
-            }
-        }
-
-        // --- Episode/Chapter Management Functions ---
-
-        /**
-         * Displays the add episode/chapter modal and sets up its fields based on work type.
-         * @param {Event} event - The click event from the "Add Episode/Chapter" button.
-         */
-        function handleAddEpisodeOrChapterClick(event) {
-            if (!currentUserId) {
-                showConfirmationModal("로그인해야 에피소드/챕터를 추가할 수 있습니다.");
-                return;
-            }
-            const workId = event.target.dataset.id;
-            const workType = event.target.dataset.type;
-            const currentWorkForEpisode = myWorks.find(work => work.id === workId);
-
-            if (!currentWorkForEpisode) {
-                console.error("Work not found for adding episode/chapter.");
-                return;
-            }
-
-            addEpisodeWorkIdInput.value = workId;
-            addEpisodeWorkTypeInput.value = workType;
-            addEpisodeForm.reset(); // Clear form fields
-            comicFilesPreview.innerHTML = ''; // Clear any previous image previews
-
-            if (workType === 'novel') {
-                addEpisodeModalTitle.textContent = '새 소설 챕터 추가';
-                novelFields.classList.remove('hidden');
-                comicFields.classList.add('hidden');
-            } else if (workType === 'comic') {
-                addEpisodeModalTitle.textContent = '새 만화 에피소드 추가';
-                novelFields.classList.add('hidden');
-                comicFields.classList.remove('hidden');
-            }
-
-            addEpisodeModal.classList.remove('hidden'); // Show the modal
-        }
-
-        /**
-         * Handles the submission of the add episode/chapter form.
-         * @param {Event} event - The form submission event.
-         */
-        async function handleAddEpisodeFormSubmit(event) {
-            event.preventDefault();
-
-            if (!currentUserId) {
-                await showConfirmationModal("로그인해야 에피소드/챕터를 추가할 수 있습니다.");
-                return;
-            }
-
-            const workId = addEpisodeWorkIdInput.value;
-            const workType = addEpisodeWorkTypeInput.value;
-            const episodeTitle = document.getElementById('episode-title').value;
-
-            try {
-                if (workType === 'novel') {
-                    const chapterContent = chapterContentInput.value;
-                    const newChapter = {
-                        title: episodeTitle,
-                        content: chapterContent,
-                        createdAt: new Date(),
-                        // Order will be determined by fetching existing chapters and getting the max order + 1
-                        // For simplicity, we'll just add it and sort by createdAt for now.
-                    };
-                    // Add to 'chapters' subcollection
-                    await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/works/${workId}/chapters`), newChapter);
-                    console.log("Novel chapter added successfully!");
-                } else if (workType === 'comic') {
-                    const files = comicFilesInput.files;
-                    if (files.length === 0) {
-                        await showConfirmationModal("만화 파일을 선택해주세요.");
-                        return;
-                    }
-
-                    const imageUrls = [];
-                    const uploadPromises = [];
-
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
-                        const storageRef = ref(storage, `artifacts/${appId}/users/${currentUserId}/works/${workId}/episodes/${episodeTitle}/images/${file.name}`);
-                        uploadPromises.push(uploadBytes(storageRef, file).then(snapshot => {
-                            return getDownloadURL(snapshot.ref);
-                        }).then(url => {
-                            imageUrls.push(url);
-                        }));
-                    }
-
-                    await Promise.all(uploadPromises); // Wait for all uploads to complete
-
-                    const newEpisode = {
-                        title: episodeTitle,
-                        imageUrls: imageUrls,
-                        createdAt: new Date(),
-                        // Order will be determined by fetching existing episodes and getting the max order + 1
-                    };
-                    // Add to 'episodes' subcollection
-                    await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/works/${workId}/episodes`), newEpisode);
-                    console.log("Comic episode added successfully!");
-                }
-                addEpisodeModal.classList.add('hidden'); // Hide the modal
-                addEpisodeForm.reset(); // Clear the form
-                comicFilesPreview.innerHTML = ''; // Clear previews
-            } catch (e) {
-                console.error("Error adding episode/chapter: ", e);
-                await showConfirmationModal("에피소드/챕터 추가 중 오류가 발생했습니다.");
-            }
-        }
-
-        /**
-         * Previews selected comic image files.
-         * @param {Event} event - The file input change event.
-         */
-        function handleComicFilesChange(event) {
-            comicFilesPreview.innerHTML = ''; // Clear previous previews
-            const files = event.target.files;
-            if (files) {
-                Array.from(files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const imgContainer = document.createElement('div');
-                        imgContainer.className = 'relative group';
-                        imgContainer.innerHTML = `
-                            <img src="${e.target.result}" alt="${file.name}" class="w-full h-24 object-cover rounded-md border border-gray-200">
-                            <span class="absolute bottom-1 left-1 text-xs bg-black bg-opacity-50 text-white px-1 py-0.5 rounded">${file.name}</span>
-                        `;
-                        comicFilesPreview.appendChild(imgContainer);
-                    };
-                    reader.readAsDataURL(file);
-                });
-            }
-        }
-
-        // --- Novel Chapter Viewing/Editing Functions ---
-
-        /**
-         * Handles click on "챕터 보기/수정" button for a novel.
-         * Fetches chapters and displays the first one.
-         * @param {Event} event
-         */
-        async function handleViewChaptersClick(event) {
-            if (!currentUserId) {
-                await showConfirmationModal("로그인해야 챕터를 볼 수 있습니다.");
-                return;
-            }
-            const workId = event.target.dataset.id;
-            const work = myWorks.find(w => w.id === workId);
-
-            if (!work) {
-                console.error("Work not found for viewing chapters.");
-                return;
-            }
-
-            viewChapterModalTitle.textContent = `${work.title} - 챕터 목록`;
-            viewChapterModal.classList.remove('hidden');
-
-            try {
-                // Fetch chapters ordered by creation time (simple ordering)
-                const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/works/${workId}/chapters`), orderBy("createdAt"));
-                const querySnapshot = await getDocs(q);
-                currentNovelChapters = [];
-                querySnapshot.forEach((doc) => {
-                    currentNovelChapters.push({ id: doc.id, ...doc.data() });
-                });
-
-                if (currentNovelChapters.length > 0) {
-                    currentChapterIndex = 0; // Start with the first chapter
-                    displayChapterContent();
-                } else {
-                    viewChapterTitle.textContent = "등록된 챕터가 없습니다.";
-                    chapterContentDisplay.textContent = "";
-                    chapterContentEdit.value = "";
-                    pageInfoSpan.textContent = "";
-                    prevPageBtn.disabled = true;
-                    nextPageBtn.disabled = true;
-                    editChapterBtn.classList.add('hidden');
-                    saveChapterBtn.classList.add('hidden');
-                    cancelChapterEditBtn.classList.add('hidden');
-                    deleteChapterBtn.classList.add('hidden'); // Hide delete if no chapters
-                    chapterContentDisplay.classList.remove('hidden');
-                    chapterContentEdit.classList.add('hidden');
-                }
-            } catch (error) {
-                console.error("Error fetching chapters:", error);
-                await showConfirmationModal("챕터를 불러오는 중 오류가 발생했습니다.");
-            }
-        }
-
-        /**
-         * Splits chapter content into pages and displays the current page.
-         */
-        function displayChapterContent() {
-            if (currentNovelChapters.length === 0) return;
-
-            const chapter = currentNovelChapters[currentChapterIndex];
-            viewChapterTitle.textContent = chapter.title;
-
-            // Split content into pages
-            currentChapterContentPages = [];
-            for (let i = 0; i < chapter.content.length; i += CHARS_PER_PAGE) {
-                currentChapterContentPages.push(chapter.content.substring(i, i + CHARS_PER_PAGE));
-            }
-            currentPageIndex = 0; // Reset to first page of the new chapter
-
-            renderCurrentPage();
-            setReadMode(); // Always start in read mode
-        }
-
-        /**
-         * Renders the content of the current page.
-         */
-        function renderCurrentPage() {
-            if (currentChapterContentPages.length === 0) {
-                chapterContentDisplay.textContent = "내용 없음";
-                pageInfoSpan.textContent = "0/0";
-                prevPageBtn.disabled = true;
-                nextPageBtn.disabled = true;
-                return;
-            }
-
-            chapterContentDisplay.textContent = currentChapterContentPages[currentPageIndex];
-            pageInfoSpan.textContent = `${currentPageIndex + 1}/${currentChapterContentPages.length}`;
-
-            prevPageBtn.disabled = currentPageIndex === 0;
-            nextPageBtn.disabled = currentPageIndex === currentChapterContentPages.length - 1;
-        }
-
-        /**
-         * Switches to the previous page within the current chapter.
-         */
-        function handlePrevPage() {
-            if (currentPageIndex > 0) {
-                currentPageIndex--;
-                renderCurrentPage();
-            }
-        }
-
-        /**
-         * Switches to the next page within the current chapter.
-         */
-        function handleNextPage() {
-            if (currentPageIndex < currentChapterContentPages.length - 1) {
-                currentPageIndex++;
-                renderCurrentPage();
-            }
-        }
-
-        /**
-         * Sets the modal to read mode.
-         */
-        function setReadMode() {
-            chapterContentDisplay.classList.remove('hidden');
-            chapterContentEdit.classList.add('hidden');
-            editChapterBtn.classList.remove('hidden');
-            saveChapterBtn.classList.add('hidden');
-            cancelChapterEditBtn.classList.add('hidden');
-            deleteChapterBtn.classList.remove('hidden'); // Show delete button in read mode
-            prevPageBtn.classList.remove('hidden'); // Show pagination in read mode
-            nextPageBtn.classList.remove('hidden'); // Show pagination in read mode
-            pageInfoSpan.classList.remove('hidden'); // Show page info in read mode
-            renderCurrentPage(); // Re-render to ensure correct page is shown
-        }
-
-        /**
-         * Sets the modal to edit mode.
-         */
-        function setEditMode() {
-            chapterContentDisplay.classList.add('hidden');
-            chapterContentEdit.classList.remove('hidden');
-            chapterContentEdit.value = currentNovelChapters[currentChapterIndex].content; // Load full content for editing
-            editChapterBtn.classList.add('hidden');
-            saveChapterBtn.classList.remove('hidden');
-            cancelChapterEditBtn.classList.remove('hidden');
-            deleteChapterBtn.classList.add('hidden'); // Hide delete button in edit mode
-            prevPageBtn.classList.add('hidden'); // Hide pagination in edit mode
-            nextPageBtn.classList.add('hidden'); // Hide pagination in edit mode
-            pageInfoSpan.classList.add('hidden'); // Hide page info in edit mode
-        }
-
-        /**
-         * Handles clicking the "편집" (Edit) button for a chapter.
-         */
-        function handleEditChapter() {
-            setEditMode();
-        }
-
-        /**
-         * Handles clicking the "저장" (Save) button for a chapter.
-         */
-        async function handleSaveChapter() {
-            if (!currentUserId) {
-                await showConfirmationModal("로그인해야 챕터를 저장할 수 있습니다.");
-                return;
-            }
-            const chapterId = currentNovelChapters[currentChapterIndex].id;
-            const workId = myWorks.find(w => w.id === viewChapterModalTitle.textContent.split(' - ')[0]).id; // Hacky way to get workId from modal title
-            const updatedContent = chapterContentEdit.value;
-
-            try {
-                const chapterRef = doc(db, `artifacts/${appId}/users/${currentUserId}/works/${workId}/chapters`, chapterId);
-                await updateDoc(chapterRef, {
-                    content: updatedContent,
-                    updatedAt: new Date()
-                });
-                currentNovelChapters[currentChapterIndex].content = updatedContent; // Update local data
-                await showConfirmationModal("챕터가 성공적으로 저장되었습니다!");
-                displayChapterContent(); // Re-render with new content
-                setReadMode();
-            } catch (error) {
-                console.error("Error saving chapter:", error);
-                await showConfirmationModal("챕터 저장 중 오류가 발생했습니다.");
-            }
-        }
-
-        /**
-         * Handles clicking the "취소" (Cancel) button during chapter editing.
-         */
-        function handleCancelChapterEdit() {
-            setReadMode();
-        }
-
-        /**
-         * Handles clicking the "삭제" (Delete) button for a chapter.
-         */
-        async function handleDeleteChapter() {
-            if (!currentUserId) {
-                await showConfirmationModal("로그인해야 챕터를 삭제할 수 있습니다.");
-                return;
-            }
-            const chapterId = currentNovelChapters[currentChapterIndex].id;
-            const workId = myWorks.find(w => w.id === viewChapterModalTitle.textContent.split(' - ')[0]).id; // Hacky way to get workId
-
-            const confirmed = await showConfirmationModal('정말로 이 챕터를 삭제하시겠습니까?');
-            if (confirmed) {
-                try {
-                    await deleteDoc(doc(db, `artifacts/${appId}/users/${currentUserId}/works/${workId}/chapters`, chapterId));
-                    await showConfirmationModal("챕터가 성공적으로 삭제되었습니다!");
-                    // Re-fetch chapters and re-render
-                    await handleViewChaptersClick({ target: { dataset: { id: workId } } }); // Simulate click to refresh
-                    if (currentNovelChapters.length === 0) { // If no chapters left, close modal
-                        viewChapterModal.classList.add('hidden');
-                    }
-                } catch (error) {
-                    console.error("Error deleting chapter:", error);
-                    await showConfirmationModal("챕터 삭제 중 오류가 발생했습니다.");
-                }
-            }
-        }
-
-        /**
-         * Closes the view chapter modal.
-         */
-        function handleCloseChapterModal() {
-            viewChapterModal.classList.add('hidden');
-            currentNovelChapters = [];
-            currentChapterIndex = 0;
-            currentChapterContentPages = [];
-            currentPageIndex = 0;
-        }
-
-        // --- Authentication Functions ---
 
         /**
          * Updates the header's authentication section based on user login status.
@@ -1042,7 +807,6 @@
          */
         async function updateAuthSection(user) {
             if (user) {
-                currentUserId = user.uid; // Set current user ID
                 loginSignupBtn.classList.add('hidden');
                 authSection.classList.remove('hidden');
                 userInfoDisplay.classList.remove('hidden');
@@ -1069,11 +833,11 @@
                     console.error("Error fetching user profile, displaying email:", error);
                     userNicknameSpan.textContent = user.email || '오류';
                 }
-
-                // Start listening to user's works once authenticated
-                listenForMyWorks();
+                // If user is logged in, fetch their works for the manage tab
+                if (mainTabButtons[1].classList.contains('active')) { // Only fetch if manage tab is active
+                    fetchAndRenderMyWorks();
+                }
             } else {
-                currentUserId = null; // Clear user ID
                 loginSignupBtn.classList.remove('hidden');
                 userInfoDisplay.classList.add('hidden');
                 userInfoDisplay.classList.remove('flex');
@@ -1082,33 +846,450 @@
                 if (dropdownArrowIcon) {
                     dropdownArrowIcon.classList.remove('rotate-180');
                 }
-                myWorks = []; // Clear works if logged out
-                renderMyWorks(); // Update UI
+                // Clear my works list if logged out
+                myWorksListContainer.innerHTML = '<p class="text-gray-500 text-center">로그인 후 작품을 관리할 수 있습니다.</p>';
+                noWorksMessage.classList.add('hidden');
             }
         }
 
         /**
-         * Sets up a real-time listener for the current user's serialized works.
+         * Adds a tag to the tags container.
+         * @param {string} tagText - The text of the tag to add.
          */
-        function listenForMyWorks() {
-            if (currentUserId) {
-                // Query for works where authorId matches currentUserId
-                const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/works`));
-                onSnapshot(q, (snapshot) => {
-                    myWorks = [];
-                    snapshot.forEach((doc) => {
-                        myWorks.push({ id: doc.id, ...doc.data() });
-                    });
-                    renderMyWorks(); // Re-render works whenever data changes
-                }, (error) => {
-                    console.error("Error listening to my works:", error);
+        function addTag(tagText) {
+            if (tagText.trim() === '') return;
+
+            const tagDiv = document.createElement('div');
+            tagDiv.className = 'tag-item flex items-center bg-gray-200 text-gray-800 text-sm px-3 py-1 rounded-full';
+            tagDiv.innerHTML = `
+                <span>${tagText}</span>
+                <button type="button" class="remove-tag-btn ml-2 text-gray-600 hover:text-gray-900 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            `;
+            tagsContainer.appendChild(tagDiv);
+
+            // Add event listener to remove button
+            tagDiv.querySelector('.remove-tag-btn').addEventListener('click', () => {
+                tagDiv.remove();
+            });
+        }
+
+        /**
+         * Renders the content of the current page in the Quill editor.
+         * Updates page counter and button states.
+         */
+        function renderCurrentPage() {
+            // Load content into Quill editor
+            quill.root.innerHTML = novelPages[currentPageIndex];
+            pageCounter.textContent = `${currentPageIndex + 1} / ${novelPages.length} 페이지`;
+            novelPageCountDisplay.textContent = novelPages.length; // Update total page count in title
+
+            prevPageBtn.disabled = currentPageIndex === 0;
+            nextPageBtn.disabled = currentPageIndex === novelPages.length - 1;
+            deletePageBtn.disabled = novelPages.length === 1; // Cannot delete the last page
+
+            renderPageThumbnails(); // Re-render thumbnails on page change
+        }
+
+        /**
+         * Renders the page thumbnails at the bottom.
+         */
+        function renderPageThumbnails() {
+            pageThumbnailsContainer.innerHTML = ''; // Clear existing thumbnails
+            const isWebtoon = workTypeSelect.value === 'webtoon';
+            const pagePrefix = isWebtoon ? 'EP.' : 'P.';
+
+            novelPages.forEach((pageContent, index) => {
+                const thumbnailDiv = document.createElement('div');
+                thumbnailDiv.className = `page-thumbnail ${index === currentPageIndex ? 'active' : ''}`;
+                thumbnailDiv.setAttribute('data-page-index', index);
+
+                const contentWrapper = document.createElement('div');
+                contentWrapper.className = 'page-thumbnail-content-wrapper';
+
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = pageContent;
+
+                let contentElement;
+                const firstImage = tempDiv.querySelector('img');
+
+                if (isWebtoon && firstImage) {
+                    contentElement = document.createElement('img');
+                    contentElement.src = firstImage.src;
+                    contentElement.alt = "Episode Image";
+                    contentElement.className = "w-full h-full object-cover rounded-sm";
+                    contentElement.onerror = function() { this.onerror=null;this.src='https://placehold.co/100x120/CCCCCC/333333?text=No+Img'; };
+                } else {
+                    contentElement = document.createElement('div');
+                    contentElement.className = 'page-thumbnail-text-content';
+                    contentElement.textContent = tempDiv.textContent.trim().substring(0, 50) || '내용 없음';
+                }
+
+                contentWrapper.appendChild(contentElement);
+                
+                const pageNumberDiv = document.createElement('div'); // Corrected: moved declaration before usage
+                pageNumberDiv.className = 'page-thumbnail-number';
+                pageNumberDiv.textContent = `${pagePrefix}${index + 1}`;
+                thumbnailDiv.appendChild(pageNumberDiv);
+
+                thumbnailDiv.addEventListener('click', () => {
+                    saveCurrentPageContent(); // Save current page before switching
+                    currentPageIndex = index;
+                    renderCurrentPage();
                 });
+                pageThumbnailsContainer.appendChild(thumbnailDiv);
+            });
+
+            // REMOVED: Scroll to the active thumbnail (this was causing unwanted main page scroll)
+            // const activeThumbnail = pageThumbnailsContainer.querySelector('.page-thumbnail.active');
+            // if (activeThumbnail) {
+            //     activeThumbnail.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            // }
+        }
+
+
+        /**
+         * Saves the content from the Quill editor to the current page in the array.
+         */
+        function saveCurrentPageContent() {
+            novelPages[currentPageIndex] = quill.root.innerHTML; // Get HTML content from Quill
+            // renderCurrentPage(); // Don't re-render here to avoid infinite loop with text-change
+            // showCustomAlert('페이지 내용이 저장되었습니다!'); // This alert can be annoying on every change
+        }
+
+        /**
+         * Navigates to the previous page.
+         */
+        function goToPrevPage() {
+            if (currentPageIndex > 0) {
+                saveCurrentPageContent(); // Save current page before navigating
+                currentPageIndex--;
+                renderCurrentPage();
             }
         }
 
-        // --- Event Listeners ---
-        window.addEventListener('load', () => {
-            // Initial auth state check will be handled by onAuthStateChanged
+        /**
+         * Navigates to the next page.
+         */
+        function goToNextPage() {
+            if (currentPageIndex < novelPages.length - 1) {
+                saveCurrentPageContent(); // Save current page before navigating
+                currentPageIndex++;
+                renderCurrentPage();
+            }
+        }
+
+        /**
+         * Adds a new blank page after the current page.
+         */
+        function addPage() {
+            saveCurrentPageContent(); // Save current page before adding new
+            novelPages.splice(currentPageIndex + 1, 0, '<p><br></p>'); // Insert empty HTML paragraph for Quill
+            currentPageIndex++; // Move to the new page
+            renderCurrentPage();
+            showCustomAlert('새 페이지가 추가되었습니다!');
+        }
+
+        /**
+         * Deletes the current page.
+         */
+        function deletePage() {
+            if (novelPages.length === 1) {
+                showCustomAlert('마지막 페이지는 삭제할 수 없습니다.');
+                return;
+            }
+            showCustomConfirm('정말로 현재 페이지를 삭제하시겠습니까?', () => {
+                novelPages.splice(currentPageIndex, 1); // Remove current page
+                if (currentPageIndex >= novelPages.length) {
+                    currentPageIndex = novelPages.length - 1; // Adjust index if last page was deleted
+                }
+                renderCurrentPage();
+                showCustomAlert('페이지가 삭제되었습니다.');
+            });
+        }
+
+        /**
+         * Handles the change in work type selection.
+         * Updates content section titles and descriptions.
+         */
+        function handleWorkTypeChange() {
+            const selectedType = workTypeSelect.value;
+
+            if (selectedType === 'novel') {
+                contentTypeTitle.textContent = '소설';
+                contentTypeDescription.textContent = '책처럼 페이지별로 소설을 작성해 보세요';
+                // If switching from webtoon, reset novelPages to a default empty page if it was empty
+                if (novelPages.length === 0 || (novelPages.length === 1 && novelPages[0].trim() === '<p><br></p>')) {
+                    novelPages = ['<p>여기에 내용을 작성해 보세요.</p>'];
+                }
+                currentPageIndex = 0; // Always start at first page when switching types
+                renderCurrentPage(); // Render novel page when switching back
+            } else if (selectedType === 'webtoon') {
+                contentTypeTitle.textContent = '웹툰';
+                contentTypeDescription.textContent = '각 에피소드 내용을 페이지별로 작성하고 이미지를 추가하세요.';
+                // If switching from novel, reset novelPages to a default empty page if it was empty
+                if (novelPages.length === 0 || (novelPages.length === 1 && novelPages[0].trim() === '<p><br></p>')) {
+                    novelPages = ['<p>여기에 에피소드 내용을 작성하고 이미지를 추가하세요.</p>'];
+                }
+                currentPageIndex = 0; // Always start at first page when switching types
+                renderCurrentPage(); // Render webtoon page (using same novel page logic)
+            }
+        }
+
+        /**
+         * Displays a custom alert message.
+         * @param {string} message - The message to display.
+         */
+        function showCustomAlert(message) {
+            const alertModal = document.createElement('div');
+            alertModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            alertModal.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+                    <p class="text-lg font-semibold text-gray-800 mb-4">${message}</p>
+                    <button class="px-6 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors" onclick="this.closest('.fixed').remove()">확인</button>
+                </div>
+            `;
+            document.body.appendChild(alertModal);
+        }
+
+        /**
+         * Displays a custom confirmation dialog.
+         * @param {string} message - The confirmation message.
+         * @param {Function} onConfirm - Callback function to execute if confirmed.
+         */
+        function showCustomConfirm(message, onConfirm) {
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            confirmModal.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+                    <p class="text-lg font-semibold text-gray-800 mb-4">${message}</p>
+                    <div class="flex justify-center space-x-4">
+                        <button class="px-6 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors" onclick="this.closest('.fixed').remove()">취소</button>
+                        <button class="px-6 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors" id="confirm-action-btn">확인</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmModal);
+
+            document.getElementById('confirm-action-btn').addEventListener('click', () => {
+                onConfirm();
+                confirmModal.remove();
+            });
+        }
+
+        /**
+         * Fetches and renders the list of works uploaded by the current user.
+         */
+        async function fetchAndRenderMyWorks() {
+            myWorksListContainer.innerHTML = '<p class="text-gray-500 text-center">작품을 불러오는 중...</p>';
+            noWorksMessage.classList.add('hidden');
+
+            if (!auth.currentUser) {
+                myWorksListContainer.innerHTML = '<p class="text-gray-500 text-center">로그인 후 작품을 관리할 수 있습니다.</p>';
+                return;
+            }
+
+            const userId = auth.currentUser.uid;
+            const worksCollectionRef = collection(db, `artifacts/${appId}/public/data/works`);
+            const q = query(worksCollectionRef, where('authorId', '==', userId));
+
+            try {
+                const querySnapshot = await getDocs(q);
+                myWorksListContainer.innerHTML = ''; // Clear loading message
+
+                if (querySnapshot.empty) {
+                    noWorksMessage.classList.remove('hidden');
+                    return;
+                }
+
+                querySnapshot.forEach(docSnapshot => {
+                    const work = docSnapshot.data();
+                    const workId = docSnapshot.id;
+                    const workItem = document.createElement('div');
+                    workItem.className = 'my-work-item';
+                    workItem.innerHTML = `
+                        <img src="${work.thumbnailUrl || 'https://placehold.co/80x80/CCCCCC/333333?text=No+Thumb'}" alt="${work.title}" class="my-work-thumbnail" onerror="this.onerror=null;this.src='https://placehold.co/80x80/CCCCCC/333333?text=No+Thumb';"/>
+                        <div class="my-work-info">
+                            <h3 class="my-work-title">${work.title}</h3>
+                            <p class="my-work-meta">${work.type === 'novel' ? '소설' : '웹툰'} | ${work.genre || '장르 없음'} | ${work.publicSetting === 'public' ? '공개' : '비공개'}</p>
+                        </div>
+                        <div class="my-work-actions">
+                            <button data-work-id="${workId}" class="edit-work-btn btn-blue btn-primary">수정</button>
+                            <button data-work-id="${workId}" data-work-title="${work.title}" class="delete-work-btn btn-red btn-primary">삭제</button>
+                        </div>
+                    `;
+                    myWorksListContainer.appendChild(workItem);
+                });
+
+                // Attach event listeners to newly created buttons
+                myWorksListContainer.querySelectorAll('.edit-work-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const idToEdit = event.target.dataset.workId;
+                        window.location.href = `hello-world-tabs.html?workId=${idToEdit}`; // Redirect to upload page for editing
+                    });
+                });
+
+                myWorksListContainer.querySelectorAll('.delete-work-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const idToDelete = event.target.dataset.workId;
+                        const titleToDelete = event.target.dataset.workTitle;
+                        deleteWork(idToDelete, titleToDelete);
+                    });
+                });
+
+            } catch (error) {
+                console.error("Error fetching my works:", error);
+                myWorksListContainer.innerHTML = '<p class="text-red-500 text-center">내 작품을 불러오는 중 오류가 발생했습니다.</p>';
+            }
+        }
+
+        /**
+         * Deletes a work from Firestore.
+         * @param {string} workId - The ID of the work to delete.
+         * @param {string} workTitle - The title of the work for confirmation message.
+         */
+        async function deleteWork(workId, workTitle) {
+            showCustomConfirm(`정말로 "${workTitle}" 작품을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`, async () => {
+                try {
+                    await deleteDoc(doc(db, `artifacts/${appId}/public/data/works`, workId));
+                    showCustomAlert(`"${workTitle}" 작품이 성공적으로 삭제되었습니다.`);
+                    fetchAndRenderMyWorks(); // Re-render the list after deletion
+                } catch (error) {
+                    console.error("Error deleting work:", error);
+                    showCustomAlert(`작품 삭제 중 오류가 발생했습니다: ${error.message}`);
+                }
+            });
+        }
+
+
+        // Event Listeners
+        window.addEventListener('load', async () => {
+            // Authenticate with Firebase on load
+            try {
+                if (initialAuthToken) {
+                    console.log("Attempting sign-in with custom token...");
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Signed in with custom token successfully.");
+                } else {
+                    console.log("No custom token found. User will be unauthenticated unless they log in.");
+                }
+            } catch (error) {
+                console.error("Firebase authentication failed during initial sign-in attempt:", error);
+                if (error.code === 'auth/custom-token-mismatch' || error.code === 'auth/invalid-custom-token') {
+                    console.warn("Custom token mismatch/invalid. User will remain unauthenticated.");
+                } else {
+                    showCustomAlert("Firebase 인증에 실패했습니다. 페이지 기능을 사용하려면 다시 시도해주세요.");
+                }
+                updateAuthSection(null);
+            }
+
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode !== null) {
+                applyDarkModeToPage(savedDarkMode === 'true');
+            } else {
+                updateHeaderStyle();
+            }
+
+            // Initialize Main Quill editor
+            quill = new Quill(editorContainer, {
+                theme: 'snow', // 'bubble' or 'snow'
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+                        [{ 'align': [] }],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+                        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+                        ['link', 'image'],
+                        ['clean']                                         // remove formatting button
+                    ]
+                },
+                placeholder: '현재 페이지의 내용을 작성해 주세요.',
+            });
+
+            // Initialize Thumbnail Quill editor (NEW)
+            quillThumbnail = new Quill(thumbnailEditorContainer, {
+                theme: 'snow',
+                modules: {
+                    toolbar: [['image']] // Only image upload
+                },
+                placeholder: '썸네일 이미지를 여기에 드래그하거나 붙여넣으세요.',
+            });
+
+
+            // Listen for changes in Main Quill editor to auto-save to local array
+            quill.on('text-change', () => {
+                saveCurrentPageContent();
+            });
+
+            // Load existing work if workId is present in URL
+            if (currentWorkId) {
+                try {
+                    const workDocRef = doc(db, `artifacts/${appId}/public/data/works`, currentWorkId);
+                    const workDocSnap = await getDoc(workDocRef);
+
+                    if (docSnap.exists()) {
+                        const workData = docSnap.data();
+                        workTitleInput.value = workData.title || '';
+                        workTypeSelect.value = workData.type || 'novel';
+                        workGenreSelect.value = workData.genre || '';
+                        ageRatingSelect.value = workData.ageRating || '';
+                        workIntroductionTextarea.value = workData.introduction || '';
+                        // thumbnailUrlInput.value = workData.thumbnailUrl || ''; // REMOVED
+
+                        // Load thumbnail into thumbnail Quill editor (NEW)
+                        if (workData.thumbnailUrl && workData.thumbnailUrl.startsWith('data:image/')) {
+                            quillThumbnail.root.innerHTML = `<img src="${workData.thumbnailUrl}" alt="Thumbnail"/>`;
+                        } else {
+                            quillThumbnail.root.innerHTML = ''; // Clear if no Base64 thumbnail
+                        }
+
+                        publicSettingSelect.value = workData.publicSetting || 'public';
+
+                        // Clear existing tags and add loaded tags
+                        tagsContainer.innerHTML = '';
+                        if (workData.tags && Array.isArray(workData.tags)) {
+                            workData.tags.forEach(tag => addTag(tag));
+                        }
+
+                        // Load content pages
+                        if (workData.content && Array.isArray(workData.content) && workData.content.length > 0) {
+                            novelPages = [...workData.content];
+                        } else {
+                            novelPages = ['<p>여기에 내용을 작성해 보세요.</p>']; // Default if no content
+                        }
+                        currentPageIndex = 0;
+                        console.log("Work loaded successfully for editing:", workData);
+                    } else {
+                        console.log("No such work found for ID:", currentWorkId);
+                        novelPages = ['<p>여기에 내용을 작성해 보세요.</p>']; // Default for new work
+                        const workNameParam = new URLSearchParams(window.location.search).get('workName') || '';
+                        workTitleInput.value = workNameParam;
+                    }
+                } catch (error) {
+                    console.error("Error loading work from Firestore:", error);
+                    showCustomAlert("작품을 불러오는 중 오류가 발생했습니다.");
+                    novelPages = ['<p>여기에 내용을 작성해 보세요.</p>']; // Default for new work on error
+                }
+            } else {
+                novelPages = ['<p>여기에 내용을 작성해 보세요.</p>']; // Default for new work
+                const workNameParam = new URLSearchParams(window.location.search).get('workName') || '';
+                workTitleInput.value = workNameParam;
+            }
+
+            // Call handler to set initial visibility and content based on default/loaded type
+            handleWorkTypeChange();
+
+            // Explicitly scroll to the top of the page after everything is loaded and rendered
+            // Use a setTimeout to ensure it runs after any potential browser scroll restoration
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+            }, 100); // Small delay
         });
 
         // Firebase Auth State Listener
@@ -1118,7 +1299,7 @@
 
         // Login/Signup Button
         loginSignupBtn.addEventListener('click', () => {
-            window.location.href = 'login.html'; // Redirect to login page
+            window.location.href = 'login.html';
         });
 
         // Dropdown Toggle
@@ -1126,7 +1307,7 @@
             event.stopPropagation();
             userDropdownMenu.classList.toggle('hidden');
             if (dropdownArrowIcon) {
-                dropdownArrowIcon.classList.remove('rotate-180');
+                dropdownArrowIcon.classList.toggle('rotate-180');
             }
         });
 
@@ -1150,46 +1331,209 @@
             }
         });
 
-        // New Work Form Submission
-        newWorkForm.addEventListener('submit', handleNewWorkSubmit);
-
-        // Edit Work Modal Cancel Button
-        cancelEditBtn.addEventListener('click', () => {
-            editWorkModal.classList.add('hidden');
+        // Add tag on button click
+        addTagBtn.addEventListener('click', () => {
+            const tagText = tagInput.value.trim();
+            if (tagText) {
+                addTag(tagText);
+                tagInput.value = ''; // Clear input
+            }
         });
 
-        // Edit Work Form Submission
-        editWorkForm.addEventListener('submit', handleEditWorkSubmit);
-
-        // Add Episode Modal Cancel Button
-        cancelAddEpisodeBtn.addEventListener('click', () => {
-            addEpisodeModal.classList.add('hidden');
-            addEpisodeForm.reset(); // Clear form fields
-            comicFilesPreview.innerHTML = ''; // Clear any previews
+        // Add tag on Enter key press in input field
+        tagInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent form submission
+                const tagText = tagInput.value.trim();
+                if (tagText) {
+                    addTag(tagText);
+                    tagInput.value = ''; // Clear input
+                }
+            }
         });
 
-        // Add Episode Form Submission
-        addEpisodeForm.addEventListener('submit', handleAddEpisodeFormSubmit);
+        // Page navigation and management event listeners
+        prevPageBtn.addEventListener('click', goToPrevPage);
+        nextPageBtn.addEventListener('click', goToNextPage);
+        addPageBtn.addEventListener('click', addPage);
+        deletePageBtn.addEventListener('click', deletePage);
+        savePageBtn.addEventListener('click', saveCurrentPageContent); // Explicit save button
 
-        // Handle work type radio button change to show/hide fields
-        workTypeRadios.forEach(radio => {
-            radio.addEventListener('change', (event) => {
-                // No dynamic fields for initial work creation, but this listener is here for future expansion if needed.
-                // For now, all fields are always visible for new work creation.
+        // Handle work type change event
+        workTypeSelect.addEventListener('change', handleWorkTypeChange);
+
+        // REMOVED: Scroll to top on dropdown changes (as per user's request)
+        // workTypeSelect.addEventListener('change', () => window.scrollTo(0, 0));
+        // workGenreSelect.addEventListener('change', () => window.scrollTo(0, 0));
+        // ageRatingSelect.addEventListener('change', () => window.scrollTo(0, 0));
+        // publicSettingSelect.addEventListener('change', () => window.scrollTo(0, 0));
+
+
+        // Handle work upload button click
+        uploadWorkBtn.addEventListener('click', async () => {
+            // Check if user is logged in
+            if (!auth.currentUser) {
+                showCustomAlert('작품을 업로드하려면 로그인해야 합니다.');
+                window.location.href = 'login.html'; // Redirect to login page
+                return;
+            }
+
+            // Show loading state
+            uploadButtonText.textContent = '업로드 중...';
+            uploadIcon.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+            uploadWorkBtn.disabled = true;
+
+            try {
+                // Ensure current page content is saved before final upload
+                saveCurrentPageContent();
+
+                const workTitle = workTitleInput.value;
+                const workType = workTypeSelect.value;
+                const workGenre = workGenreSelect.value;
+                const ageRating = ageRatingSelect.value;
+                const workIntroduction = workIntroductionTextarea.value;
+                const publicSetting = publicSettingSelect.value;
+                const currentTags = Array.from(tagsContainer.querySelectorAll('.tag-item span')).map(span => span.textContent);
+
+                // NEW: Get Base64 image from thumbnail Quill editor
+                let thumbnailUrl = '';
+                const thumbnailEditorContent = quillThumbnail.root.innerHTML;
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = thumbnailEditorContent;
+                const imgElement = tempDiv.querySelector('img');
+                if (imgElement && imgElement.src.startsWith('data:image/')) {
+                    thumbnailUrl = imgElement.src;
+                } else if (thumbnailEditorContent.trim() !== '<p><br></p>' && thumbnailEditorContent.trim() !== '') {
+                    // If there's text content but no image, warn user
+                    showCustomAlert('썸네일 에디터에 이미지가 아닌 텍스트가 입력되었습니다. 이미지를 업로드하거나 비워두세요.');
+                    uploadButtonText.textContent = '작품 업로드';
+                    uploadIcon.classList.remove('hidden');
+                    loadingSpinner.classList.add('hidden');
+                    uploadWorkBtn.disabled = false;
+                    return;
+                }
+                // END NEW
+
+                let contentToUpload = novelPages; // This will be novelPages for both novel and webtoon
+
+                if (!workTitle || !workType || !workGenre || !workIntroduction) {
+                    showCustomAlert('필수 입력 항목 (제목, 유형, 장르, 소개)을 모두 채워주세요.');
+                    return;
+                }
+
+                // Validate content based on type
+                if (contentToUpload.length === 0 || contentToUpload.every(page => page.trim() === '<p><br></p>' || page.trim() === '')) {
+                    if (workType === 'novel') {
+                        showCustomAlert('소설 내용을 한 페이지 이상 작성해주세요.');
+                    } else { // webtoon
+                        showCustomAlert('웹툰 에피소드를 한 개 이상 작성해주세요.');
+                    }
+                    return;
+                }
+
+                const workData = {
+                    title: workTitle,
+                    type: workType,
+                    genre: workGenre,
+                    ageRating: ageRating,
+                    introduction: workIntroduction,
+                    tags: currentTags,
+                    thumbnailUrl: thumbnailUrl, // Use extracted Base64 URL
+                    publicSetting: publicSetting,
+                    content: contentToUpload, // This will be novelPages for both novel and webtoon
+                    authorId: auth.currentUser.uid, // Use actual logged-in user ID
+                    authorNickname: userNicknameSpan.textContent, // Use displayed nickname
+                    timestamp: serverTimestamp(), // Use Firestore server timestamp
+                    views: 0, // Initialize views
+                    likes: 0 // Initialize likes
+                };
+
+                // Determine if it's a new work or an an update
+                if (currentWorkId) {
+                    // Update existing work
+                    await updateDoc(doc(db, `artifacts/${appId}/public/data/works`, currentWorkId), workData);
+                    console.log("Document updated with ID: ", currentWorkId);
+                    showCustomAlert('작품이 성공적으로 업데이트되었습니다!');
+                } else {
+                    // Add new work
+                    const docRef = await addDoc(collection(db, `artifacts/${appId}/public/data/works`), workData);
+                    console.log("Document written with ID: ", docRef.id);
+                    showCustomAlert('작품이 성공적으로 업로드되었습니다!');
+                }
+                
+                // Redirect to the manage tab after successful upload/update
+                window.location.href = 'hello-world-tabs.html?tab=manage';
+
+            } catch (error) {
+                console.error("작품 업로드/업데이트 중 오류 발생:", error);
+                showCustomAlert(`작품 업로드/업데이트에 실패했습니다: ${error.message}`);
+            } finally {
+                // Hide loading state
+                uploadButtonText.textContent = '작품 업로드';
+                uploadIcon.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
+                uploadWorkBtn.disabled = false;
+            }
+        });
+
+        // Main Tab Switching Logic
+        mainTabButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                const targetTab = event.target.dataset.tab;
+
+                mainTabButtons.forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+
+                uploadTabContent.classList.add('hidden');
+                manageTabContent.classList.add('hidden');
+
+                if (targetTab === 'upload') {
+                    uploadTabContent.classList.remove('hidden');
+                    // Reset form when switching to upload tab, unless editing
+                    if (!currentWorkId) {
+                        resetUploadForm();
+                    }
+                } else if (targetTab === 'manage') {
+                    manageTabContent.classList.remove('hidden');
+                    if (auth.currentUser) {
+                        fetchAndRenderMyWorks(); // Fetch works only when user is logged in
+                    } else {
+                        myWorksListContainer.innerHTML = '<p class="text-gray-500 text-center">로그인 후 작품을 관리할 수 있습니다.</p>';
+                        noWorksMessage.classList.add('hidden');
+                    }
+                }
+                // Always scroll to top when switching tabs
+                window.scrollTo(0, 0);
             });
         });
 
-        // Comic files input change (for previewing images)
-        comicFilesInput.addEventListener('change', handleComicFilesChange);
+        // Function to reset the upload form
+        function resetUploadForm() {
+            workTitleInput.value = '';
+            workTypeSelect.value = 'novel';
+            workGenreSelect.value = '';
+            ageRatingSelect.value = '';
+            workIntroductionTextarea.value = '';
+            // thumbnailUrlInput.value = ''; // REMOVED
+            quillThumbnail.root.innerHTML = ''; // NEW: Clear thumbnail editor
+            publicSettingSelect.value = 'public';
+            tagsContainer.innerHTML = '';
+            novelPages = ['<p>이것은 첫 번째 페이지의 내용입니다. 소설을 책처럼 넘기면서 작성해 보세요!</p>'];
+            currentPageIndex = 0;
+            renderCurrentPage();
+            currentWorkId = null; // Clear current work ID
+            uploadButtonText.textContent = '작품 업로드'; // Reset button text
+        }
 
-        // Novel Chapter View/Edit Modal Event Listeners
-        prevPageBtn.addEventListener('click', handlePrevPage);
-        nextPageBtn.addEventListener('click', handleNextPage);
-        editChapterBtn.addEventListener('click', handleEditChapter);
-        saveChapterBtn.addEventListener('click', handleSaveChapter);
-        cancelChapterEditBtn.addEventListener('click', handleCancelChapterEdit);
-        deleteChapterBtn.addEventListener('click', handleDeleteChapter);
-        closeChapterModalBtn.addEventListener('click', handleCloseChapterModal);
+        // Check URL for tab parameter on load
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialTab = urlParams.get('tab');
+        if (initialTab === 'manage') {
+            document.querySelector('.main-tab-button[data-tab="manage"]').click();
+        } else {
+            document.querySelector('.main-tab-button[data-tab="upload"]').click();
+        }
 
     </script>
 </body>
